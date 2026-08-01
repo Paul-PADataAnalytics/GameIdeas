@@ -1,0 +1,1 @@
+There is a game in the python files of this directory based on the design in the mark down.  You should also find JSON UI information.  Please make this into a launchable program so I cna play it. Currently it operates as simulation, I don't want to compromise the existing files if possible.
