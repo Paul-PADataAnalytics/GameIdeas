@@ -1,0 +1,56 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "8ef195a3340c",
+  "session_id": "686c4931-d7b6-4712-bfe0-2833173fe19f",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-02T17:36:46.591736602Z",
+  "branch": "master",
+  "checkpoints_count": 1,
+  "save_step_count": 2,
+  "files_touched": [
+    "uigames/hero_adventure/sim_logs/sim_events.jsonl",
+    "uigames/hero_adventure/sim_logs/sim_summary.json"
+  ],
+  "agent": "Copilot CLI",
+  "model": "auto",
+  "turn_id": "a1b3a7816347",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 44036,
+    "api_call_count": 62
+  },
+  "session_metrics": {
+    "turn_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-02T17:36:46.419434342Z",
+    "agent_lines": 0,
+    "agent_removed": 138719,
+    "human_added": 108249,
+    "human_modified": 102691,
+    "human_removed": 0,
+    "total_committed": 210940,
+    "total_lines_changed": 349659,
+    "agent_percentage": 39.672652498577186,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 102691,
+      "agent_lines_removed": 138723
+    }
+  ]
+}

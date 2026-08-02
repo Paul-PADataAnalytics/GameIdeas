@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "8ef195a3340c",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "uigames/hero_adventure/sim_logs/sim_events.jsonl",
+    "uigames/hero_adventure/sim_logs/sim_summary.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/8e/f195a3340c/0/metadata.json",
+      "transcript": "/8e/f195a3340c/0/full.jsonl",
+      "compact_transcript": "/8e/f195a3340c/0/transcript.jsonl",
+      "content_hash": "/8e/f195a3340c/0/content_hash.txt",
+      "prompt": "/8e/f195a3340c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 44036,
+    "api_call_count": 62
+  }
+}
