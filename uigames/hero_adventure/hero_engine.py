@@ -352,6 +352,23 @@ class HeroAdventureEngine:
     def take_damage(self, amount, reason="unknown causes"):
         self.hp -= amount
         if self.hp <= 0:
+            fairy_item = self.equipment.get("camping_medical")
+            if fairy_item and fairy_item.get("name") == "Captured Fairy":
+                rewind_events = min(5, self.leg_event_count)
+                self.leg_event_count = max(0, self.leg_event_count - 5)
+                cash_taken = min(1000, self.cash)
+                self.cash -= cash_taken
+                self.hp = self.max_hp
+                self.equipment["camping_medical"] = None
+                if self.in_dungeon:
+                    self.leave_dungeon("fairy rescue")
+                self.log("FAIRY_SAVED_LIFE", {
+                    "reason": reason,
+                    "events_rewound": rewind_events,
+                    "cash_taken": cash_taken,
+                    "hp": self.hp
+                })
+                return
             # Check Pendant of Life
             has_pendant = False
             for slot, eq in self.equipment.items():
@@ -433,21 +450,23 @@ class HeroAdventureEngine:
         # Weights are intentionally fight-heavy.
         if self.leg_event_count <= 10:
             weighted_events = [
-                ("FIGHT", 80),
+                ("FIGHT", 78),
                 ("SUPER_MONSTER", 8),
                 ("MAGIC_SHRINE", 6),
                 ("WANDERING_TRADER", 6),
                 ("WANDER_GROUP", 4),
+                ("FAIRY_FOUND", 2),
             ]
         else:
             weighted_events = [
-                ("FIGHT", 72),
+                ("FIGHT", 70),
                 ("SUPER_MONSTER", 8),
                 ("MAGIC_SHRINE", 6),
                 ("WANDERING_TRADER", 6),
                 ("TAVERN", 4),
                 ("CAMP", 4),
                 ("WANDER_GROUP", 4),
+                ("FAIRY_FOUND", 2),
             ]
 
         def within_three_events(last_turn):
@@ -470,6 +489,9 @@ class HeroAdventureEngine:
                     continue
             elif event_type == "WANDER_GROUP":
                 if within_three_events(self.last_journey_event_turn.get("WANDER_GROUP")):
+                    continue
+            elif event_type == "FAIRY_FOUND":
+                if within_three_events(self.last_journey_event_turn.get("FAIRY_FOUND")):
                     continue
             allowed.append((event_type, weight))
 
@@ -497,6 +519,8 @@ class HeroAdventureEngine:
             self.last_journey_event_turn[chosen_event] = self.leg_event_count
         elif chosen_event == "WANDER_GROUP":
             self.last_journey_event_turn["WANDER_GROUP"] = self.leg_event_count
+        elif chosen_event == "FAIRY_FOUND":
+            self.last_journey_event_turn["FAIRY_FOUND"] = self.leg_event_count
 
         return chosen_event
 
@@ -606,6 +630,25 @@ class HeroAdventureEngine:
             "new_items": self.inventory[before_len:],
             "hp": self.hp,
         }
+
+    def capture_fairy(self):
+        """Adds a captured fairy item to inventory."""
+        fairy_item = {
+            "name": "Captured Fairy",
+            "category": "fairy",
+            "slot": "camping_medical",
+            "tier": "Epic",
+            "code": "e",
+            "skill": None,
+            "skill_val": 0,
+            "weight": 1,
+            "value": 1000,
+            "uses": 1,
+            "max_uses": 1,
+        }
+        self.inventory.append(fairy_item)
+        self.log("FAIRY_CAPTURED", {"item": fairy_item["name"]})
+        return fairy_item
 
     def apply_wander_group_advance(self, step_count=5):
         """Moves the hero forward on the current leg by additional events."""
@@ -741,6 +784,9 @@ class HeroAdventureEngine:
             if transition:
                 return transition
             return "WANDER_GROUP"
+        elif event_type == "FAIRY_FOUND":
+            self.capture_fairy()
+            return "FAIRY_FOUND"
         else:
             m_name = self.get_random_monster()
             choice = self.get_tactical_choice(m_name)
@@ -1169,6 +1215,10 @@ class GameController:
                 self.ctx = {}
                 self.screen = "capital"
                 return
+            self.ctx = {}
+            self.screen = "journey"
+        elif event_type == "FAIRY_FOUND":
+            e.capture_fairy()
             self.ctx = {}
             self.screen = "journey"
         else:

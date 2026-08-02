@@ -50,6 +50,26 @@ class MonteCarloAgent:
         else:
             return "fight"
 
+    def equip_fairy_if_available(self):
+        """Prioritize equipping a captured fairy into camping/medical slot."""
+        has_fairy_equipped = (
+            self.engine.equipment.get("camping_medical")
+            and self.engine.equipment["camping_medical"].get("name") == "Captured Fairy"
+        )
+        if has_fairy_equipped:
+            return
+        fairy_idx = next(
+            (i for i, item in enumerate(self.engine.inventory) if item.get("name") == "Captured Fairy"),
+            None,
+        )
+        if fairy_idx is None:
+            return
+        fairy = self.engine.inventory.pop(fairy_idx)
+        old = self.engine.equipment.get("camping_medical")
+        if old:
+            self.engine.inventory.append(old)
+        self.engine.equipment["camping_medical"] = fairy
+
     def run_full_game(self):
         steps = 0
         max_steps = 300  # safety step cap
@@ -78,6 +98,8 @@ class MonteCarloAgent:
                     self.engine.in_dungeon = True
                 else:
                     self.engine.log("DUNGEON_BYPASSED", {"hp": self.engine.hp})
+            elif res == "FAIRY_FOUND":
+                self.equip_fairy_if_available()
             elif res == "SUPER_MONSTER":
                 # Phase 8: Avoid Super Monster if HP < 60
                 sm_name = LEGS[self.engine.current_leg_idx]["super_monster"]
