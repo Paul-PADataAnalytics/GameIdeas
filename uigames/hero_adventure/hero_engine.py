@@ -47,6 +47,8 @@ class HeroAdventureEngine:
         self.current_leg_idx = 0  # 0 to 4
         self.leg_event_count = 0  # 0 to 20
         self.dungeons_found_in_leg = 0 # max 2
+        self.super_monster_seen_in_leg = False
+        self.last_journey_event_turn = {}
         self.in_dungeon = False
         self.dungeon_name = ""
         self.dungeon_event_count = 0  # 0 to 6 (1-5 floor fights, 6 boss)
@@ -106,13 +108,16 @@ class HeroAdventureEngine:
         if not quality_bias:
             r = random.random()
             if leg_num == 1:
-                tier = "Common" if r < 0.70 else ("Uncommon" if r < 0.95 else "Rare")
+                # Design tiering: leg 1 is Common only.
+                tier = "Common"
             elif leg_num == 2:
-                tier = "Common" if r < 0.40 else ("Uncommon" if r < 0.85 else "Rare")
+                tier = "Common" if r < 0.70 else "Uncommon"
             elif leg_num == 3:
-                tier = "Uncommon" if r < 0.50 else ("Rare" if r < 0.90 else "Epic")
+                tier = "Common" if r < 0.40 else ("Uncommon" if r < 0.80 else "Rare")
+            elif leg_num == 4:
+                tier = "Uncommon" if r < 0.35 else ("Rare" if r < 0.80 else "Epic")
             else:
-                tier = "Rare" if r < 0.60 else "Epic"
+                tier = "Rare" if r < 0.65 else "Epic"
         else:
             tier = quality_bias
             
@@ -291,8 +296,7 @@ class HeroAdventureEngine:
                 if win:
                     damage = 0
                 else:
-                    base_dmg = max(5, m_stats["fighting"] - effective_def)
-                    damage = int(base_dmg * (1.5 if crit else 1.0) * random.uniform(0.9, 1.1))
+                    damage = max(5, m_stats["fighting"] - effective_def)
 
                 # Sword of Power / Plate of Invincibility: 50% reroll of a loss when held alone
                 if not win and (has_sword or has_plate):
@@ -397,20 +401,78 @@ class HeroAdventureEngine:
         return random.choice(leg_monsters) if leg_monsters else "Goblin"
 
     def roll_journey_event_type(self):
-        """Rolls which kind of journey event happens next. Canonical
-        thresholds: 5% rest (camp/tavern split evenly), 15% super monster,
-        15% magic shrine, 15% wandering trader, 50% regular fight."""
-        r = random.random()
-        if r < 0.05:
-            return "TAVERN" if random.random() < 0.5 else "CAMP"
-        elif r < 0.20:
-            return "SUPER_MONSTER"
-        elif r < 0.35:
-            return "MAGIC_SHRINE"
-        elif r < 0.50:
-            return "WANDERING_TRADER"
+        """Rolls the next journey event with pacing constraints.
+        Rules:
+        - Mostly fights.
+        - Rest events (tavern/camp) only in second half of a leg.
+        - Rest events cannot occur within 3 events of another rest event.
+        - Free-loot style events (magic shrine, wandering trader) cannot
+          repeat within 3 events of themselves.
+        - Super monster appears at most once per leg and also respects
+          a 3-event self-cooldown.
+        """
+        # Weights are intentionally fight-heavy.
+        if self.leg_event_count <= 10:
+            weighted_events = [
+                ("FIGHT", 80),
+                ("SUPER_MONSTER", 8),
+                ("MAGIC_SHRINE", 6),
+                ("WANDERING_TRADER", 6),
+            ]
         else:
+            weighted_events = [
+                ("FIGHT", 72),
+                ("SUPER_MONSTER", 8),
+                ("MAGIC_SHRINE", 6),
+                ("WANDERING_TRADER", 6),
+                ("TAVERN", 4),
+                ("CAMP", 4),
+            ]
+
+        def within_three_events(last_turn):
+            return last_turn is not None and (self.leg_event_count - last_turn) <= 3
+
+        allowed = []
+        for event_type, weight in weighted_events:
+            if event_type == "SUPER_MONSTER":
+                if self.super_monster_seen_in_leg:
+                    continue
+                if within_three_events(self.last_journey_event_turn.get("SUPER_MONSTER")):
+                    continue
+            elif event_type in ("TAVERN", "CAMP"):
+                # Rest events are blocked in first-half legs by construction,
+                # and share a mutual cooldown window.
+                if within_three_events(self.last_journey_event_turn.get("REST")):
+                    continue
+            elif event_type in ("MAGIC_SHRINE", "WANDERING_TRADER"):
+                if within_three_events(self.last_journey_event_turn.get(event_type)):
+                    continue
+            allowed.append((event_type, weight))
+
+        # If all non-fight options are blocked, force a fight.
+        if not allowed:
             return "FIGHT"
+
+        total_weight = sum(weight for _, weight in allowed)
+        roll = random.uniform(0, total_weight)
+        upto = 0
+        chosen_event = "FIGHT"
+        for event_type, weight in allowed:
+            upto += weight
+            if roll <= upto:
+                chosen_event = event_type
+                break
+
+        # Record event occurrence for cooldown tracking.
+        if chosen_event == "SUPER_MONSTER":
+            self.super_monster_seen_in_leg = True
+            self.last_journey_event_turn["SUPER_MONSTER"] = self.leg_event_count
+        elif chosen_event in ("TAVERN", "CAMP"):
+            self.last_journey_event_turn["REST"] = self.leg_event_count
+        elif chosen_event in ("MAGIC_SHRINE", "WANDERING_TRADER"):
+            self.last_journey_event_turn[chosen_event] = self.leg_event_count
+
+        return chosen_event
 
     def try_spot_dungeon(self):
         """Checks the dungeon-spotting roll (max 2 per leg). If found, records
@@ -442,6 +504,8 @@ class HeroAdventureEngine:
             self.current_leg_idx += 1
             self.leg_event_count = 0
             self.dungeons_found_in_leg = 0
+            self.super_monster_seen_in_leg = False
+            self.last_journey_event_turn = {}
             self.log("LEG_COMPLETED", {"new_leg": self.current_leg_idx + 1})
             return "LEVEL_UP"
         else:
@@ -559,6 +623,8 @@ class HeroAdventureEngine:
         self.current_leg_idx += 1
         self.leg_event_count = 0
         self.dungeons_found_in_leg = 0
+        self.super_monster_seen_in_leg = False
+        self.last_journey_event_turn = {}
 
     def sell_all_for_capital(self):
         """Auto-sells all inventory & equipment at 100% value, as happens

@@ -44,7 +44,7 @@ The journey is made up of 5 legs of 20 events.  The journey is a series of event
 
 A player levels at the end of a leg of the journey, and can choose to increase three of their skills by 5 points.  The player can only level up at the end of the leg of the journey.
 
-There are some specifics however, rest stops, like camping and taverns can not occur in the first half of the journey, and must never occur within 3 events of each other.  The super monster can only occur once per leg of the journey, and is a special event that is more difficult than the regular monsters of the leg.  The super monster will always have a relic and 1-2 equipment items.
+There are some specifics however: fights are the dominant event type in every leg; rest stops (camping and taverns) can not occur in the first half of a leg, and rest events must never occur within 3 events of each other.  Free-loot style journey events (Magic Shrine and Wandering Trader) also have a per-type 3-event cooldown so they cannot chain too frequently.  The super monster can only occur once per leg of the journey, and is a special event that is more difficult than the regular monsters of the leg.  The super monster will always have a relic and 1-2 equipment items.
 
 There are specific monsters that are assigned to each leg of the journey, and they are listed in the Monster Lookup Table.  The monsters have a chance to drop loot, and the loot is based on the leg of the journey.
 
@@ -194,10 +194,11 @@ Some special loot has an effect on the outcome of events, such as a pendant that
 
 Loot is tiered to the leg:
 
-- Common - leg 1-3
-- Uncommon - leg 2-4
-- Rare - leg 3-5
-- Epic - leg 4-5
+- Leg 1: Common only
+- Leg 2: Common and Uncommon
+- Leg 3: Common, Uncommon, and Rare
+- Leg 4: Uncommon, Rare, and Epic
+- Leg 5: Rare and Epic
 
 ## Scoring
 
@@ -226,7 +227,7 @@ The game is a UI game made out of menus and buttons.  The ui is described as pag
 - Capital - The player can buy a home and retire if they have enough fortune (cash).  There are options for each house, and the calculated score so you can choose the best option.  If you do not have enough fortune to buy a home, you can only choose tavern.  There is a button to end the adventure which secures the choice and takes to the end game.
 - Event - There are the following major event types:
   - Magic event - Magic traps have been removed from the journey. Magic events now grant magical shrines that allow players to rest or roll for magic loot without taking damage. Players can only lose HP in combat fights.
-  - Fight - The player is attacked by a monster and must fight it.  The outcome is a contested dice roll based on the fighting/defending skills of both the player and monster - a stat edge tilts the odds heavily but never guarantees the result.  Success results in the loot window (with a chance of a Critical win for bonus loot), failure results in a loss window (with a chance of a Critical loss for extra damage).
+  - Fight - The player is attacked by a monster and must fight it.  The outcome is a contested dice roll based on the fighting/defending skills of both the player and monster - a stat edge tilts the odds heavily but never guarantees the result.  Success results in the loot window (with a chance of a Critical win for bonus loot), failure results in a loss window with HP loss.
   - Dungeon Found - The player finds a dungeon and can choose to enter or ignore it.  If they enter, they go to the dungeon page, if they ignore it, they continue the journey.
   - Loot found - Shows the loot found window for random loot that is appropriate for the leg of the journey.
   - Friendly Encounter - The player meets a friendly NPC and can choose to talk or ignore them.  If they talk, they may be offered an item in trade, a chance to rest, or a guaranteed dungeon entrance (if they have some tries left), if they ignore them, they continue the journey.
@@ -234,7 +235,7 @@ The game is a UI game made out of menus and buttons.  The ui is described as pag
   - Super monster - The player spots a super monster with a relic and can choose to fight or ignore it.  If they fight, they go to the fight event, if they ignore it, they continue the journey without taking damage or fighting.  If they win, they get a loot relic and 10000 Cash, if they lose, they get a loss window with a punishing loss of health.
   - Tavern - The player finds a tavern and can choose to rest or continue the journey.  If they rest, they gain a lot of their health back at the cost of 100 cash.  If they continue, they get no other benefit.  The amount of health is based on a random roll of 40 + random(0-20).  If the player has a healing item equipped, the healing item may be consumed and the amount of health gained will be doubled, the player will be informed of the amount healed before asking if they want to double it.  No skills are used when staying in a tavern.
   - Camping spot - The player finds a camping spot and can choose to rest or continue the journey.  If they rest, they gain some of their health back based on their camping score * 1.  This can be * 2 if they have a healing item equipped, the healing item will be consumed if they take this option.  If they continue, they get no other benefit.
-- Fight screen - The fight screen shows the player the monster they are fighting and their skills, and the monsters skills.  It also has a button to fight, a button to sneak past, a button to steal their loot, and a button for a stealth kill. There may be an option to run away if the event grants it, or by a relic.  Every one of these actions is resolved as a contested dice roll (see the Fighting section) rather than a flat stat comparison, so the favored side usually wins but never with certainty.  If the player wins the Fight roll, they go to the loot window, if they lose, they go to the loss window.  If they chose steal, it is a contested roll of their stealth and salvaging skills added together vs the monsters defending skill * 2.  If they win, they go to the loot window, if they lose, they go to the loss window.  If they chose sneak past, it is a contested roll of their stealth skill vs the monsters defending skill.  If they win, they continue the journey, if they lose, they go to the loss window. If they chose stealth kill, it is a contested roll of (the players stealth skill * 2) vs (the monsters defending skill * 1.5). If they win the roll, the player defeats the monster and gets loot, if they lose, the player is caught and must fight.
+- Fight screen - The fight screen shows the player the monster they are fighting and their skills, and the monsters skills.  It also has a button to fight, a button to sneak past, a button to steal their loot, and a button for a stealth kill. There may be an option to run away if the event grants it, or by a relic.  Every one of these actions is resolved as a contested dice roll (see the Fighting section) rather than a flat stat comparison, so the favored side usually wins but never with certainty.  If the player wins the Fight roll, they go to the loot window, if they lose, they go to the loss window.  If they chose steal, it is a contested roll of their stealth and salvaging skills added together vs the monsters defending skill * 2.  If they win, they go to the loot window, if they lose, they go to the loss window.  If they chose sneak past, it is a contested roll of their stealth skill vs the monsters defending skill.  If they win, they continue the journey, if they lose, they go to the loss window. If they chose stealth kill, it is a contested roll of the player's stealth skill vs the monster's defending skill. If they win the roll, the player defeats the monster and gets loot, if they lose, the player is caught and must fight.
 - Inventory - The player can view their inventory and the weight of the items they are carrying.  They can choose to drop items to reduce their weight, or use items that have a use effect.  The inventory shows the items in a list with their name, value, weight, and use effect if any.
 - Loss window - The loss window shows the player that they have lost the event and the reason for the loss, it shows an amount of hit points lost.  It also has an Ok button which takes us back to the journey page, if we were in a dungeon it says that "The hero left the dungeon."
 - Loot Found - A loot window that shows the items found and the cash amount.  The player can choose to take the loot or leave it.  If they take it, it is added to their inventory and the weight is calculated.  If they leave it, they continue the journey/dungeon.
@@ -254,7 +255,7 @@ The player will have a chance to find a dungeon twice in each leg (see Dungeons)
 
 The 5 legs are:
 - Startersville to Forest Edge
-    This is a low level leg of the journey, with low level monsters and events.  The loot is also low level and the player will not be able to buy a home at the end of this leg.  The super monster is an angry deer with a relic.  Camping and tavern events are infrequent (around a 5% chance per event), with the remaining 95% being the other events.
+    This is a low level leg of the journey, with low level monsters and events.  The loot is also low level and the player will not be able to buy a home at the end of this leg.  The super monster is an angry deer with a relic.  Fights are the dominant event; camping and tavern events are blocked in the first half of the leg and, when available later, still follow the 3-event rest cooldown.
 - Forest Edge to Mountain Pass
     This is a mid level leg of the journey, with mid level monsters and events.  The loot is also mid level and the player may be able to buy a home at the end of this leg.  The super monster is a giant bear with a relic.
 - Mountain Pass to Desert Crossing
@@ -268,6 +269,18 @@ The 5 legs are:
 
 Monsters have no class, but have skills and loot. The skills are used to determine the outcome of the fight event. The loot is used to determine what the player can take after a successful fight. Monsters don't have salvaging, spotting, camping, or medical skills. Monsters only show up in specific legs of the journey matching their theme and level.
 
+Monster stat tuning is now baseline-driven at three checkpoints per leg:
+- **Leg Start baseline** (event 0)
+- **Mid-Leg baseline** (event 10)
+- **Leg End baseline** (event 20)
+
+For each leg, we compute an average player combat profile from these checkpoints and set monster bands from that profile:
+- **Weak monsters** target roughly **110% of the Leg Start average combat power**
+- **Strong monsters** target roughly **110% of the Leg End average combat power**
+- Mid-tier monsters are distributed between those two targets
+
+This keeps each leg challenging even when players are not at top gear, while preserving progression.
+
 Weak monsters always have 1-2 equipment, and strong monsters always have 2-3 equipment. The super monsters always have a relic and 1-2 equipment.
 
 Super Monsters are a special event and should only occur once per leg.
@@ -277,6 +290,8 @@ Monsters have no HP, they are either defeated or not.
 Dungeon monster rules and assignments are described in the Dungeons section.
 
 ### Monster Lookup Table
+
+The table below is a thematic lookup (monster roster, loot bands, and progression intent). Final fighting/defending values are scaled at runtime by the baseline model above to keep encounter difficulty aligned to player progression within each leg.
 
 | Leg | Monster Name | Type | Fighting | Defending | Magic | Cash Loot | Equipment | Relic Chance | Theme / Description | Super Monster |
 |---|---|---|---|---|---|---|---|---|---|
@@ -328,13 +343,13 @@ Dungeon monster rules and assignments are described in the Dungeons section.
 
 Every combat action - Fight, Sneak, Steal, and Stealth Kill - is resolved with a contested dice roll rather than a flat stat comparison, so no outcome is ever fully guaranteed by stats alone. Both sides add a random 1-20 swing on top of their relevant stat before comparing totals: a big stat advantage still makes success likely, but a lucky or unlucky roll can flip the result either way.
 
-For a straight Fight: if a player's magic skill is higher than their fighting skill, we use the magic skill for the player's attack score. Additionally, when using magic for attack (magic > fighting), the player gains a Magical Ward equal to 50% of their magic skill (100% with the Amulet of Arcane Shielding) added directly to their defending skill when calculating monster hit damage. The player's combined attack + effective defending, plus a random 1-20 roll, is compared against the monster's combined fighting + defending, plus its own random 1-20 roll - whichever total is higher wins the exchange. If the winning margin is 20 or more, it's a Critical: a critical win grants 50% bonus cash loot, and a critical loss deals 50% extra damage. On a loss, the player takes damage equal to (monster fighting - player's effective defending, minimum 5), scaled up for a critical loss and varied randomly by about +/-10%. Relics may affect this - see the Relics section.
+For a straight Fight: if a player's magic skill is higher than their fighting skill, we use the magic skill for the player's attack score. Additionally, when using magic for attack (magic > fighting), the player gains a Magical Ward equal to 50% of their magic skill (100% with the Amulet of Arcane Shielding) added directly to their defending skill when calculating monster hit damage. The player's combined attack + effective defending, plus a random 1-20 roll, is compared against the monster's combined fighting + defending, plus its own random 1-20 roll - whichever total is higher wins the exchange. If the winning margin is 20 or more, it's a Critical: a critical win grants 50% bonus cash loot. On a loss, the player takes damage equal to (monster fighting - player's effective defending, minimum 5). Relics may affect this - see the Relics section.
 
 The player can choose to sneak past the monster, steal from the monster, or execute a Stealth Kill instead of fighting head-on - each is its own contested dice roll:
 
 - Sneaking past pits the player's stealth against the monster's defending. Sneaking past never rewards loot, but never hurts the player either - if the roll fails, it simply becomes a Fight. With Boots of Stealth equipped, a failed sneak gets a 50% chance to re-roll into a success.
 - Stealing pits (the player's stealth + salvaging) against (the monster's defending * 2). A successful steal rewards loot without ever risking damage; a failed steal becomes a Fight.
-- A Stealth Kill pits (the player's stealth * 2) against (the monster's defending * 1.5), simulating the advantage of surprise. Success instantly defeats the monster for full loot without taking damage; failure becomes a Fight.
+- A Stealth Kill pits the player's stealth against the monster's defending as a straight contested stealth check. Success instantly defeats the monster for full loot without taking damage; failure becomes a Fight.
 
 On a defeat (including a failed Fight that followed a failed Sneak/Steal/Stealth Kill), the player loses HP as described above. The player never loses cash or items on a defeat.
 
@@ -347,6 +362,13 @@ Monsters still have no HP pool of their own - each encounter remains a single de
 There is a loot table for each leg of the journey and each dungeon.
 
 Loot takes the form of fighting weapons, defending armor, magic items, stealth items, salvaging tools, spotting items, camping gear, and medical supplies. Each item has a value and weight associated with it and will change the associated skill by a certain amount.
+
+Combat-skill gear is class-specific:
+- **Hitter** is the only class that gains combat attack scaling from **fighting** gear
+- **Blaster** is the only class that gains combat attack scaling from **magic** gear
+- **Hider** is the only class that gains combat attack scaling from **stealth** gear
+
+Utility gear (salvaging, spotting, camping, medical, accessories) remains available to all classes.
 
 Equiped items have no weight.
 
@@ -392,7 +414,14 @@ Players can only use Town Transport if they have enough cash.
 
 Commons are worth 10-50 cash, uncommons are worth 100-500 cash, rares are worth 1000-5000 cash, and epics are worth 10000-50000 cash.  The final value is based on the assocuiated skill amount that was rolled, a higher skill amount will result in a higher value with the maximum skill amount resulting in the maximum value.
 
-Relics are always epic and have a special effect that is taken into account in certain events.  The relics are:
+Relics are always epic and have a special effect that is taken into account in certain events.
+
+Relic acquisition is class-balanced:
+- Each class has a class-specific relic pool with the **same number of relics**
+- Relic pools are aligned to class identity (Hitter combat relics, Blaster magic relics, Hider stealth/utility relics)
+- Neutral/non-stat relic effects are distributed to preserve parity rather than concentrating power in one class
+
+The relics are:
 
 - Pendant of Life - Accessory - prevents death once
 - Ring of Fortune - Accessory - allows to re-roll the received loot when an event awards loot
@@ -437,4 +466,11 @@ Relics found are noted in a gallery of relics that can be viewed from the main p
 
 ## Equipment
 
-Each character can have 1 fighting weapon or magic item, 1 defending armor or 1 stealth item, 1 salvaging tool, 1 spotting item, 1 camping gear or 1 medical item equipped at a time. The player can equip two accessories. The equipped items will add to the associated skill and will be used in the events. The player can change their equipped items at any time during the journey or in the inventory page, but not during events.  The player can also have items in their inventory that are not equipped, but they will not add to the associated skill and will not be used in the events.  The equip sections are drop downs based on the items held in the inventory.  The player can choose to equip an item from the drop down and it will be equipped, or they can choose to unequip an item and it will be unequipped.  The player can also choose to drop an item from the inventory and it will be removed, the plays attributes are calculated every time the inventory is altered.  Items equipped have a * in front of their name to help identify what is equipped.  Inorder to not only rely on colour items have (c), (u), (r), (e) after their name to help identify the quality of the item.
+Each character can have 1 fighting weapon or magic item, 1 defending armor or 1 stealth item, 1 salvaging tool, 1 spotting item, 1 camping gear or 1 medical item equipped at a time. The player can equip two accessories.
+
+Class-specific combat scaling rules apply to equipment:
+- **Hitter:** only fighting gear contributes to primary attack scaling
+- **Blaster:** only magic gear contributes to primary attack scaling
+- **Hider:** only stealth gear contributes to primary attack scaling
+
+The player can change equipped items at any time during the journey or in the inventory page, but not during events.  The player can also have items in their inventory that are not equipped, but they will not add to the associated skill and will not be used in the events.  The equip sections are drop downs based on the items held in the inventory.  The player can choose to equip an item from the drop down and it will be equipped, or they can choose to unequip an item and it will be unequipped.  The player can also choose to drop an item from the inventory and it will be removed, the plays attributes are calculated every time the inventory is altered.  Items equipped have a * in front of their name to help identify what is equipped.  Inorder to not only rely on colour items have (c), (u), (r), (e) after their name to help identify the quality of the item.
