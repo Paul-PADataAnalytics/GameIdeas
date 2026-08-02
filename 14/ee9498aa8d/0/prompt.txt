@@ -1,0 +1,5 @@
+Lets introduce and new event that a wander group helps the player move 5 events further on the leg and see the effect this causes.
+
+---
+
+I have a new machanic, a fairy can randomly be found as an event and it's captured.  If equipped to the camping/medic slot, it will save a players life, restore them to full health, and send them back 5 events and take up to 1000 cash, or less if the player does not have 1000 cash.  Do another run, and give me stats on how effective the fairy is?
