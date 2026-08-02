@@ -437,6 +437,7 @@ class HeroAdventureEngine:
                 ("SUPER_MONSTER", 8),
                 ("MAGIC_SHRINE", 6),
                 ("WANDERING_TRADER", 6),
+                ("WANDER_GROUP", 4),
             ]
         else:
             weighted_events = [
@@ -446,6 +447,7 @@ class HeroAdventureEngine:
                 ("WANDERING_TRADER", 6),
                 ("TAVERN", 4),
                 ("CAMP", 4),
+                ("WANDER_GROUP", 4),
             ]
 
         def within_three_events(last_turn):
@@ -465,6 +467,9 @@ class HeroAdventureEngine:
                     continue
             elif event_type in ("MAGIC_SHRINE", "WANDERING_TRADER"):
                 if within_three_events(self.last_journey_event_turn.get(event_type)):
+                    continue
+            elif event_type == "WANDER_GROUP":
+                if within_three_events(self.last_journey_event_turn.get("WANDER_GROUP")):
                     continue
             allowed.append((event_type, weight))
 
@@ -490,6 +495,8 @@ class HeroAdventureEngine:
             self.last_journey_event_turn["REST"] = self.leg_event_count
         elif chosen_event in ("MAGIC_SHRINE", "WANDERING_TRADER"):
             self.last_journey_event_turn[chosen_event] = self.leg_event_count
+        elif chosen_event == "WANDER_GROUP":
+            self.last_journey_event_turn["WANDER_GROUP"] = self.leg_event_count
 
         return chosen_event
 
@@ -599,6 +606,11 @@ class HeroAdventureEngine:
             "new_items": self.inventory[before_len:],
             "hp": self.hp,
         }
+
+    def apply_wander_group_advance(self, step_count=5):
+        """Moves the hero forward on the current leg by additional events."""
+        self.leg_event_count += step_count
+        self.log("WANDER_GROUP_ADVANCE", {"events_advanced": step_count, "leg_event_count": self.leg_event_count})
 
     def trader_buy_multiplier(self):
         has_stone = any(eq and eq.get("name") == "Alchemist's Philosopher Stone" for eq in self.equipment.values())
@@ -723,6 +735,12 @@ class HeroAdventureEngine:
             return "MAGIC_SHRINE"
         elif event_type == "WANDERING_TRADER":
             return "WANDERING_TRADER"
+        elif event_type == "WANDER_GROUP":
+            self.apply_wander_group_advance(5)
+            transition = self.try_leg_transition()
+            if transition:
+                return transition
+            return "WANDER_GROUP"
         else:
             m_name = self.get_random_monster()
             choice = self.get_tactical_choice(m_name)
@@ -1138,6 +1156,21 @@ class GameController:
             self.trader_offer = e.generate_trader_offer()
             self.ctx = {}
             self.screen = "wandering_trader"
+        elif event_type == "WANDER_GROUP":
+            e.apply_wander_group_advance(5)
+            transition = e.try_leg_transition()
+            if transition == "LEVEL_UP":
+                self.levelup_chosen = []
+                self.ctx = {}
+                self.screen = "level_up"
+                return
+            elif transition == "CAPITAL":
+                e.sell_all_for_capital()
+                self.ctx = {}
+                self.screen = "capital"
+                return
+            self.ctx = {}
+            self.screen = "journey"
         else:
             self._start_combat(e.get_random_monster(), "regular", allow_run=True)
 
