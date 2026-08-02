@@ -27,3 +27,7 @@ run the simulations on 1000 players and breakdown their performance in the game.
 ---
 
 after each change, lets commit and push so we can re-wind to earlier checkpoints.
+
+---
+
+lets revert the damage changes we applied recently after the static analysis
