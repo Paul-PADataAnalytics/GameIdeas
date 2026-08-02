@@ -799,7 +799,7 @@ class HeroAdventureEngine:
 
     def use_town_transport(self):
         """Hires transport back to last town to heal HP for a leg-scaled cash fee."""
-        cost = 10000 + (self.current_leg_idx * 5000)
+        cost = 100 + (self.current_leg_idx * 50)
         if self.cash >= cost:
             self.cash -= cost
             self.hp = 100

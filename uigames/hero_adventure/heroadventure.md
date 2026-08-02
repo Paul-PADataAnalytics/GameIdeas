@@ -409,11 +409,11 @@ This is rolled at random within these bands.
 
 ### Town Transport Travel
 Players can choose to hire transport to travel back to the last town/tavern to rest and recover HP. The cost scales by leg:
-- Leg 1: 10,000 cash
-- Leg 2: 15,000 cash
-- Leg 3: 20,000 cash
-- Leg 4: 25,000 cash
-- Leg 5: 30,000 cash
+- Leg 1: 100 cash
+- Leg 2: 150 cash
+- Leg 3: 200 cash
+- Leg 4: 250 cash
+- Leg 5: 300 cash
 Players can only use Town Transport if they have enough cash.
 
 Commons are worth 10-50 cash, uncommons are worth 100-500 cash, rares are worth 1000-5000 cash, and epics are worth 10000-50000 cash.  The final value is based on the assocuiated skill amount that was rolled, a higher skill amount will result in a higher value with the maximum skill amount resulting in the maximum value.

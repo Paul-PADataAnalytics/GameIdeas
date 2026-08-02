@@ -80,7 +80,7 @@ class MonteCarloAgent:
             steps += 1
             
             # Phase 9: Use Town Transport if HP < 50 and cash is available
-            cost = 10000 + (self.engine.current_leg_idx * 5000)
+            cost = 100 + (self.engine.current_leg_idx * 50)
             if self.engine.hp < 50 and self.engine.cash >= cost:
                 self.engine.use_town_transport()
 
