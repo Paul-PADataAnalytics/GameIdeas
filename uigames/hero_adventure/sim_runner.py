@@ -62,8 +62,8 @@ class MonteCarloAgent:
             if self.engine.hp < 50 and self.engine.cash >= cost:
                 self.engine.use_town_transport()
 
-            # Phase 9: Exit dungeon at any time (including boss floors) if HP < 60
-            if self.engine.in_dungeon and self.engine.hp < 60:
+            # Exit dungeon at any time (including boss floors) if HP < 50%
+            if self.engine.in_dungeon and self.engine.hp < 50:
                 self.engine.in_dungeon = False
                 self.engine.log("DUNGEON_EXITED_SAFELY", {"hp": self.engine.hp})
                 res = "JOURNEY"
@@ -73,8 +73,8 @@ class MonteCarloAgent:
             if res == "LEVEL_UP":
                 self.select_level_up_skills()
             elif res in ["DUNGEON_FOUND"]:
-                # Only enter dungeon if HP >= 50
-                if self.engine.hp >= 50:
+                # Enter dungeon only when above 50% HP
+                if self.engine.hp > 50:
                     self.engine.in_dungeon = True
                 else:
                     self.engine.log("DUNGEON_BYPASSED", {"hp": self.engine.hp})

@@ -10,6 +10,22 @@ from game_data import (
     RELICS, HOUSES, PENSIONS
 )
 
+
+def _build_dungeon_monster_name_set():
+    names = set()
+    for leg in LEGS:
+        for dungeon in leg.get("dungeons", []):
+            boss = dungeon.get("boss")
+            if boss:
+                names.add(boss)
+            for floor_monster in dungeon.get("floors", []):
+                names.add(floor_monster)
+    return names
+
+
+DUNGEON_MONSTER_NAMES = _build_dungeon_monster_name_set()
+
+
 class HeroAdventureEngine:
     def __init__(self, hero_name="Hero", hero_class="Hitter", fast_mode=True):
         self.fast_mode = fast_mode
@@ -397,7 +413,10 @@ class HeroAdventureEngine:
         """Picks a random regular monster appropriate for a leg (defaults to
         the hero's current leg)."""
         leg_idx = self.current_leg_idx if leg_idx is None else leg_idx
-        leg_monsters = [m for m, data in MONSTERS.items() if data.get("leg") == leg_idx + 1]
+        leg_monsters = [
+            m for m, data in MONSTERS.items()
+            if data.get("leg") == leg_idx + 1 and m not in DUNGEON_MONSTER_NAMES
+        ]
         return random.choice(leg_monsters) if leg_monsters else "Goblin"
 
     def roll_journey_event_type(self):

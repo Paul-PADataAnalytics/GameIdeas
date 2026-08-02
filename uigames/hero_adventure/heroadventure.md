@@ -166,6 +166,8 @@ Each dungeon contains five themed floor monsters leading to its boss. Floor 1 is
 
 Dungeon monsters are specifically assigned to each dungeon such that they are specially set and can be learnt by the player. Dungeon monsters are always stronger than the regular monsters of the same leg and have a higher chance of dropping loot. Their stats are listed in the Monster Lookup Table under the Dungeon Boss type.
 
+Dungeon Monsters only occur in dungeons, never in the wild on a leg.
+
 ### Dungeons by Leg
 
 - **Startersville to Forest Edge**
