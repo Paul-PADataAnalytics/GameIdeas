@@ -1,0 +1,16 @@
+{
+  "id": "combat",
+  "title": "\u2694\ufe0f Encounter: {monster_name}",
+  "text": [
+    "Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}",
+    "Your HP: {hp}/{max_hp}   Fighting: {fighting}  Defending: {defending}  Stealth: {stealth}  Salvaging: {salvaging}"
+  ],
+  "buttons": [
+    { "label": "\u2694\ufe0f Fight", "action": "fight" },
+    { "label": "\ud83d\udc65 Sneak", "action": "sneak" },
+    { "label": "\ud83e\uddb6 Steal", "action": "steal" },
+    { "label": "\ud83d\udd2a Stealth Kill", "action": "stealth_kill" },
+    { "label": "\ud83c\udfc3 Run Away", "action": "run_away", "visible_if": "allow_run" },
+    { "label": "\ud83c\udf92 Inventory", "action": "open_inventory" }
+  ]
+}

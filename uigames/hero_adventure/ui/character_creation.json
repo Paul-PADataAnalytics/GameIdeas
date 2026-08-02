@@ -1,0 +1,18 @@
+{
+  "id": "character_creation",
+  "title": "Character Creation",
+  "text": [
+    "Name: {pending_name}",
+    "Class: {pending_class}",
+    "",
+    "Hitter: +20 Fighting/Defending/Camping | Blaster: +20 Magic/Spotting/Medical | Hider: +20 Stealth/Salvaging/Spotting"
+  ],
+  "buttons": [
+    { "label": "\u2694\ufe0f Hitter (+20 Fight/Def/Camp)", "action": "select_class:Hitter" },
+    { "label": "\ud83d\udd2e Blaster (+20 Magic/Spot/Med)", "action": "select_class:Blaster" },
+    { "label": "\ud83d\udc5f Hider (+20 Stealth/Salv/Spot)", "action": "select_class:Hider" },
+    { "label": "\u2705 Confirm & Begin Journey", "action": "confirm_character" },
+    { "label": "Back", "action": "goto:front_page" }
+  ]
+}
+

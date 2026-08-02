@@ -1,0 +1,136 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    ⚔️ HERO ADVENTURE - QUICK START ⚔️
+═══════════════════════════════════════════════════════════════════════════════
+
+🎮 TO PLAY THE GAME:
+
+  Option 1 (Recommended):
+    ./launch
+
+  Option 2:
+    python3 play.py
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📖 BASIC GAME FLOW:
+
+  1. START → Choose to create a new character
+  2. CHARACTER CREATION → Pick your class (Hitter, Blaster, or Hider)
+  3. JOURNEY → Travel through 5 legs, each with 20 events
+     • Fight monsters with multiple tactics
+     • Explore dungeons for treasure
+     • Level up at the end of each leg
+  4. THE CAPITAL → Retire with your gold
+     • Buy a house (Cottage → Palace)
+     • Or work in a tavern
+  5. FINAL SCORE → Your score = remaining gold × house multiplier
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 YOUR FIRST GAME:
+
+  CLASS CHOICE:
+    ⚔️ Hitter     → Best for: Combat-focused playstyle
+    🔮 Blaster    → Best for: Magic and exploration
+    👟 Hider      → Best for: Stealth and sneaking
+
+  DURING JOURNEY:
+    When you encounter a monster:
+    1. Fight (strongest attacking skill vs their defense)
+    2. Sneak (stealth vs their defense × 2)
+    3. Steal (stealth + salvaging vs defense × 2)
+    4. Stealth Kill (stealth × 2 vs defense × 1.5)
+
+  WHEN YOU FIND DUNGEONS:
+    Choose to enter or ignore
+    • Defeating the boss grants 200-500 gold
+    • 5 floors with mini-encounters
+    • Can leave at any time
+
+  AT LEVEL UP:
+    Choose 3 skills to boost by +5 each
+    • Balance your weaknesses
+    • Build towards your strategy
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💡 WINNING STRATEGY:
+
+  Early Game (Legs 1-2):
+    • Build up gold (~5,000+)
+    • Level up key combat skills
+    • Explore all dungeons for treasure
+
+  Mid Game (Legs 3-4):
+    • Target 20,000+ gold
+    • Equip best gear found
+    • Master your combat style
+
+  Late Game (Leg 5):
+    • Push for 50,000+ if aiming for Palace
+    • Or secure 10,000+ for Castle
+    • Every bit of remaining gold matters!
+
+  At Capital:
+    • Cottage (1,000 cost) = 1× multiplier
+    • Villa (5,000 cost) = 5× multiplier
+    • Castle (10,000 cost) = 10× multiplier
+    • Mansion (20,000 cost) = 20× multiplier
+    • Palace (50,000 cost) = 50× multiplier
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎮 CONTROLS:
+
+  • Use arrow keys to navigate (if supported by terminal)
+  • Type numbers (1-9) to choose options
+  • Press Enter to continue or confirm
+  • Type 'y' or 'n' for yes/no questions
+
+═══════════════════════════════════════════════════════════════════════════════
+
+📊 8 SKILLS TO MASTER:
+
+  Fighting       → Combat attack power
+  Defending      → Defense and armor effectiveness
+  Magic          → Magical ability and spellcasting
+  Stealth        → Sneaking and evasion
+  Salvaging      → Finding and stealing items
+  Spotting       → Detecting dungeons and hazards
+  Camping        → Survival and field healing
+  Medical        → Using healing items effectively
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🎁 FEATURES:
+
+  ✓ 5-leg journey with 100+ possible events
+  ✓ 3 unique character classes
+  ✓ Dynamic combat system (4 ways to handle encounters)
+  ✓ Dungeon exploration with bosses
+  ✓ Equipment system with loot
+  ✓ Level-up progression
+  ✓ High score tracking
+  ✓ Multiple endings based on wealth
+  ✓ Replay value with different strategies
+
+═══════════════════════════════════════════════════════════════════════════════
+
+⚠️ IMPORTANT:
+
+  • If you run out of HP, your adventure ends and you cannot buy a house
+  • Manage your inventory weight (overburdened = skill penalties)
+  • Every gold counts toward your final score
+  • Try different classes and strategies for different scores
+  • Save high scores by completing full journeys
+
+═══════════════════════════════════════════════════════════════════════════════
+
+🚀 READY TO START?
+
+  Run: python3 play.py
+  or:  ./launch
+
+  Then choose "1. Start New Game" and begin your legend!
+
+═══════════════════════════════════════════════════════════════════════════════
