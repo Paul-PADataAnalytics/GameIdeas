@@ -1,0 +1,9 @@
+The design calls for dungeon monsters to be special to dungeons, and not outside in a leg, please update the code to do so and update the simulation agents to leave dungeons when they have <50% hp, or not enter them in the first place.  This should improve survivability and is consistent to the design.
+
+---
+
+lets run another set of simulations and see the effect on the journey and on deaths.
+
+---
+
+how many had relics
