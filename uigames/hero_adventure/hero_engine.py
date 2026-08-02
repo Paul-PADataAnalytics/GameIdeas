@@ -31,6 +31,7 @@ class HeroAdventureEngine:
         self.fast_mode = fast_mode
         self.hero_name = hero_name
         self.hero_class = hero_class
+        self.skip_journey_fights = False
         
         # Base Skills (all start at 5)
         self.base_skills = {
@@ -788,6 +789,10 @@ class HeroAdventureEngine:
             self.capture_fairy()
             return "FAIRY_FOUND"
         else:
+            if self.skip_journey_fights:
+                m_name = self.get_random_monster()
+                self.log("JOURNEY_FIGHT_BYPASSED", {"monster": m_name})
+                return "JOURNEY"
             m_name = self.get_random_monster()
             choice = self.get_tactical_choice(m_name)
             return self.resolve_fight(m_name, choice=choice)

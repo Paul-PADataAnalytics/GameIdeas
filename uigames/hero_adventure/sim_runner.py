@@ -17,10 +17,12 @@ JSONL_PATH = os.path.join(LOG_DIR, "sim_events.jsonl")
 SUMMARY_PATH = os.path.join(LOG_DIR, "sim_summary.json")
 
 class MonteCarloAgent:
-    def __init__(self, run_id, chosen_class=None):
+    def __init__(self, run_id, chosen_class=None, skip_journey_fights=False):
         self.run_id = run_id
         self.hero_class = chosen_class or random.choice(list(CLASSES.keys()))
         self.engine = HeroAdventureEngine(hero_name=f"Hero_{run_id}", hero_class=self.hero_class, fast_mode=True)
+        self.skip_journey_fights = skip_journey_fights
+        self.engine.skip_journey_fights = skip_journey_fights
 
     def select_level_up_skills(self):
         """Pick 3 skill level-up choices (+5 each) tailored to class."""
@@ -93,17 +95,24 @@ class MonteCarloAgent:
             if res == "LEVEL_UP":
                 self.select_level_up_skills()
             elif res in ["DUNGEON_FOUND"]:
+                # In no-journey-fights mode, avoid dungeons entirely to model
+                # near-guaranteed survivability from encounter skipping.
+                if self.skip_journey_fights:
+                    self.engine.log("DUNGEON_BYPASSED", {"reason": "skip_journey_fights_mode"})
                 # Enter dungeon only when above 50% HP
-                if self.engine.hp > 50:
+                elif self.engine.hp > 50:
                     self.engine.in_dungeon = True
                 else:
                     self.engine.log("DUNGEON_BYPASSED", {"hp": self.engine.hp})
             elif res == "FAIRY_FOUND":
                 self.equip_fairy_if_available()
             elif res == "SUPER_MONSTER":
-                # Phase 8: Avoid Super Monster if HP < 60
                 sm_name = LEGS[self.engine.current_leg_idx]["super_monster"]
-                if self.engine.hp >= 60:
+                # In no-journey-fights mode, always bypass.
+                if self.skip_journey_fights:
+                    self.engine.log("SUPER_MONSTER_BYPASSED", {"monster": sm_name, "reason": "skip_journey_fights_mode"})
+                # Default behavior: avoid only when low HP.
+                elif self.engine.hp >= 60:
                     choice = self.choose_tactical_action(None, sm_name)
                     self.engine.resolve_fight(sm_name, choice=choice)
                 else:
@@ -149,7 +158,7 @@ class MonteCarloAgent:
             "total_events": len(self.engine.event_logs)
         }
 
-def run_batch_simulation(total_runs=1000):
+def run_batch_simulation(total_runs=1000, skip_journey_fights=False):
     os.makedirs(LOG_DIR, exist_ok=True)
     
     print(f"🚀 Starting {total_runs} batch Monte Carlo runs in zero-delay fast mode...")
@@ -158,7 +167,7 @@ def run_batch_simulation(total_runs=1000):
     
     with open(JSONL_PATH, "w") as jsonl_file:
         for i in range(1, total_runs + 1):
-            agent = MonteCarloAgent(run_id=i)
+            agent = MonteCarloAgent(run_id=i, skip_journey_fights=skip_journey_fights)
             summary = agent.run_full_game()
             all_summaries.append(summary)
             
@@ -180,6 +189,8 @@ def run_batch_simulation(total_runs=1000):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Hero Adventure Monte Carlo Batch Simulator")
     parser.add_argument("--runs", type=int, default=1000, help="Number of simulation runs (default: 1000)")
+    parser.add_argument("--skip-journey-fights", action="store_true",
+                        help="Bypass all non-dungeon fights (regular and super monsters).")
     args = parser.parse_args()
     
-    run_batch_simulation(args.runs)
+    run_batch_simulation(args.runs, skip_journey_fights=args.skip_journey_fights)
