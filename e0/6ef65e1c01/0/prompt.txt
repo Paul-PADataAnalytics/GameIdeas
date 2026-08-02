@@ -1,17 +1,1 @@
-save the last simulation run, and run again comparing the effect.
-
----
-
-Were the major killers, dungeon bosses, or super monsters
-
----
-
-In the design can the player choose to leave the dungeon at any point, and can they not choose to ignore a super monster?
-
----
-
-Does the implementation match the design in this regard, and if so, why are so many players dying in dungeons.
-
----
-
 The design calls for dungeon monsters to be special to dungeons, and not outside in a leg, please update the code to do so and update the simulation agents to leave dungeons when they have <50% hp, or not enter them in the first place.  This should improve survivability and is consistent to the design.
