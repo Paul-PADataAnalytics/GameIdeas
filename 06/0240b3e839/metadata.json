@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "060240b3e839",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "uigames/hero_adventure/hero_engine.py",
+    "uigames/hero_adventure/heroadventure.md",
+    "uigames/hero_adventure/sim_runner.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/06/0240b3e839/0/metadata.json",
+      "transcript": "/06/0240b3e839/0/full.jsonl",
+      "compact_transcript": "/06/0240b3e839/0/transcript.jsonl",
+      "content_hash": "/06/0240b3e839/0/content_hash.txt",
+      "prompt": "/06/0240b3e839/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 2782,
+    "api_call_count": 8
+  }
+}
