@@ -1,9 +1,1 @@
-I want to see what the effect is if players can skip any and every fight, with the exception of dungeons, which already have the opportunity to leave at any point.  I want to see the spread of outcomes if players can always survive.
-
----
-
-chart the curve of scores so I can make adjustments
-
----
-
 lets reduce the town transport travel mechanic by 100x and see the difference
