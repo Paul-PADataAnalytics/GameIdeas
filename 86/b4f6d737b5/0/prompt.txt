@@ -1,0 +1,17 @@
+lets reduce the town transport travel mechanic by 100x and see the difference
+
+---
+
+What effec did it have on the score at the end?
+
+---
+
+I like where we are with the project.  I want all the UI for all versions of the game, and future ports to be defined in the ui declarative json files and the logic to be described in the python hero_engine.py.  These will be the basis of other ports.  So their content need to be perfect and match the design.  Please inspect the assets and validate their content.
+
+---
+
+please fill in the missing ui definitions and refer to the design as your principal guide.  when all th eUI is built, we will port both versions to it and debug output.
+
+---
+
+please fill in the missing ui definitions and refer to the design as your principal guide.  when all th eUI is built, we will port both versions to it and debug output.

@@ -1,0 +1,72 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "86b4f6d737b5",
+  "session_id": "686c4931-d7b6-4712-bfe0-2833173fe19f",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-03T10:15:22.333267822Z",
+  "branch": "master",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "uigames/hero_adventure/ui/camping_event.json",
+    "uigames/hero_adventure/ui/capital.json",
+    "uigames/hero_adventure/ui/capital_result.json",
+    "uigames/hero_adventure/ui/combat.json",
+    "uigames/hero_adventure/ui/credits.json",
+    "uigames/hero_adventure/ui/death.json",
+    "uigames/hero_adventure/ui/dungeon_boss_preview.json",
+    "uigames/hero_adventure/ui/dungeon_floor_preview.json",
+    "uigames/hero_adventure/ui/dungeon_found.json",
+    "uigames/hero_adventure/ui/dungeon_victory.json",
+    "uigames/hero_adventure/ui/high_scores.json",
+    "uigames/hero_adventure/ui/inventory.json",
+    "uigames/hero_adventure/ui/item_detail.json",
+    "uigames/hero_adventure/ui/journey.json",
+    "uigames/hero_adventure/ui/level_up.json",
+    "uigames/hero_adventure/ui/loot_screen.json",
+    "uigames/hero_adventure/ui/magic_shrine_event.json",
+    "uigames/hero_adventure/ui/rules.json",
+    "uigames/hero_adventure/ui/rules_character_creation.json",
+    "uigames/hero_adventure/ui/rules_journey.json",
+    "uigames/hero_adventure/ui/rules_scoring.json",
+    "uigames/hero_adventure/ui/super_monster_preview.json",
+    "uigames/hero_adventure/ui/tavern_event.json",
+    "uigames/hero_adventure/ui/wandering_trader.json"
+  ],
+  "agent": "Copilot CLI",
+  "model": "auto",
+  "turn_id": "bf7e66d846f2",
+  "checkpoint_transcript_start": 1326,
+  "transcript_lines_at_start": 1326,
+  "compact_transcript_start": 154,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 11420,
+    "api_call_count": 18
+  },
+  "session_metrics": {
+    "turn_count": 18
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-03T10:15:22.141813221Z",
+    "agent_lines": 297,
+    "agent_removed": 3,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 297,
+    "total_lines_changed": 300,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

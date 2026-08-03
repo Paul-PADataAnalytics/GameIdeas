@@ -1,0 +1,49 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "86b4f6d737b5",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "uigames/hero_adventure/ui/camping_event.json",
+    "uigames/hero_adventure/ui/capital.json",
+    "uigames/hero_adventure/ui/capital_result.json",
+    "uigames/hero_adventure/ui/combat.json",
+    "uigames/hero_adventure/ui/credits.json",
+    "uigames/hero_adventure/ui/death.json",
+    "uigames/hero_adventure/ui/dungeon_boss_preview.json",
+    "uigames/hero_adventure/ui/dungeon_floor_preview.json",
+    "uigames/hero_adventure/ui/dungeon_found.json",
+    "uigames/hero_adventure/ui/dungeon_victory.json",
+    "uigames/hero_adventure/ui/high_scores.json",
+    "uigames/hero_adventure/ui/inventory.json",
+    "uigames/hero_adventure/ui/item_detail.json",
+    "uigames/hero_adventure/ui/journey.json",
+    "uigames/hero_adventure/ui/level_up.json",
+    "uigames/hero_adventure/ui/loot_screen.json",
+    "uigames/hero_adventure/ui/magic_shrine_event.json",
+    "uigames/hero_adventure/ui/rules.json",
+    "uigames/hero_adventure/ui/rules_character_creation.json",
+    "uigames/hero_adventure/ui/rules_journey.json",
+    "uigames/hero_adventure/ui/rules_scoring.json",
+    "uigames/hero_adventure/ui/super_monster_preview.json",
+    "uigames/hero_adventure/ui/tavern_event.json",
+    "uigames/hero_adventure/ui/wandering_trader.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/86/b4f6d737b5/0/metadata.json",
+      "transcript": "/86/b4f6d737b5/0/full.jsonl",
+      "compact_transcript": "/86/b4f6d737b5/0/transcript.jsonl",
+      "content_hash": "/86/b4f6d737b5/0/content_hash.txt",
+      "prompt": "/86/b4f6d737b5/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 11420,
+    "api_call_count": 18
+  }
+}
