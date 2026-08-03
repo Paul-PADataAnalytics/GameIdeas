@@ -391,7 +391,7 @@ class HeroAdventureEngine:
         earned_cash = int(random.randint(m_stats["cash_min"], m_stats["cash_max"]) * cash_multiplier)
         self.cash += earned_cash
         
-        num_eq = random.randint(m_stats["eq_min"], m_stats["eq_max"])
+        num_eq = self._roll_loot_item_count(monster_name, m_stats)
         items_found = [self.generate_random_item(leg_num=self.current_leg_idx+1) for _ in range(num_eq)]
         
         # Check Relic drop
@@ -421,6 +421,32 @@ class HeroAdventureEngine:
         
         self.log("LOOT_GAINED", {"cash": earned_cash, "items_count": len(items_found), "relic": relic_dropped})
         return "LOOT_FOUND"
+
+    def _roll_loot_item_count(self, monster_name, m_stats):
+        """Roll item drops with reduced global drop rates and very sparse low-level drops."""
+        base_count = random.randint(m_stats["eq_min"], m_stats["eq_max"])
+        leg_num = m_stats.get("leg", self.current_leg_idx + 1)
+        is_super_or_boss = bool(m_stats.get("relic"))
+        is_early_regular = (leg_num == 1 and not is_super_or_boss)
+
+        # Leg 1 regular monsters should drop 0 items most of the time.
+        if is_early_regular:
+            if random.random() < 0.70:
+                return 0
+            return 1 if random.random() < 0.80 else 2
+
+        # Global reduction across the board.
+        keep_scale = 0.55 if not is_super_or_boss else 0.70
+        reduced = int(round(base_count * keep_scale))
+
+        # Non-boss enemies can still drop nothing sometimes.
+        if not is_super_or_boss and random.random() < 0.25:
+            return 0
+
+        # Keep at least one item for boss/super encounters when they drop loot.
+        if is_super_or_boss:
+            return max(1, reduced)
+        return max(0, reduced)
 
     # ------------------------------------------------------------------
     # Shared decision helpers - single source of truth for probabilities
@@ -1150,7 +1176,8 @@ class GameController:
         letter = self.selected_item_letter
         item, slot = self._find_letter_item(letter)
         if item and item.get("category") == "medical":
-            heal = 30
+            skills, _, _ = self.engine.get_effective_skills()
+            heal = skills["camping"] + random.randint(0, max(1, skills["camping"]))
             item["uses"] -= 1
             self.engine.hp = min(self.engine.max_hp, self.engine.hp + heal)
             if item["uses"] <= 0:
@@ -1158,6 +1185,7 @@ class GameController:
                     self.engine.equipment[slot] = None
                 elif item in self.engine.inventory:
                     self.engine.inventory.remove(item)
+            self.engine.log("MEDICAL_ITEM_USED", {"heal": heal, "hp": self.engine.hp})
         self.screen = "inventory"
         self.selected_item_letter = None
 

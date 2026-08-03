@@ -190,6 +190,10 @@ Dungeon Monsters only occur in dungeons, never in the wild on a leg.
 
 During the journey the hero will find loot, and will be able to take loot after an event.  The loot will be based on the event and will be a random selection from a pool of loot that is appropriate for the event.  The loot will either be cash, equipment, or a special relic, or a mix of the three.  The loot will add to the users skill in an appropriate way, have a value, and weight.  The value is used in buying and selling at the legs of the game.  Buying is 120% of the value and selling is 80% of the value.  The weight is used to determine how much the hero can carry, and if they are overburdened, they will be penalized in their skills.  The hero's max carry weight is based on their fighting + defending + salvaging skills, and if they are overburdened, they will be penalized in their skills by 10% for every 10 weight units over the limit.
 
+Medical items can be used directly from inventory.  On use, they heal for:
+- `camping skill + random(0..camping skill)`
+and consume one use.
+
 At the end of the journey, the items are sold for 100% of their value and the cash is added to be used to buy a home in the Capital or added to their pension.
 
 Some special loot has an effect on the outcome of events, such as a pendant that prevents death once, or a ring that allows to re-roll the received loot when an event awards loot.  The special loot will be described in the event and will have a limited number of uses.  Getting the loot will be a noted event and the player will be told that the loot is the result of success before they are given the option to take it.
@@ -201,6 +205,11 @@ Loot is tiered to the leg:
 - Leg 3: Common, Uncommon, and Rare
 - Leg 4: Uncommon, Rare, and Epic
 - Leg 5: Rare and Epic
+
+Item drop volume is intentionally reduced across the board:
+- Most leg-1 regular monsters drop 0 items.
+- Non-boss monsters can drop no equipment even on a win.
+- Boss/super encounters still drop fewer items than before, but remain the most reliable equipment source.
 
 ## Scoring
 
