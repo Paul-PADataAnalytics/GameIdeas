@@ -1,0 +1,10 @@
+{
+  "id": "combat_result",
+  "title": "Combat Result",
+  "text": [
+    "{result_text}"
+  ],
+  "buttons": [
+    { "label": "Continue", "action": "combat_continue" }
+  ]
+}
