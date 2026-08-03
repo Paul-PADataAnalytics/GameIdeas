@@ -4,6 +4,9 @@
 
 🎮 TO PLAY THE GAME:
 
+  Install dependencies first:
+    pip3 install -r requirements.txt
+
   Option 1 (Recommended):
     ./launch
 
@@ -82,10 +85,10 @@
 
 🎮 CONTROLS:
 
-  • Use arrow keys to navigate (if supported by terminal)
-  • Type numbers (1-9) to choose options
-  • Press Enter to continue or confirm
-  • Type 'y' or 'n' for yes/no questions
+  • Use Tab / Shift+Tab or arrow keys to move focus
+  • Press Enter on focused buttons to trigger actions
+  • Type in the name field during character creation, then press Enter
+  • Mouse click on buttons is supported
 
 ═══════════════════════════════════════════════════════════════════════════════
 

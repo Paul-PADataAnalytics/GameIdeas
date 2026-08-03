@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
-"""Terminal renderer for the declarative UI + GameController."""
+"""Textual terminal renderer for the declarative UI + GameController."""
 
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
+
+from rich.panel import Panel
+from rich.text import Text
+from textual.app import App, ComposeResult
+from textual.containers import Horizontal, VerticalScroll
+from textual.widgets import Button, Footer, Header, Input, Label, Static
 
 from hero_engine import GameController
 
@@ -15,10 +20,57 @@ class SafeDict(dict):
         return "{" + key + "}"
 
 
-class TerminalUI:
+class HeroAdventureTUI(App):
+    TITLE = "Hero Adventure"
+    CSS = """
+    Screen {
+        layout: vertical;
+    }
+
+    #main {
+        padding: 1 2;
+    }
+
+    #title {
+        height: auto;
+        margin-bottom: 1;
+    }
+
+    #name_row {
+        height: auto;
+        margin-bottom: 1;
+    }
+
+    #content {
+        height: 1fr;
+    }
+
+    .line {
+        height: auto;
+    }
+
+    .list_label {
+        margin-top: 1;
+        margin-bottom: 1;
+        text-style: bold;
+    }
+
+    .action_button {
+        margin-bottom: 1;
+        width: 100%;
+    }
+
+    .disabled_line {
+        color: gray;
+        margin-bottom: 1;
+    }
+    """
+
     def __init__(self):
+        super().__init__()
         self.controller = GameController()
         self.screens = self._load_screens()
+        self.ctx = {}
 
     def _load_screens(self):
         ui_dir = Path(__file__).resolve().parent / "ui"
@@ -28,89 +80,96 @@ class TerminalUI:
             screens[data["id"]] = data
         return screens
 
-    def _fmt(self, text, ctx):
-        return text.format_map(SafeDict(ctx))
+    def _fmt(self, text: str) -> str:
+        return text.format_map(SafeDict(self.ctx))
 
-    def _clear(self):
-        os.system("clear")
+    def compose(self) -> ComposeResult:
+        yield Header(show_clock=True)
+        with VerticalScroll(id="main"):
+            yield Static(id="title")
+            with Horizontal(id="name_row"):
+                yield Label("Hero Name:")
+                yield Input(placeholder="Enter hero name", id="name_input")
+            yield VerticalScroll(id="content")
+        yield Footer()
 
-    def _build_actions(self, screen_def, ctx):
-        items = []
-        idx = 1
+    def on_mount(self):
+        self.refresh_screen()
 
-        for list_def in screen_def.get("lists", []):
-            list_rows = ctx.get(list_def["id"], [])
-            if list_def.get("label"):
-                print(f"\n{list_def['label']}:")
-            for row in list_rows:
-                text = self._fmt(row.get("text", ""), ctx)
+    def refresh_screen(self):
+        if self.controller.quit_requested:
+            self.exit()
+            return
+
+        screen_id = self.controller.screen
+        screen = self.screens.get(screen_id)
+        if not screen:
+            self.controller.screen = "front_page"
+            screen = self.screens["front_page"]
+            screen_id = "front_page"
+
+        self.ctx = self.controller.get_context()
+
+        title_widget = self.query_one("#title", Static)
+        title_widget.update(Panel(Text(self._fmt(screen.get("title", screen_id)), style="bold cyan")))
+
+        name_row = self.query_one("#name_row", Horizontal)
+        name_input = self.query_one("#name_input", Input)
+        if screen_id == "character_creation":
+            name_row.display = True
+            name_input.value = self.controller.pending_name
+            name_input.focus()
+        else:
+            name_row.display = False
+
+        content = self.query_one("#content", VerticalScroll)
+        content.remove_children()
+
+        for line in screen.get("text", []):
+            content.mount(Static(self._fmt(line), classes="line"))
+
+        for list_def in screen.get("lists", []):
+            label = list_def.get("label")
+            if label:
+                content.mount(Static(label, classes="list_label"))
+            for row in self.ctx.get(list_def["id"], []):
+                text = self._fmt(row.get("text", ""))
                 action = row.get("action")
                 enabled = row.get("enabled", True)
                 if action and enabled:
-                    print(f"  {idx}. {text}")
-                    items.append((str(idx), action))
-                    idx += 1
+                    content.mount(Button(text, classes="action_button", action=action))
                 else:
-                    print(f"   - {text}")
+                    content.mount(Static(f"• {text}", classes="disabled_line"))
 
-        if screen_def.get("buttons"):
-            print()
-        for button in screen_def.get("buttons", []):
+        for button in screen.get("buttons", []):
             visible_if = button.get("visible_if")
-            if visible_if and not ctx.get(visible_if):
+            if visible_if and not self.ctx.get(visible_if):
                 continue
-            label = self._fmt(button["label"], ctx)
+            label = self._fmt(button.get("label", ""))
             action = button.get("action")
             if action:
-                print(f"  {idx}. {label}")
-                items.append((str(idx), action))
-                idx += 1
+                content.mount(Button(label, classes="action_button", action=action))
             else:
-                print(f"   - {label}")
+                content.mount(Static(f"• {label}", classes="disabled_line"))
 
-        return items
+    def on_input_submitted(self, event: Input.Submitted):
+        if event.input.id == "name_input":
+            self.controller.set_pending_name(event.value.strip())
+            self.refresh_screen()
 
-    def _ensure_character_name(self):
-        if self.controller.screen == "character_creation" and not self.controller.pending_name:
-            name = input("\nEnter hero name: ").strip()
-            self.controller.set_pending_name(name or "Hero")
-
-    def run(self):
-        while True:
-            if self.controller.quit_requested:
-                return
-
-            screen_id = self.controller.screen
-            screen = self.screens.get(screen_id)
-            if not screen:
-                # Defensive fallback for undefined screens.
-                self.controller.screen = "front_page"
-                continue
-
-            self._ensure_character_name()
-            ctx = self.controller.get_context()
-            self._clear()
-
-            print(f"\n=== {self._fmt(screen.get('title', screen_id), ctx)} ===\n")
-            for line in screen.get("text", []):
-                print(self._fmt(line, ctx))
-
-            actions = self._build_actions(screen, ctx)
-            action_map = dict(actions)
-
-            if not action_map:
-                input("\nPress Enter to continue...")
-                self.controller.screen = "front_page"
-                continue
-
-            choice = input("\nChoose: ").strip()
-            if choice not in action_map:
-                continue
-            self.controller.dispatch(action_map[choice])
+    def on_button_pressed(self, event: Button.Pressed):
+        action = event.button.action
+        if not action:
+            return
+        if self.controller.screen == "character_creation":
+            name = self.query_one("#name_input", Input).value.strip()
+            self.controller.set_pending_name(name)
+        self.controller.dispatch(action)
+        self.refresh_screen()
 
 
 def main():
-    TerminalUI().run()
+    HeroAdventureTUI().run()
 
 
 if __name__ == "__main__":
