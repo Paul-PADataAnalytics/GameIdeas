@@ -1,13 +1,1 @@
-port the two implementations to this ui system.
-
----
-
-can you test play.py yourself?
-
----
-
-can we dress up the play.py version?  I've heard of Bubble Tea and other libraries that make the terminal UI of programs much more reactive and prettier
-
----
-
 please perform the port to Textual and Rich, and test as much as you can.
