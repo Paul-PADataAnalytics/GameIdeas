@@ -71,6 +71,8 @@ class HeroAdventureTUI(App):
         self.controller = GameController()
         self.screens = self._load_screens()
         self.ctx = {}
+        self._button_actions = {}
+        self._button_seq = 0
 
     def _load_screens(self):
         ui_dir = Path(__file__).resolve().parent / "ui"
@@ -93,10 +95,10 @@ class HeroAdventureTUI(App):
             yield VerticalScroll(id="content")
         yield Footer()
 
-    def on_mount(self):
-        self.refresh_screen()
+    async def on_mount(self):
+        await self.refresh_screen()
 
-    def refresh_screen(self):
+    async def refresh_screen(self):
         if self.controller.quit_requested:
             self.exit()
             return
@@ -109,6 +111,7 @@ class HeroAdventureTUI(App):
             screen_id = "front_page"
 
         self.ctx = self.controller.get_context()
+        self._button_actions = {}
 
         title_widget = self.query_one("#title", Static)
         title_widget.update(Panel(Text(self._fmt(screen.get("title", screen_id)), style="bold cyan")))
@@ -123,7 +126,7 @@ class HeroAdventureTUI(App):
             name_row.display = False
 
         content = self.query_one("#content", VerticalScroll)
-        content.remove_children()
+        await content.remove_children()
 
         for line in screen.get("text", []):
             content.mount(Static(self._fmt(line), classes="line"))
@@ -137,7 +140,10 @@ class HeroAdventureTUI(App):
                 action = row.get("action")
                 enabled = row.get("enabled", True)
                 if action and enabled:
-                    content.mount(Button(text, classes="action_button", action=action))
+                    button_id = f"act_{self._button_seq}"
+                    self._button_seq += 1
+                    self._button_actions[button_id] = action
+                    content.mount(Button(text, classes="action_button", id=button_id))
                 else:
                     content.mount(Static(f"• {text}", classes="disabled_line"))
 
@@ -148,24 +154,27 @@ class HeroAdventureTUI(App):
             label = self._fmt(button.get("label", ""))
             action = button.get("action")
             if action:
-                content.mount(Button(label, classes="action_button", action=action))
+                button_id = f"act_{self._button_seq}"
+                self._button_seq += 1
+                self._button_actions[button_id] = action
+                content.mount(Button(label, classes="action_button", id=button_id))
             else:
                 content.mount(Static(f"• {label}", classes="disabled_line"))
 
-    def on_input_submitted(self, event: Input.Submitted):
+    async def on_input_submitted(self, event: Input.Submitted):
         if event.input.id == "name_input":
             self.controller.set_pending_name(event.value.strip())
-            self.refresh_screen()
+            await self.refresh_screen()
 
-    def on_button_pressed(self, event: Button.Pressed):
-        action = event.button.action
+    async def on_button_pressed(self, event: Button.Pressed):
+        action = self._button_actions.get(event.button.id or "")
         if not action:
             return
         if self.controller.screen == "character_creation":
             name = self.query_one("#name_input", Input).value.strip()
             self.controller.set_pending_name(name)
         self.controller.dispatch(action)
-        self.refresh_screen()
+        await self.refresh_screen()
 
 
 def main():
