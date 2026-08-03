@@ -5,7 +5,8 @@
     "HP: {hp}/{max_hp}    Gold: ${cash}",
     "Event {event}/20   Dungeons found this leg: {dungeons_found}/2",
     "Fight:{fighting} Def:{defending} Magic:{magic} Stealth:{stealth} Spot:{spotting} Salv:{salvaging} Camp:{camping} Med:{medical}",
-    "Carry Weight: {total_weight}/{max_weight}   Equipped: {equipped_summary}"
+    "Carry Weight: {total_weight}/{max_weight}   Equipped: {equipped_summary}",
+    "Journey events include fights, dungeons, rest, traders, wander groups, and fairy finds."
   ],
   "buttons": [
     { "label": "\u25b6 Continue Journey", "action": "advance_event" },
@@ -13,4 +14,3 @@
     { "label": "Quit to Menu", "action": "goto:front_page" }
   ]
 }
-

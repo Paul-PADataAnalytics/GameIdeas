@@ -1,0 +1,11 @@
+{
+  "id": "dungeon_victory",
+  "title": "Dungeon Cleared",
+  "text": [
+    "Treasure recovered: {treasure} cash.",
+    "You return to the journey."
+  ],
+  "buttons": [
+    { "label": "Continue", "action": "dungeon_victory_continue" }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "dungeon_found",
+  "title": "Dungeon Found",
+  "text": [
+    "A dungeon entrance has been spotted.",
+    "You can enter now or continue the journey."
+  ],
+  "buttons": [
+    { "label": "Enter Dungeon", "action": "enter_dungeon" },
+    { "label": "Ignore", "action": "ignore_dungeon" }
+  ]
+}

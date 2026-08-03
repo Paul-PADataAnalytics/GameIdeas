@@ -1,0 +1,13 @@
+{
+  "id": "dungeon_boss_preview",
+  "title": "Dungeon Boss Preview",
+  "text": [
+    "Boss monster: {floor_monster}",
+    "Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}",
+    "You can exit safely before the boss fight."
+  ],
+  "buttons": [
+    { "label": "Fight Boss", "action": "engage_floor" },
+    { "label": "Exit Dungeon", "action": "exit_dungeon" }
+  ]
+}

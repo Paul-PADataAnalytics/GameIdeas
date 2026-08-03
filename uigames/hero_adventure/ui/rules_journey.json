@@ -1,0 +1,15 @@
+{
+  "id": "rules_journey",
+  "title": "Journey Rules",
+  "text": [
+    "The journey has 5 legs with 20 events each.",
+    "Fights are the dominant journey event.",
+    "Rest events cannot appear in the first half of a leg and must respect a 3-event cooldown.",
+    "Wander Group advances the leg by 5 events.",
+    "Fairy Found can save a life if equipped in the camping/medical slot.",
+    "Dungeons are optional and can be exited before combat."
+  ],
+  "buttons": [
+    { "label": "Back", "action": "goto:rules" }
+  ]
+}

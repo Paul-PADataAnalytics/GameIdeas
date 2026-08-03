@@ -1,0 +1,11 @@
+{
+  "id": "tavern_event",
+  "title": "Tavern Rest",
+  "text": [
+    "Rest for 100 cash and recover health, or continue on."
+  ],
+  "buttons": [
+    { "label": "Rest", "action": "rest_tavern" },
+    { "label": "Continue", "action": "skip_tavern" }
+  ]
+}

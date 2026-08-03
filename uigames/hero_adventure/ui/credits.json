@@ -1,0 +1,13 @@
+{
+  "id": "credits",
+  "title": "Credits",
+  "text": [
+    "Hero Adventure",
+    "A declarative UI RPG backed by a Python engine.",
+    "",
+    "Design, systems, and future ports are intended to share the same rule source."
+  ],
+  "buttons": [
+    { "label": "Back", "action": "goto:front_page" }
+  ]
+}

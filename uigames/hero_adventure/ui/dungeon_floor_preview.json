@@ -1,0 +1,13 @@
+{
+  "id": "dungeon_floor_preview",
+  "title": "Dungeon Floor {floor_number}",
+  "text": [
+    "Floor monster: {floor_monster}",
+    "Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}",
+    "You can inspect the fight and leave before engaging."
+  ],
+  "buttons": [
+    { "label": "Fight Floor", "action": "engage_floor" },
+    { "label": "Exit Dungeon", "action": "exit_dungeon" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "capital",
+  "title": "The Capital",
+  "text": [
+    "Choose a house to buy, or keep the pension and retire at a tavern.",
+    "Score = house multiplier × pension; tavern retirement uses pension only."
+  ],
+  "lists": [
+    { "id": "list_houses", "label": "Houses" }
+  ],
+  "buttons": [
+    { "label": "Keep Pension / Tavern", "action": "keep_pension" }
+  ]
+}

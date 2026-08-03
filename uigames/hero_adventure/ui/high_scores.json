@@ -1,0 +1,13 @@
+{
+  "id": "high_scores",
+  "title": "High Scores",
+  "text": [
+    "Top scores are shown below."
+  ],
+  "lists": [
+    { "id": "list_scores", "label": "Scores" }
+  ],
+  "buttons": [
+    { "label": "Back", "action": "goto:front_page" }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "rules_character_creation",
+  "title": "Character Creation Rules",
+  "text": [
+    "Choose a name and one of three classes.",
+    "All heroes start with 5 in every skill and 100 HP.",
+    "",
+    "Hitter: +20 Fighting, Defending, Camping.",
+    "Blaster: +20 Magic, Spotting, Medical.",
+    "Hider: +20 Stealth, Salvaging, Spotting.",
+    "",
+    "Class-specific gear and relics should match the design guide."
+  ],
+  "buttons": [
+    { "label": "Back", "action": "goto:rules" }
+  ]
+}

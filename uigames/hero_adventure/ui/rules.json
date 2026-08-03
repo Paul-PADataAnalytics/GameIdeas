@@ -1,0 +1,16 @@
+{
+  "id": "rules",
+  "title": "Rules",
+  "text": [
+    "Hero Adventure is a five-leg journey from the frontier to the Capital.",
+    "The UI is declarative; the engine owns the rules and the JSON files define the screens.",
+    "",
+    "Use the sections below to review character creation, journey flow, and scoring."
+  ],
+  "buttons": [
+    { "label": "Character Creation Rules", "action": "goto:rules_character_creation" },
+    { "label": "Journey Rules", "action": "goto:rules_journey" },
+    { "label": "Scoring Rules", "action": "goto:rules_scoring" },
+    { "label": "Back", "action": "goto:front_page" }
+  ]
+}

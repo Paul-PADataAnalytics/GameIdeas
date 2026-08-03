@@ -1,0 +1,11 @@
+{
+  "id": "death",
+  "title": "You Died",
+  "text": [
+    "Reason: {death_reason}",
+    "Your adventure ends here."
+  ],
+  "buttons": [
+    { "label": "Continue", "action": "death_continue" }
+  ]
+}

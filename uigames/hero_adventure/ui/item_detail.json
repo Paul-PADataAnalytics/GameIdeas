@@ -1,0 +1,16 @@
+{
+  "id": "item_detail",
+  "title": "Item Detail",
+  "text": [
+    "{item_name} ({item_tier})",
+    "{item_stat}  |  Value: ${item_value}  |  Weight: {item_weight}wt",
+    "{item_uses} uses  |  Slot: {item_slot}"
+  ],
+  "buttons": [
+    { "label": "Equip", "action": "equip_item", "visible_if": "can_equip" },
+    { "label": "Unequip", "action": "unequip_item", "visible_if": "can_unequip" },
+    { "label": "Use", "action": "use_medical", "visible_if": "is_medical" },
+    { "label": "Drop", "action": "drop_item" },
+    { "label": "Back", "action": "item_back" }
+  ]
+}

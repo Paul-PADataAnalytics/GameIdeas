@@ -1,0 +1,11 @@
+{
+  "id": "camping_event",
+  "title": "Camping Spot",
+  "text": [
+    "Rest to recover camping-based HP, or continue on."
+  ],
+  "buttons": [
+    { "label": "Rest", "action": "rest_camp" },
+    { "label": "Continue", "action": "skip_camp" }
+  ]
+}

@@ -3,7 +3,8 @@
   "title": "\u2694\ufe0f Encounter: {monster_name}",
   "text": [
     "Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}",
-    "Your HP: {hp}/{max_hp}   Fighting: {fighting}  Defending: {defending}  Stealth: {stealth}  Salvaging: {salvaging}"
+    "Your HP: {hp}/{max_hp}   Fighting: {fighting}  Defending: {defending}  Stealth: {stealth}  Salvaging: {salvaging}",
+    "Sneak uses stealth vs defending; stealth kill uses a straight stealth vs defending check."
   ],
   "buttons": [
     { "label": "\u2694\ufe0f Fight", "action": "fight" },

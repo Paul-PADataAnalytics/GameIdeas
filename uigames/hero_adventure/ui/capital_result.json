@@ -1,0 +1,12 @@
+{
+  "id": "capital_result",
+  "title": "Retirement",
+  "text": [
+    "Final House: {final_house}",
+    "Final Pension: {final_pension}",
+    "Score: {final_score}"
+  ],
+  "buttons": [
+    { "label": "Continue", "action": "capital_continue" }
+  ]
+}

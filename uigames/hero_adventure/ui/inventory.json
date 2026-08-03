@@ -1,0 +1,14 @@
+{
+  "id": "inventory",
+  "title": "Inventory",
+  "text": [
+    "Browse your equipped items and backpack contents.",
+    "Equipped items count toward skills immediately."
+  ],
+  "lists": [
+    { "id": "list_inventory", "label": "Inventory" }
+  ],
+  "buttons": [
+    { "label": "Close", "action": "close_inventory" }
+  ]
+}

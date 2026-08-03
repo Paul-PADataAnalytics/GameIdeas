@@ -1,0 +1,14 @@
+{
+  "id": "wandering_trader",
+  "title": "Wandering Trader",
+  "text": [
+    "Buy or sell items. Trader prices depend on relic effects."
+  ],
+  "lists": [
+    { "id": "list_trader_buy", "label": "Buy" },
+    { "id": "list_trader_sell", "label": "Sell" }
+  ],
+  "buttons": [
+    { "label": "Leave Trader", "action": "leave_trader" }
+  ]
+}

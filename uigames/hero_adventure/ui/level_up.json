@@ -1,0 +1,14 @@
+{
+  "id": "level_up",
+  "title": "Level Up",
+  "text": [
+    "Choose 3 skills to increase by 5.",
+    "Selected: {levelup_count}/3"
+  ],
+  "lists": [
+    { "id": "list_levelup_skills", "label": "Skills" }
+  ],
+  "buttons": [
+    { "label": "Continue", "action": "levelup_continue" }
+  ]
+}

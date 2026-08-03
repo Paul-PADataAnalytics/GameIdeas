@@ -1,0 +1,13 @@
+{
+  "id": "loot_screen",
+  "title": "Loot Found",
+  "text": [
+    "Take the loot or leave it behind."
+  ],
+  "lists": [
+    { "id": "loot_lines", "label": "Loot" }
+  ],
+  "buttons": [
+    { "label": "Continue", "action": "loot_continue" }
+  ]
+}

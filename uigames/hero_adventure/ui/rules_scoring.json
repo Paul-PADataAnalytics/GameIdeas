@@ -1,0 +1,14 @@
+{
+  "id": "rules_scoring",
+  "title": "Scoring Rules",
+  "text": [
+    "At the Capital, the hero may buy a house or keep their pension.",
+    "Score = house multiplier × pension.",
+    "If the hero cannot or does not buy a house, the score is the pension only.",
+    "",
+    "Pension tiers and house prices are defined in the design and engine tables."
+  ],
+  "buttons": [
+    { "label": "Back", "action": "goto:rules" }
+  ]
+}
