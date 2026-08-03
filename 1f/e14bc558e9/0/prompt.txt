@@ -1,0 +1,5 @@
+please perform the port to Textual and Rich, and test as much as you can.
+
+---
+
+the start mew game button does not work it just flashes to show I clicked it.  not a good start...  Try to test more effectively in future.
