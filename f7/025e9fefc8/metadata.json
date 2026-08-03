@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "f7025e9fefc8",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "uigames/hero_adventure/play.py",
+    "uigames/hero_adventure/play_gui.py",
+    "uigames/hero_adventure/ui/combat_result.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f7/025e9fefc8/0/metadata.json",
+      "transcript": "/f7/025e9fefc8/0/full.jsonl",
+      "compact_transcript": "/f7/025e9fefc8/0/transcript.jsonl",
+      "content_hash": "/f7/025e9fefc8/0/content_hash.txt",
+      "prompt": "/f7/025e9fefc8/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 6985,
+    "api_call_count": 11
+  }
+}

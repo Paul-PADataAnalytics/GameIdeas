@@ -1,0 +1,9 @@
+please fill in the missing ui definitions and refer to the design as your principal guide.  when all th eUI is built, we will port both versions to it and debug output.
+
+---
+
+can you simulate traversing the UI and establish if there are any bugs?
+
+---
+
+port the two implementations to this ui system.
