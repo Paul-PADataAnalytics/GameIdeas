@@ -1,1 +1,5 @@
+the start mew game button does not work it just flashes to show I clicked it.  not a good start...  Try to test more effectively in future.
+
+---
+
 I want to make some changes.  If a player has medical items, they can use them to heal based on their camping skill + a random number.  I also want monsters to drop less items across the board, and low level monsters to drop 0 items most of the time.
