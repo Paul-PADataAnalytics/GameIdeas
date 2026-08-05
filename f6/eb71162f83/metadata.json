@@ -1,0 +1,46 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "f6eb71162f83",
+  "strategy": "manual-commit",
+  "branch": "master",
+  "checkpoints_count": 18,
+  "files_touched": [
+    "uigames/hero_adventure/game_data.py",
+    "uigames/hero_adventure/hero_engine.py",
+    "uigames/hero_adventure/heroadventure.md",
+    "uigames/hero_adventure/sim_logs/sim_events.jsonl",
+    "uigames/hero_adventure/sim_logs/sim_summary.json",
+    "uigames/hero_adventure/sim_runner.py",
+    "uigames/hero_adventure/ui/camping_event.json",
+    "uigames/hero_adventure/ui/character_sheet.json",
+    "uigames/hero_adventure/ui/combat.json",
+    "uigames/hero_adventure/ui/combat_result.json",
+    "uigames/hero_adventure/ui/dungeon_boss_preview.json",
+    "uigames/hero_adventure/ui/dungeon_floor_preview.json",
+    "uigames/hero_adventure/ui/dungeon_found.json",
+    "uigames/hero_adventure/ui/front_page.json",
+    "uigames/hero_adventure/ui/inventory.json",
+    "uigames/hero_adventure/ui/journey.json",
+    "uigames/hero_adventure/ui/magic_shrine_event.json",
+    "uigames/hero_adventure/ui/super_monster_preview.json",
+    "uigames/hero_adventure/ui/tavern_event.json",
+    "uigames/hero_adventure/ui/wandering_trader.json",
+    "uigames/heroadventure.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/f6/eb71162f83/0/metadata.json",
+      "transcript": "/f6/eb71162f83/0/full.jsonl",
+      "compact_transcript": "/f6/eb71162f83/0/transcript.jsonl",
+      "content_hash": "/f6/eb71162f83/0/content_hash.txt",
+      "prompt": "/f6/eb71162f83/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 98676,
+    "api_call_count": 158
+  }
+}

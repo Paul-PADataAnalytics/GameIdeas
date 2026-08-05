@@ -1,0 +1,198 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "f6eb71162f83",
+  "session_id": "686c4931-d7b6-4712-bfe0-2833173fe19f",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-05T11:20:19.225101554Z",
+  "branch": "master",
+  "checkpoints_count": 18,
+  "save_step_count": 17,
+  "files_touched": [
+    "uigames/hero_adventure/game_data.py",
+    "uigames/hero_adventure/hero_engine.py",
+    "uigames/hero_adventure/heroadventure.md",
+    "uigames/hero_adventure/sim_logs/sim_events.jsonl",
+    "uigames/hero_adventure/sim_logs/sim_summary.json",
+    "uigames/hero_adventure/sim_runner.py",
+    "uigames/hero_adventure/ui/camping_event.json",
+    "uigames/hero_adventure/ui/character_sheet.json",
+    "uigames/hero_adventure/ui/combat.json",
+    "uigames/hero_adventure/ui/combat_result.json",
+    "uigames/hero_adventure/ui/dungeon_boss_preview.json",
+    "uigames/hero_adventure/ui/dungeon_floor_preview.json",
+    "uigames/hero_adventure/ui/dungeon_found.json",
+    "uigames/hero_adventure/ui/front_page.json",
+    "uigames/hero_adventure/ui/inventory.json",
+    "uigames/hero_adventure/ui/journey.json",
+    "uigames/hero_adventure/ui/magic_shrine_event.json",
+    "uigames/hero_adventure/ui/super_monster_preview.json",
+    "uigames/hero_adventure/ui/tavern_event.json",
+    "uigames/hero_adventure/ui/wandering_trader.json",
+    "uigames/heroadventure.md"
+  ],
+  "agent": "Copilot CLI",
+  "model": "auto",
+  "turn_id": "109105a0b2f0",
+  "checkpoint_transcript_start": 2110,
+  "transcript_lines_at_start": 2110,
+  "compact_transcript_start": 240,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 98676,
+    "api_call_count": 158
+  },
+  "session_metrics": {
+    "turn_count": 43
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-05T11:20:18.784964909Z",
+    "agent_lines": 30670,
+    "agent_removed": 185476,
+    "human_added": 6,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 30676,
+    "total_lines_changed": 216152,
+    "agent_percentage": 99.99722417558014,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 258415,
+      "agent_lines_removed": 187522
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 276875,
+      "agent_lines_removed": 187522
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 276875,
+      "agent_lines_removed": 187522
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 276875,
+      "agent_lines_removed": 187522
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30493,
+      "agent_lines_removed": 185790
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30055,
+      "agent_lines_removed": 185170
+    },
+    {
+      "checkpoint_number": 8,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30694,
+      "agent_lines_removed": 185803
+    },
+    {
+      "checkpoint_number": 9,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30138,
+      "agent_lines_removed": 185178
+    },
+    {
+      "checkpoint_number": 10,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30782,
+      "agent_lines_removed": 185813
+    },
+    {
+      "checkpoint_number": 11,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30150,
+      "agent_lines_removed": 185181
+    },
+    {
+      "checkpoint_number": 12,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30170,
+      "agent_lines_removed": 185198
+    },
+    {
+      "checkpoint_number": 13,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30329,
+      "agent_lines_removed": 185470
+    },
+    {
+      "checkpoint_number": 14,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30329,
+      "agent_lines_removed": 185470
+    },
+    {
+      "checkpoint_number": 15,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30558,
+      "agent_lines_removed": 185472
+    },
+    {
+      "checkpoint_number": 16,
+      "user_lines_added": 1,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30610,
+      "agent_lines_removed": 185472,
+      "user_added_per_file": {
+        "uigames/hero_adventure/ui/character_sheet.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 17,
+      "user_lines_added": 1,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30610,
+      "agent_lines_removed": 185472,
+      "user_added_per_file": {
+        "uigames/hero_adventure/ui/character_sheet.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 18,
+      "user_lines_added": 2,
+      "user_lines_removed": 0,
+      "agent_lines_added": 30675,
+      "agent_lines_removed": 185476,
+      "user_added_per_file": {
+        "uigames/hero_adventure/ui/character_sheet.json": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+I want to make some changes.  If a player has medical items, they can use them to heal based on their camping skill + a random number.  I also want monsters to drop less items across the board, and low level monsters to drop 0 items most of the time.
+
+---
+
+run the simulations and see what effect this has on finishing the journey.  Give me a summary
+
+---
+
+lets reduce the amount of loot gained from monsters again, by at most 1 and see if this materially changes things.
+
+---
+
+lets make the make the monsters 10% harder given we have so many options.
+
+---
+
+lets make the make the monsters 10% harder given we have so many options for survival.
+
+---
+
+in the inventory, it would be better if we could see our inventory slots, and select them to show equiment I could apply, but this way I could see which slots have nothing in them.  Come up with a mock up for what this would look like.
+
+---
+
+this is good.  implement it
+
+---
+
+when fighting, it would be worth showing our stats so I can make an informed decision, and maybe a risk factor of how likely I am to win, banded into "Most Likely, Good Chance, Likely, 50:50, Not Likely, Poor Chance, No Way".
+
+---
+
+the close button on the inventory is returning me to the inventory.  I can't get out.
+
+---
+
+we will tweak the combat screen, as we can now see our stats on the character screen, lets, remove the stats, but leave the HP, fight profile, rounds to win, and rounds before death, and the enemies stats, but label them as enemy stats so the player knows.  Add risks for sneaking, stealing, and stealth kills as well.  Take all the %'s and add them to the label of the button for the action.
+
+---
+
+we will tweak the combat screen, as we can now see our stats on the character screen, lets, remove the stats, but leave the HP, fight profile, rounds to win, and rounds before death, and the enemies stats, but label them as enemy stats so the player knows.  Add risks for sneaking, stealing, and stealth kills as well.  Take all the %'s and add them to the label of the button for the action.
+
+---
+
+I can't see the save function, did we add it?
+
+---
+
+is the design up to date?
+
+---
+
+please up date it, i will work more on it.
+
+---
+
+the game has no character so I want to include so silly text that sits between events.  I want a set of lines of text that indicate what the character did before the event.  These should be specific to the event, such as "While walking the hero found a Dungeon entrance..."  They should also be specific to the leg such as "While walking through the hot desert the Hero came across a monster...".  These are to give the game some character and make it feel more like the hero is on an actual journey.  Come up with at least 20 of these per event type and show them prominently on the event screen.
+
+---
+
+When Fighting, how much random chance is there?
+
+---
+
+The fights take place in rounds till one wins, I want a set of text that fills in what happened, "The player decisely struck for XX damage and the <monster> recoiled in pain.".  I don't mind if they are silly, or even uses the name of the weapon.  I want one of these shown for each round.  I want some more for defence if the hero took a hit from a monster.  If the hero used magic for defence, or attack, we should have specific text for that.  Like "The hero used Ackermans Terrible Firebolt for XX damage."  With silly names for the spells, like I used here.  Again, we'd need Magic Defence as well, with similar silly text like "Using Bridgers Shield of Tremendous Resistance, the player only took xx damage".  We will need some specifc to stealing and stealth kills as well.  E.g. "Sneaking like a silent snake, the hero pickpocketed the monsters loot!"  and "Like a tiger, the hero snuck up and took out the monster with a silent strike!".  At least 50 of each are needed as they will show up alot.
+
+---
+
+on the character screen I want to give the player a title based on their stats, the fighting, defending, magic and sneak stats will be taken into a account, based on the cap that monsters represent and using it as a band, we will describe the player.  However this is a complex system, if the player has a high fighting stat they will first be described using this as "Hard Striking", if it is low we'll "Light Striking" but nothing if it's neither high or low, the same goes for defence, with "Heavily Armoured", and "Lightly Armoured" with nothing in between, and if Magic is used for attacking and defending we'd use "Master Sourcer" to "Tower Mage" if the stat is high or low.  If the Sneak Stat is high, we'd use "Night Assassin" and "Catburgular"  for high and low.  The presence of Magic or Sneak over rules the fighting aspect.  Do you have any questions?
+
+---
+
+lets add to the title with an honorific mark that is based on the amount of super monsters and dungeons the player has completed.  There are 5 super monsters and 10 dungeons, leading to a max mark of 15, and low mark of 0.  At 0 they should be "The unproven" and this should preceed the other title we have, at 10 they it should read "Champion of Road and Wood", but they need to flow with the other title, some could preceed, some could follow, such that we have a lot of variety in the title.  Please make 15 titles that follow or proceed, you may discard my suggestions and use them as examples.  Each should flow with the other titles, and you may even create doubles or triples to fit with magic and sneaking that work with the magic or sneak skill titles.
+
+---
+
+Add more monsters to account for these, make them themed to each leg.  the dungeons should be themed as they are and making them more stealthy where it fits the theme and more magical where appropriate.  I see bandits as being more stealthy, and lich's being more magical.  We don't need to add more dungeon monsters.
