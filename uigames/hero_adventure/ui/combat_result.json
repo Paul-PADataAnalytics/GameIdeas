@@ -4,6 +4,9 @@
   "text": [
     "{result_text}"
   ],
+  "lists": [
+    { "id": "list_rounds", "label": "Battle Log" }
+  ],
   "buttons": [
     { "label": "Continue", "action": "combat_continue" }
   ]

@@ -3,12 +3,15 @@
   "title": "Inventory",
   "text": [
     "Browse your equipped items and backpack contents.",
-    "Equipped items count toward skills immediately."
+    "Equipped items count toward skills immediately.",
+    "{save_message}"
   ],
   "lists": [
     { "id": "list_inventory", "label": "Inventory" }
   ],
   "buttons": [
+    { "label": "\ud83e\uddd1 Character", "action": "open_character_sheet" },
+    { "label": "\ud83d\udcbe Save Game", "action": "save_game" },
     { "label": "Close", "action": "close_inventory" }
   ]
 }

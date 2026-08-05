@@ -2,6 +2,7 @@
   "id": "wandering_trader",
   "title": "Wandering Trader",
   "text": [
+    "{event_narration}",
     "Buy or sell items. Trader prices depend on relic effects."
   ],
   "lists": [

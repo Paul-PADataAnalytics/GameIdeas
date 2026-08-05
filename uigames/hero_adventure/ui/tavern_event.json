@@ -2,6 +2,7 @@
   "id": "tavern_event",
   "title": "Tavern Rest",
   "text": [
+    "{event_narration}",
     "Rest for 100 cash and recover health, or continue on."
   ],
   "buttons": [

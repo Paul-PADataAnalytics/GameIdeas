@@ -3,10 +3,12 @@
   "title": "\u2694\ufe0f HERO ADVENTURE \u2694\ufe0f",
   "text": [
     "Welcome, brave adventurer!",
-    "An epic journey awaits you across five treacherous lands."
+    "An epic journey awaits you across five treacherous lands.",
+    "{menu_message}"
   ],
   "buttons": [
     { "label": "\ud83c\udfae Start New Game", "action": "new_game" },
+    { "label": "\ud83d\udcc2 Load Game", "action": "load_game" },
     { "label": "\u2b50 View High Scores", "action": "goto:high_scores" },
     { "label": "\ud83d\udcd6 View Rules", "action": "goto:rules" },
     { "label": "\ud83c\udfc6 Credits", "action": "goto:credits" },

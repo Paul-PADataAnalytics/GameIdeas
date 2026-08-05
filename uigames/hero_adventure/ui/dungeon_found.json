@@ -2,6 +2,7 @@
   "id": "dungeon_found",
   "title": "Dungeon Found",
   "text": [
+    "{event_narration}",
     "A dungeon entrance has been spotted.",
     "You can enter now or continue the journey."
   ],

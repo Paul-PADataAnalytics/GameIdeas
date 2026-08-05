@@ -2,6 +2,7 @@
   "id": "camping_event",
   "title": "Camping Spot",
   "text": [
+    "{event_narration}",
     "Rest to recover camping-based HP, or continue on."
   ],
   "buttons": [

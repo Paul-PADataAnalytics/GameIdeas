@@ -1,0 +1,17 @@
+{
+  "id": "character_sheet",
+  "title": "Character Sheet: {hero_name} ({hero_class})",
+  "text": [
+    "HP: {hp}/{max_hp}   Gold: ${cash}",
+    "Title: {character_title}",
+    "Honor Mark: {honor_mark}/15",
+    "Carry Weight: {total_weight}/{max_weight}"
+  ],
+  "lists": [
+    { "id": "list_character_stats", "label": "Stats (Base vs Effective)" },
+    { "id": "list_character_equipment", "label": "Equipment Bonuses by Slot" }
+  ],
+  "buttons": [
+    { "label": "Close", "action": "close_character_sheet" }
+  ]
+}

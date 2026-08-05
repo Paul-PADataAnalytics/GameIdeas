@@ -4,7 +4,10 @@ Implements state machine, item inventory management, combat/stealth/steal checks
 weight penalties, dungeon management, and fast zero-delay simulation API.
 """
 
+import json
+import math
 import random
+from pathlib import Path
 from game_data import (
     CLASSES, LEGS, MONSTERS, ITEM_CATEGORIES, QUALITY_TIERS,
     RELICS, HOUSES, PENSIONS
@@ -65,6 +68,8 @@ class HeroAdventureEngine:
         self.leg_event_count = 0  # 0 to 20
         self.dungeons_found_in_leg = 0 # max 2
         self.super_monster_seen_in_leg = False
+        self.super_monsters_defeated = 0
+        self.dungeons_cleared = 0
         self.last_journey_event_turn = {}
         self.in_dungeon = False
         self.dungeon_name = ""
@@ -81,6 +86,7 @@ class HeroAdventureEngine:
         
         # Telemetry log
         self.event_logs = []
+        self.last_combat_summary = {}
 
     def log(self, event_type, details):
         entry = {
@@ -209,22 +215,184 @@ class HeroAdventureEngine:
         def_roll = defender_stat + random.randint(1, die)
         return atk_roll > def_roll, abs(atk_roll - def_roll)
 
-    def resolve_fight(self, monster_name, choice="fight"):
-        """Resolves combat (fight, sneak, steal, stealth_kill) via contested
-        dice rolls instead of flat stat comparisons, so every encounter
-        carries genuine risk - even a heavily favored hero can get unlucky,
-        and a "fight" can end in a costly trade of blows rather than a
-        clean win or loss."""
-        m_stats = MONSTERS[monster_name]
+    def _combat_line(self, category, **kwargs):
+        """Builds a silly combat narration line from a 50+ line generated pool."""
+        pools = {
+            "fight_win": (
+                [
+                    "The hero decisively struck for",
+                    "With a brutal swing, the hero hammered out",
+                    "A clean opening appeared and the hero carved out",
+                    "The hero went in like a hurricane and dealt",
+                    "A heroic thump landed for",
+                    "The hero's blow cracked the air for",
+                    "With perfect timing, the hero delivered",
+                    "The hero leaned into the attack and produced",
+                    "A wildly enthusiastic hit sent out",
+                    "The hero smacked the monster with",
+                ],
+                [
+                    "damage and the {monster_name} recoiled in pain.",
+                    "damage while the {monster_name} stumbled backward.",
+                    "damage and the {monster_name} yelped like it regretted everything.",
+                    "damage, making the {monster_name} wobble dramatically.",
+                    "damage and the {monster_name} looked personally offended.",
+                ],
+            ),
+            "fight_loss": (
+                [
+                    "The {monster_name} landed a grim blow and the hero took",
+                    "A nasty hit from the {monster_name} forced the hero to absorb",
+                    "The {monster_name} crashed in like bad news and dealt",
+                    "The hero failed to dodge the {monster_name}, taking",
+                    "A foul strike from the {monster_name} rang out for",
+                    "The {monster_name} clipped the hero squarely, causing",
+                    "The {monster_name} made a rude point with",
+                    "The hero ate a careless hit from the {monster_name} for",
+                    "The {monster_name} answered with",
+                    "The hero got flattened by the {monster_name} for",
+                ],
+                [
+                    "damage and had to regain their footing.",
+                    "damage, sending the hero skidding back.",
+                    "damage while the hero reeled in disbelief.",
+                    "damage and the hero cursed the entire road.",
+                    "damage, enough to make the hero rethink bravado.",
+                ],
+            ),
+            "magic_attack": (
+                [
+                    "The hero unleashed {spell_name} for",
+                    "With a dramatic flourish, the hero cast {spell_name} for",
+                    "The air crackled as {spell_name} blasted out for",
+                    "The hero waved a hand and {spell_name} erupted for",
+                    "A dazzling {spell_name} struck true for",
+                    "The hero muttered {spell_name} and cooked the foe for",
+                    "With a pop of sparks, {spell_name} hit for",
+                    "The hero hurled {spell_name} straight into the monster for",
+                    "A ridiculous but effective {spell_name} fired for",
+                    "The hero shouted {spell_name} and launched",
+                ],
+                [
+                    "damage, leaving the {monster_name} smoking and confused.",
+                    "damage and the {monster_name} staggered under the spell.",
+                    "damage while the {monster_name} flailed at the arcane nonsense.",
+                    "damage and the {monster_name} shrieked at the wizardry.",
+                    "damage, which was apparently rude enough to count as a win.",
+                ],
+            ),
+            "magic_defense": (
+                [
+                    "Using {shield_name}, the hero only took",
+                    "The hero invoked {shield_name} and limited the damage to",
+                    "With {shield_name} humming in protest, the hero suffered only",
+                    "The hero braced behind {shield_name} and absorbed just",
+                    "{shield_name} flared up and reduced the hit to",
+                    "The hero rode the blow through {shield_name}, taking only",
+                    "With a whispered charm from {shield_name}, the hero endured",
+                    "The hero hid behind {shield_name} and got clipped for only",
+                    "A glorious shimmer from {shield_name} softened the strike to",
+                    "The hero used {shield_name} and barely felt",
+                ],
+                [
+                    "damage instead of a full-body disaster.",
+                    "damage, which was somehow still insulting.",
+                    "damage and lived to complain about it.",
+                    "damage before the monster got bored.",
+                    "damage, proving magic could be a decent umbrella.",
+                ],
+            ),
+            "steal": (
+                [
+                    "Sneaking like a silent snake, the hero pickpocketed",
+                    "The hero moved like a street magician and stole",
+                    "With a wink and a pocketful of nonsense, the hero nabbed",
+                    "The hero slipped in like a rumor and swiped",
+                    "A cunning grab let the hero steal",
+                    "The hero's hands became unfairly slippery and lifted",
+                    "With impeccable timing, the hero liberated",
+                    "The hero bumped the monster and somehow stole",
+                    "A sly little trick let the hero pocket",
+                    "The hero vanished into the shadows and came back with",
+                ],
+                [
+                    "before anyone noticed.",
+                    "while the monster blinked in confusion.",
+                    "and left the monster muttering in outrage.",
+                    "with a triumphant little shrug.",
+                    "and not a single apology.",
+                ],
+            ),
+            "stealth_kill": (
+                [
+                    "Like a tiger, the hero snuck up and took out the monster with a silent strike for",
+                    "The hero moved like a ghost and ended the monster with",
+                    "A velvet-shadow ambush let the hero land",
+                    "The hero glided in and delivered a silent strike worth",
+                    "Like a thunderless shadow, the hero deleted the monster with",
+                    "The hero sprang from nowhere and drove home",
+                    "With one whisper-quiet motion, the hero dealt",
+                    "The hero became a rumor with a blade and landed",
+                    "A perfectly rude assassination produced",
+                    "The hero struck from the dark and scored",
+                ],
+                [
+                    "damage before the monster could even gasp.",
+                    "damage, and the monster simply ceased being confident.",
+                    "damage while the monster forgot how to stand.",
+                    "damage, which was the kind of silence that wins arguments.",
+                    "damage and the monster folded like bad origami.",
+                ],
+            ),
+        }
+        start, end = pools[category]
+        start_text = random.choice(start).format(**kwargs)
+        end_text = random.choice(end).format(**kwargs)
+        line = f"{start_text} {kwargs.get('value', '')} {end_text}".strip()
+        return " ".join(line.split())
+
+    def _combat_action_line(self, action, **kwargs):
+        if action == "fight_win":
+            return self._combat_line("fight_win", **kwargs)
+        if action == "fight_loss":
+            return self._combat_line("fight_loss", **kwargs)
+        if action == "magic_attack":
+            return self._combat_line("magic_attack", **kwargs)
+        if action == "magic_defense":
+            return self._combat_line("magic_defense", **kwargs)
+        if action == "steal":
+            return self._combat_line("steal", **kwargs)
+        if action == "stealth_kill":
+            return self._combat_line("stealth_kill", **kwargs)
+        return ""
+
+    def _magic_spell_name(self):
+        prefixes = [
+            "Ackerman's Terrible", "Bridger's Snapping", "Merrick's Smoldering",
+            "Harlow's Rude", "Pritchard's Violent", "Brennan's Sparkling",
+            "Gorton's Unhelpful", "Vera's Ferocious", "Milo's Fussy", "Dorian's Spiteful",
+        ]
+        spells = ["Firebolt", "Icicle", "Thunder Mote", "Moon Ray", "Arc Lash"]
+        return f"{random.choice(prefixes)} {random.choice(spells)}"
+
+    def _magic_shield_name(self):
+        prefixes = [
+            "Bridger's", "Marlow's", "Hendrix's", "Tilda's", "Rogan's",
+            "Ember's", "Nora's", "Basil's", "Ivy's", "Quinn's",
+        ]
+        shields = [
+            "Shield of Tremendous Resistance", "Bulwark of Ridiculous Fortitude",
+            "Wall of Argument-Ending Force", "Aegis of Mildly Heroic Endurance",
+            "Barrier of Unreasonable Stubbornness",
+        ]
+        return f"{random.choice(prefixes)} {random.choice(shields)}"
+
+    def _fight_core_stats(self):
         skills, _, _ = self.get_effective_skills()
-        
-        # Check Crown of Archmage (magic replaces defending in combat damage reduction)
         effective_def = skills["defending"]
-        
-        # Phase 8 Magic Boost: Amulet of Arcane Shielding doubles ward efficiency (100% Magic to DEF vs 50%)
+
         has_arcane_amulet = any(eq and eq.get("name") == "Amulet of Arcane Shielding" for eq in self.equipment.values())
         ward_mult = 1.0 if has_arcane_amulet else 0.5
-
         if skills["magic"] > skills["fighting"]:
             effective_def += int(skills["magic"] * ward_mult)
 
@@ -234,6 +402,176 @@ class HeroAdventureEngine:
                 break
 
         player_atk = max(skills["fighting"], skills["magic"])
+        return skills, player_atk, effective_def
+
+    def estimate_fight_risk(self, monster_name):
+        m_stats = MONSTERS[monster_name]
+        skills, player_atk, effective_def = self._fight_core_stats()
+
+        has_cloak = any(eq and eq.get("name") == "Cloak of Invisibility" for eq in self.equipment.values())
+        has_staff = any(eq and eq.get("name") == "Staff of Magic" for eq in self.equipment.values())
+        has_crown = any(eq and eq.get("name") == "Crown of the Archmage" for eq in self.equipment.values())
+        has_sword = any(eq and eq.get("name") == "Sword of Power" for eq in self.equipment.values())
+        has_plate = any(eq and eq.get("name") == "Plate of Invincibility" for eq in self.equipment.values())
+        has_shield = any(eq and eq.get("name") == "Behemoth Shield" for eq in self.equipment.values())
+        has_mirror = any(eq and eq.get("name") == "Mirror of Fate" for eq in self.equipment.values())
+
+        guaranteed = has_cloak or (has_staff and has_crown) or (has_sword and has_plate)
+        player_round_damage = max(5, player_atk - m_stats["defending"])
+        monster_round_damage = max(5, m_stats["fighting"] - effective_def)
+        if has_shield:
+            monster_round_damage = max(1, monster_round_damage // 2)
+
+        monster_hp = max(20, (m_stats["fighting"] + m_stats["defending"]) * 2)
+        rounds_to_kill = max(1, math.ceil(monster_hp / player_round_damage))
+        rounds_to_die = max(1, math.ceil(max(1, self.hp) / max(1, monster_round_damage)))
+        round_cap = 8
+
+        if guaranteed:
+            win_prob = 1.0
+        else:
+            # Exact chance to win a single contested round.
+            wins = 0
+            for p_die in range(1, 21):
+                for m_die in range(1, 21):
+                    p_power = player_atk + effective_def + p_die
+                    m_power = m_stats["fighting"] + m_stats["defending"] + m_die
+                    if p_power > m_power:
+                        wins += 1
+            p_round = wins / 400.0
+            q_round = 1.0 - p_round
+
+            # DP race model: probability player reaches required wins before
+            # accumulating enough losses to drop to 0 HP, within round cap.
+            states = {(0, 0): 1.0}  # (wins, losses) -> probability
+            win_prob = 0.0
+            for _ in range(round_cap):
+                next_states = {}
+                for (w, l), prob in states.items():
+                    if prob <= 0:
+                        continue
+
+                    # Round win
+                    w2 = w + 1
+                    pw = prob * p_round
+                    if w2 >= rounds_to_kill:
+                        win_prob += pw
+                    else:
+                        next_states[(w2, l)] = next_states.get((w2, l), 0.0) + pw
+
+                    # Round loss
+                    l2 = l + 1
+                    pl = prob * q_round
+                    if l2 < rounds_to_die:
+                        next_states[(w, l2)] = next_states.get((w, l2), 0.0) + pl
+                states = next_states
+
+            # Relic safety nets that can flip losses.
+            if has_sword or has_plate:
+                win_prob = win_prob + (1.0 - win_prob) * 0.50
+            if has_mirror:
+                win_prob = win_prob + (1.0 - win_prob) * 0.35
+
+        if win_prob >= 0.85:
+            band = "Most Likely"
+        elif win_prob >= 0.70:
+            band = "Good Chance"
+        elif win_prob >= 0.60:
+            band = "Likely"
+        elif win_prob >= 0.45:
+            band = "50:50"
+        elif win_prob >= 0.30:
+            band = "Not Likely"
+        elif win_prob >= 0.15:
+            band = "Poor Chance"
+        else:
+            band = "No Way"
+
+        return {
+            "band": band,
+            "win_pct": int(round(win_prob * 100)),
+            "player_attack": player_atk,
+            "player_effective_defense": effective_def,
+            "player_round_damage": player_round_damage,
+            "monster_round_damage": monster_round_damage,
+            "monster_hp": monster_hp,
+            "rounds_to_kill": rounds_to_kill,
+            "rounds_to_die": rounds_to_die,
+            "fighting": skills["fighting"],
+            "magic": skills["magic"],
+            "defending": skills["defending"],
+        }
+
+    def _opposed_win_probability(self, attacker_stat, defender_stat, die=20):
+        wins = 0
+        total = die * die
+        for atk_die in range(1, die + 1):
+            for def_die in range(1, die + 1):
+                if attacker_stat + atk_die > defender_stat + def_die:
+                    wins += 1
+        return wins / float(total)
+
+    def _risk_band_for_probability(self, prob):
+        if prob >= 0.85:
+            return "Most Likely"
+        if prob >= 0.70:
+            return "Good Chance"
+        if prob >= 0.60:
+            return "Likely"
+        if prob >= 0.45:
+            return "50:50"
+        if prob >= 0.30:
+            return "Not Likely"
+        if prob >= 0.15:
+            return "Poor Chance"
+        return "No Way"
+
+    def estimate_combat_action_risks(self, monster_name):
+        m_stats = MONSTERS[monster_name]
+        fight = self.estimate_fight_risk(monster_name)
+        skills, _, _ = self._fight_core_stats()
+
+        has_cloak = any(eq and eq.get("name") == "Cloak of Invisibility" for eq in self.equipment.values())
+        has_boots = any(eq and eq.get("name") == "Boots of Stealth" for eq in self.equipment.values())
+        has_dagger = any(eq and eq.get("name") == "Shadowstep Dagger" for eq in self.equipment.values())
+
+        if has_cloak:
+            sneak_prob = 1.0
+        else:
+            sneak_prob = self._opposed_win_probability(skills["stealth"], m_stats["defending"])
+            if has_boots:
+                sneak_prob = sneak_prob + (1.0 - sneak_prob) * 0.50
+
+        steal_prob = self._opposed_win_probability(
+            skills["stealth"] + skills["salvaging"],
+            m_stats["defending"] * 2
+        )
+
+        if has_cloak or (has_dagger and has_cloak):
+            stealth_kill_prob = 1.0
+        else:
+            stealth_kill_prob = self._opposed_win_probability(
+                skills["stealth"] * 2,
+                int(m_stats["defending"] * 1.5)
+            )
+
+        return {
+            "fight": {"prob": fight["win_pct"] / 100.0, "pct": fight["win_pct"], "band": fight["band"]},
+            "sneak": {"prob": sneak_prob, "pct": int(round(sneak_prob * 100)), "band": self._risk_band_for_probability(sneak_prob)},
+            "steal": {"prob": steal_prob, "pct": int(round(steal_prob * 100)), "band": self._risk_band_for_probability(steal_prob)},
+            "stealth_kill": {"prob": stealth_kill_prob, "pct": int(round(stealth_kill_prob * 100)), "band": self._risk_band_for_probability(stealth_kill_prob)},
+            "fight_profile": fight,
+        }
+
+    def resolve_fight(self, monster_name, choice="fight", encounter_type="fight"):
+        """Resolves combat (fight, sneak, steal, stealth_kill) via contested
+        dice rolls instead of flat stat comparisons, so every encounter
+        carries genuine risk - even a heavily favored hero can get unlucky,
+        and a "fight" can end in a costly trade of blows rather than a
+        clean win or loss."""
+        m_stats = MONSTERS[monster_name]
+        self.last_combat_summary = {}
+        skills, player_atk, effective_def = self._fight_core_stats()
         
         # Check Cloak of Invisibility
         for eq in self.equipment.values():
@@ -259,7 +597,18 @@ class HeroAdventureEngine:
             success, margin = self._opposed_roll(skills["stealth"] + skills["salvaging"], m_stats["defending"] * 2)
             if success:
                 self.log("STEAL_SUCCESS", {"monster": monster_name, "margin": margin})
-                return self.grant_monster_loot(monster_name)
+                loot = self.grant_monster_loot(monster_name)
+                if encounter_type == "super_monster":
+                    self.super_monsters_defeated = min(5, self.super_monsters_defeated + 1)
+                elif encounter_type == "dungeon_boss":
+                    self.dungeons_cleared = min(10, self.dungeons_cleared + 1)
+                self.last_combat_summary = {
+                    "rounds": 1,
+                    "round_texts": [self._combat_action_line("steal", value="a pouch of loot")],
+                    "mode": "steal",
+                    "monster_name": monster_name,
+                }
+                return loot
             else:
                 choice = "fight"
 
@@ -267,6 +616,7 @@ class HeroAdventureEngine:
             has_dagger = any(eq and eq.get("name") == "Shadowstep Dagger" for eq in self.equipment.values())
             has_cloak = any(eq and eq.get("name") == "Cloak of Invisibility" for eq in self.equipment.values())
             has_stone = any(eq and eq.get("name") == "Alchemist's Philosopher Stone" for eq in self.equipment.values())
+            player_round_damage = max(5, player_atk - m_stats["defending"])
             
             # Shadow Assassin 2-Relic Synergy (Dagger + Cloak) & Master Thief 3-Relic Synergy (+Stone)
             is_shadow_assassin = (has_dagger and has_cloak)
@@ -280,7 +630,18 @@ class HeroAdventureEngine:
             if is_shadow_assassin or success:
                 self.log("STEALTH_KILL_SUCCESS", {"monster": monster_name, "stealth_score": surprise_stealth, "m_def_score": surprise_def, "margin": margin})
                 cash_mult = 2.0 if is_master_thief else 1.0
-                return self.grant_monster_loot(monster_name, cash_multiplier=cash_mult)
+                loot = self.grant_monster_loot(monster_name, cash_multiplier=cash_mult)
+                if encounter_type == "super_monster":
+                    self.super_monsters_defeated = min(5, self.super_monsters_defeated + 1)
+                elif encounter_type == "dungeon_boss":
+                    self.dungeons_cleared = min(10, self.dungeons_cleared + 1)
+                self.last_combat_summary = {
+                    "rounds": 1,
+                    "round_texts": [self._combat_action_line("stealth_kill", value=f"{player_round_damage} damage")],
+                    "mode": "stealth_kill",
+                    "monster_name": monster_name,
+                }
+                return loot
             else:
                 choice = "fight"
 
@@ -297,40 +658,117 @@ class HeroAdventureEngine:
             has_plate = any(eq and eq.get("name") == "Plate of Invincibility" for eq in self.equipment.values())
 
             crit = False
+            rounds_fought = 0
+            player_hp_before = self.hp
+            monster_max_hp = max(20, (m_stats["fighting"] + m_stats["defending"]) * 2)
+            monster_hp = monster_max_hp
+            round_texts = []
+            magic_attack_mode = skills["magic"] > skills["fighting"]
+            spell_name = self._magic_spell_name()
+            shield_name = self._magic_shield_name()
+            player_round_damage = max(5, player_atk - m_stats["defending"])
+            base_monster_damage = max(5, m_stats["fighting"] - effective_def)
+            has_shield = any(eq and eq.get("name") == "Behemoth Shield" for eq in self.equipment.values())
+
             if is_arcane_tempest or (has_sword and has_plate):
                 # Guaranteed-win relic combos bypass the dice entirely and never wound the hero
                 win, damage, margin = True, 0, 0
+                rounds_fought = 1
+                monster_hp = 0
+                round_texts.append(
+                    self._combat_action_line(
+                        "magic_attack" if magic_attack_mode else "fight_win",
+                        value=player_round_damage,
+                        monster_name=monster_name,
+                        spell_name=spell_name,
+                        weapon_name=spell_name,
+                    )
+                )
             else:
-                # Single contested roll: each side's full combat power (offense + defense)
-                # gets a d20 swing added on top. A bigger stat lead still matters a lot,
-                # but a big enough roll can flip even a lopsided matchup.
-                p_power = player_atk + effective_def + random.randint(1, 20)
-                m_power = m_stats["fighting"] + m_stats["defending"] + random.randint(1, 20)
-                win = p_power > m_power
-                margin = abs(p_power - m_power)
-                crit = margin >= 20  # a decisive roll - clearly one-sided exchange
+                # Multi-round combat: each round winner deals direct damage.
+                # Round cap prevents very long exchanges while still allowing
+                # multiple swings per encounter.
+                max_rounds = 8
+                margin = 0
+                win = False
 
-                if win:
-                    damage = 0
-                else:
-                    damage = max(5, m_stats["fighting"] - effective_def)
+                for r in range(1, max_rounds + 1):
+                    rounds_fought = r
+                    p_power = player_atk + effective_def + random.randint(1, 20)
+                    m_power = m_stats["fighting"] + m_stats["defending"] + random.randint(1, 20)
+                    margin = abs(p_power - m_power)
+                    player_wins_round = p_power > m_power
+                    crit = crit or (player_wins_round and margin >= 20)
 
-                # Sword of Power / Plate of Invincibility: 50% reroll of a loss when held alone
+                    if player_wins_round:
+                        monster_hp = max(0, monster_hp - player_round_damage)
+                        round_texts.append(
+                            self._combat_action_line(
+                                "magic_attack" if magic_attack_mode else "fight_win",
+                                value=player_round_damage,
+                                monster_name=monster_name,
+                                spell_name=spell_name,
+                                weapon_name=spell_name,
+                            )
+                        )
+                        if monster_hp <= 0:
+                            win = True
+                            break
+                    else:
+                        damage = base_monster_damage
+                        if has_shield:
+                            damage = max(1, damage // 2)
+                        round_texts.append(
+                            self._combat_action_line(
+                                "magic_defense" if magic_attack_mode else "fight_loss",
+                                value=damage,
+                                monster_name=monster_name,
+                                shield_name=shield_name,
+                            )
+                        )
+                        self.take_damage(damage, f"slain by {monster_name}")
+                        if self.game_over:
+                            break
+
+                # If combat timed out on round cap, treat as loss pressure.
+                if not win and not self.game_over and monster_hp <= 0:
+                    win = True
+
+                # Sword of Power / Plate of Invincibility: 50% reroll of a loss when held alone.
                 if not win and (has_sword or has_plate):
                     if random.random() < 0.5:
-                        win, damage = True, 0
+                        win = True
+                        monster_hp = 0
                         self.log("RELIC_REROLL_PROC", {"monster": monster_name, "relic": "Sword of Power" if has_sword else "Plate of Invincibility"})
 
-                # Mirror of Fate: flips a loss to an instant win once per game
+                # Mirror of Fate: flips a loss to an instant win once per game.
                 if not win:
                     for slot, eq in self.equipment.items():
                         if eq and eq.get("name") == "Mirror of Fate":
-                            win, damage = True, 0
+                            win = True
+                            monster_hp = 0
                             self.equipment[slot] = None  # consume relic
                             self.log("MIRROR_OF_FATE_PROC", {"monster": monster_name})
                             break
 
+                damage = max(0, player_hp_before - self.hp)
+
+            self.last_combat_summary = {
+                "rounds": rounds_fought,
+                "monster_max_hp": monster_max_hp,
+                "monster_hp_left": max(0, monster_hp),
+                "player_hp_before": player_hp_before,
+                "player_hp_after": self.hp,
+                "hp_lost": max(0, player_hp_before - self.hp),
+                "round_texts": round_texts,
+                "mode": "fight",
+            }
+
             if win:
+                if encounter_type == "super_monster":
+                    self.super_monsters_defeated = min(5, self.super_monsters_defeated + 1)
+                elif encounter_type == "dungeon_boss":
+                    self.dungeons_cleared = min(10, self.dungeons_cleared + 1)
                 if m_stats.get("relic"):
                     if is_grand_archmage:
                         self.hp = 100
@@ -340,14 +778,17 @@ class HeroAdventureEngine:
                         self.log("ANKH_REBIRTH_HEAL", {"hp": self.hp})
 
                 cash_mult = 1.5 if crit else 1.0
-                self.log("FIGHT_WIN", {"monster": monster_name, "player_atk": player_atk, "m_def": m_stats["defending"], "margin": margin, "critical": crit})
+                self.log("FIGHT_WIN", {"monster": monster_name, "player_atk": player_atk, "m_def": m_stats["defending"], "margin": margin, "critical": crit, "rounds": rounds_fought})
                 return self.grant_monster_loot(monster_name, cash_multiplier=cash_mult)
             else:
-                has_shield = any(eq and eq.get("name") == "Behemoth Shield" for eq in self.equipment.values())
-                if has_shield:
-                    damage = max(1, damage // 2)
-                self.log("FIGHT_LOSS", {"monster": monster_name, "hp_loss": damage, "critical": crit})
-                self.take_damage(damage, f"slain by {monster_name}")
+                # If rounds ended without lethal player damage, apply a final attrition hit.
+                if not self.game_over:
+                    timeout_damage = max(5, m_stats["fighting"] - effective_def)
+                    has_shield = any(eq and eq.get("name") == "Behemoth Shield" for eq in self.equipment.values())
+                    if has_shield:
+                        timeout_damage = max(1, timeout_damage // 2)
+                    self.take_damage(timeout_damage, f"slain by {monster_name}")
+                self.log("FIGHT_LOSS", {"monster": monster_name, "hp_loss": max(0, player_hp_before - self.hp), "critical": crit, "rounds": rounds_fought})
                 return "LOSS_WINDOW"
 
     def take_damage(self, amount, reason="unknown causes"):
@@ -445,8 +886,12 @@ class HeroAdventureEngine:
 
         # Keep at least one item for boss/super encounters when they drop loot.
         if is_super_or_boss:
-            return max(1, reduced)
-        return max(0, reduced)
+            reduced = max(1, reduced)
+        else:
+            reduced = max(0, reduced)
+
+        # Additional global reduction pass: remove at most one item.
+        return max(0, reduced - random.randint(0, 1))
 
     # ------------------------------------------------------------------
     # Shared decision helpers - single source of truth for probabilities
@@ -770,13 +1215,13 @@ class HeroAdventureEngine:
                 floor_idx = self.dungeon_event_count - 1
                 monster = self.dungeon_floors[floor_idx] if floor_idx < len(self.dungeon_floors) else "Goblin"
                 choice = self.get_tactical_choice(monster)
-                res = self.resolve_fight(monster, choice=choice)
+                res = self.resolve_fight(monster, choice=choice, encounter_type="dungeon_floor")
                 if res == "LOSS_WINDOW":
                     self.leave_dungeon("defeated on floor")
                 return res
             else:
                 # Dungeon boss fight
-                res = self.resolve_fight(self.dungeon_boss, choice="fight")
+                res = self.resolve_fight(self.dungeon_boss, choice="fight", encounter_type="dungeon_boss")
                 self.in_dungeon = False
                 return res
 
@@ -891,6 +1336,115 @@ class GameController:
     """
 
     LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    EQUIPMENT_SLOT_LABELS = {
+        "fighting_weapon": "Fighting Weapon",
+        "defending_armor": "Defending Armor",
+        "salvaging_tool": "Salvaging Tool",
+        "spotting_item": "Spotting Item",
+        "camping_medical": "Camping / Medical",
+        "accessory_1": "Accessory 1",
+        "accessory_2": "Accessory 2",
+    }
+    HONORIFIC_TITLES = [
+        {"text": "The unproven", "placement": "prefix"},
+        {"text": "of the Open Road", "placement": "suffix"},
+        {"text": "Road-Trodden", "placement": "prefix"},
+        {"text": "of the Narrow Trail", "placement": "suffix"},
+        {"text": "Trail-Bitten", "placement": "prefix"},
+        {"text": "of the First Gates", "placement": "suffix"},
+        {"text": "Monster-Hardened", "placement": "prefix"},
+        {"text": "of the Deep Paths", "placement": "suffix"},
+        {"text": "Relic-Scarred", "placement": "prefix"},
+        {"text": "of the Long Journey", "placement": "suffix"},
+        {"text": "Champion of Road and Wood", "placement": "prefix"},
+        {"text": "of the Hard-Won Path", "placement": "suffix"},
+        {"text": "Warden of Road and Wood", "placement": "prefix"},
+        {"text": "of the Sealed Doors", "placement": "suffix"},
+        {"text": "Conqueror of Roads and Ruins", "placement": "prefix"},
+        {"text": "of Legend's End", "placement": "suffix"},
+    ]
+    LEG_VIBES = {
+        1: "the warm, dusty road out of Startersville",
+        2: "the pine-shadowed trails near Forest Edge",
+        3: "the steep wind-cut passes of the mountain road",
+        4: "the blistering desert flats between settlements",
+        5: "the wet, humming roads of the Riverlands",
+    }
+    EVENT_NARRATION_TEMPLATES = {
+        "fight": [
+            "While walking through {leg_vibe}, {hero_name} nearly stepped on a {monster_name}.",
+            "On {leg_vibe}, {hero_name} heard a snort, turned around, and found a {monster_name}.",
+            "Near {leg_vibe}, {hero_name} tried to look busy until a {monster_name} disagreed.",
+            "While crossing {leg_vibe}, {hero_name} found a {monster_name} with awful timing.",
+        ],
+        "dungeon_found": [
+            "While walking through {leg_vibe}, {hero_name} spotted a dungeon entrance half-hidden in the scenery.",
+            "On {leg_vibe}, {hero_name} noticed suspiciously dramatic rocks that were absolutely a dungeon entrance.",
+            "Near {leg_vibe}, {hero_name} found a hole in the ground that looked far too intentional.",
+            "While crossing {leg_vibe}, {hero_name} saw a dungeon door pretending to be part of the landscape.",
+        ],
+        "tavern": [
+            "After slogging through {leg_vibe}, {hero_name} followed the smell of ale to a tavern.",
+            "On {leg_vibe}, {hero_name} heard laughter and decided the universe was offering a drink.",
+            "While crossing {leg_vibe}, {hero_name} found a tavern that looked like a very good idea.",
+            "Near {leg_vibe}, {hero_name} reached a tavern and pretended it was a tactical decision.",
+        ],
+        "camp": [
+            "As night crept over {leg_vibe}, {hero_name} looked for a place to camp.",
+            "While wandering {leg_vibe}, {hero_name} found a half-decent patch of ground and called it home for the night.",
+            "On {leg_vibe}, {hero_name} set up camp where the weather only looked mildly insulting.",
+            "Near {leg_vibe}, {hero_name} chose a camp spot with just enough dignity to survive the evening.",
+        ],
+        "wandering_trader": [
+            "While crossing {leg_vibe}, {hero_name} met a wandering trader who was definitely not suspicious at all.",
+            "On {leg_vibe}, {hero_name} found a trader polishing goods with the confidence of a stage magician.",
+            "Near {leg_vibe}, {hero_name} was waved over by a wandering trader with a grin too wide to trust.",
+            "While traveling {leg_vibe}, {hero_name} bumped into a trader who somehow had exactly what was needed.",
+        ],
+        "magic_shrine": [
+            "While walking through {leg_vibe}, {hero_name} found a magic shrine humming like it paid rent.",
+            "On {leg_vibe}, {hero_name} stumbled on a shrine that was glowing far too smugly.",
+            "Near {leg_vibe}, {hero_name} discovered a shrine doing its best impression of a helpful miracle.",
+            "While crossing {leg_vibe}, {hero_name} found a magic shrine and chose not to ask questions.",
+        ],
+        "super_monster": [
+            "While crossing {leg_vibe}, {hero_name} spotted a super monster and immediately regretted the walk.",
+            "On {leg_vibe}, {hero_name} saw a towering super monster and reconsidered every life choice.",
+            "Near {leg_vibe}, {hero_name} found a super monster pacing like it owned the road.",
+            "While traveling {leg_vibe}, {hero_name} came face to face with a super monster that looked deeply offended.",
+        ],
+        "wander_group": [
+            "While traveling through {leg_vibe}, {hero_name} fell in with a wander group that knew a shortcut.",
+            "On {leg_vibe}, {hero_name} joined a strange little band of travelers and let them take the lead.",
+            "Near {leg_vibe}, {hero_name} was swept along by a helpful group with suspiciously good directions.",
+            "While crossing {leg_vibe}, {hero_name} let a wander group hustle the journey forward.",
+        ],
+        "fairy_found": [
+            "While moving through {leg_vibe}, {hero_name} noticed a tiny fairy fluttering around with trouble in its eyes.",
+            "On {leg_vibe}, {hero_name} saw a fairy dart out of the grass like it had bad news.",
+            "Near {leg_vibe}, {hero_name} spotted a fairy behaving as if it had been waiting for exactly this moment.",
+            "While crossing {leg_vibe}, {hero_name} found a fairy and immediately understood this would be weird.",
+        ],
+        "dungeon_floor": [
+            "Inside {dungeon_name} on {leg_vibe}, {hero_name} pushed deeper toward floor {floor_number}.",
+            "While threading {leg_vibe}, {hero_name} advanced through {dungeon_name} to floor {floor_number}.",
+            "On {leg_vibe}, {hero_name} marched through {dungeon_name} and found floor {floor_number} waiting.",
+            "Near {leg_vibe}, {hero_name} kept climbing inside {dungeon_name} toward floor {floor_number}.",
+        ],
+        "dungeon_boss": [
+            "Inside {dungeon_name} on {leg_vibe}, {hero_name} approached the boss chamber.",
+            "While threading {leg_vibe}, {hero_name} reached the deepest hall of {dungeon_name}.",
+            "On {leg_vibe}, {hero_name} stepped into the final room of {dungeon_name}.",
+            "Near {leg_vibe}, {hero_name} headed for the boss of {dungeon_name} with zero enthusiasm.",
+        ],
+    }
+    NARRATION_EVENT_SCREENS = {
+        "journey", "dungeon_found", "camping_event", "tavern_event", "wandering_trader",
+        "magic_shrine_event", "super_monster_preview", "combat", "dungeon_floor_preview",
+        "dungeon_boss_preview",
+    }
+    SAVE_VERSION = 1
+    SAVE_PATH = Path(__file__).resolve().parent / "savegame.json"
 
     def __init__(self):
         self.engine = None
@@ -901,10 +1455,96 @@ class GameController:
         self.quit_requested = False
         self.ctx = {}
         self.previous_screen = "journey"
+        self.inventory_return_screen = "journey"
         self.dungeon_pending = None
         self.trader_offer = []
         self.levelup_chosen = []
         self.selected_item_letter = None
+        self.current_narration = ""
+
+    def _save_payload(self):
+        return {
+            "version": self.SAVE_VERSION,
+            "controller": {
+                "screen": self.screen,
+                "previous_screen": self.previous_screen,
+                "ctx": self.ctx,
+                "pending_name": self.pending_name,
+                "pending_class": self.pending_class,
+                "dungeon_pending": self.dungeon_pending,
+                "trader_offer": self.trader_offer,
+                "levelup_chosen": self.levelup_chosen,
+                "selected_item_letter": self.selected_item_letter,
+                "current_narration": self.current_narration,
+                "scores": self.scores,
+            },
+            "engine": self.engine.__dict__ if self.engine else None,
+        }
+
+    def _restore_payload(self, payload):
+        if not isinstance(payload, dict):
+            return False
+        if payload.get("version") != self.SAVE_VERSION:
+            return False
+        engine_data = payload.get("engine")
+        if not isinstance(engine_data, dict):
+            return False
+
+        hero_name = engine_data.get("hero_name", "Hero")
+        hero_class = engine_data.get("hero_class", "Hitter")
+        fast_mode = engine_data.get("fast_mode", True)
+        engine = HeroAdventureEngine(hero_name, hero_class, fast_mode=fast_mode)
+        for key, val in engine_data.items():
+            setattr(engine, key, val)
+        self.engine = engine
+
+        controller_data = payload.get("controller", {})
+        self.screen = controller_data.get("screen", "journey")
+        self.previous_screen = controller_data.get("previous_screen", "journey")
+        self.ctx = controller_data.get("ctx", {}) or {}
+        self.pending_name = controller_data.get("pending_name", "")
+        self.pending_class = controller_data.get("pending_class", "")
+        self.dungeon_pending = controller_data.get("dungeon_pending")
+        self.trader_offer = controller_data.get("trader_offer", []) or []
+        self.levelup_chosen = controller_data.get("levelup_chosen", []) or []
+        self.selected_item_letter = controller_data.get("selected_item_letter")
+        self.current_narration = controller_data.get("current_narration", "")
+        self.scores = controller_data.get("scores", []) or []
+
+        if not self.screen:
+            self.screen = "journey"
+        if self.screen == "front_page":
+            self.screen = "journey"
+        return True
+
+    def _set_menu_message(self, text):
+        if self.screen == "front_page":
+            self.ctx["menu_message"] = text
+
+    def _set_save_message(self, text):
+        if self.screen in ("journey", "inventory"):
+            self.ctx["save_message"] = text
+
+    def _build_leg_vibe(self):
+        if not self.engine:
+            return "the road"
+        return self.LEG_VIBES.get(
+            self.engine.current_leg_idx + 1,
+            LEGS[self.engine.current_leg_idx]["name"].lower(),
+        )
+
+    def _set_narration(self, event_type, **kwargs):
+        templates = self.EVENT_NARRATION_TEMPLATES.get(event_type, [])
+        if not templates:
+            self.current_narration = ""
+            return ""
+        data = {
+            "hero_name": self.engine.hero_name if self.engine else "the Hero",
+            "leg_vibe": self._build_leg_vibe(),
+        }
+        data.update(kwargs)
+        self.current_narration = random.choice(templates).format(**data)
+        return self.current_narration
 
     # ------------------------------------------------------------------
     # Item letter helpers (DCSS-style lettered inventory, shared by the
@@ -957,12 +1597,21 @@ class GameController:
             })
 
         ctx.update(self.ctx)
+        ctx["menu_message"] = ctx.get("menu_message", "")
+        ctx["save_message"] = ctx.get("save_message", "")
+        ctx["event_narration"] = self.current_narration if self.screen in self.NARRATION_EVENT_SCREENS else ""
         ctx["pending_name"] = self.pending_name
         ctx["pending_class"] = self.pending_class or "(none)"
         ctx["levelup_count"] = len(self.levelup_chosen)
+        ctx["load_available"] = self.SAVE_PATH.exists()
 
         if self.screen == "inventory":
             ctx["list_inventory"] = self._build_inventory_rows()
+        elif self.screen == "character_sheet":
+            ctx["character_title"] = self._character_title()
+            ctx["honor_mark"] = min(15, self.engine.super_monsters_defeated + self.engine.dungeons_cleared)
+            ctx["list_character_stats"] = self._build_character_stats_rows()
+            ctx["list_character_equipment"] = self._build_character_equipment_rows()
         elif self.screen == "item_detail":
             item, slot = self._find_letter_item(self.selected_item_letter)
             if item:
@@ -984,6 +1633,27 @@ class GameController:
         elif self.screen == "wandering_trader":
             ctx["list_trader_buy"] = self._build_trader_buy_rows()
             ctx["list_trader_sell"] = self._build_trader_sell_rows()
+        elif self.screen == "combat_result":
+            ctx["list_rounds"] = self.ctx.get("combat_rounds", [])
+        elif self.screen == "combat" and e and ctx.get("monster_name"):
+            action_risks = e.estimate_combat_action_risks(ctx["monster_name"])
+            risk = action_risks["fight_profile"]
+            ctx.update({
+                "fight_risk_band": action_risks["fight"]["band"],
+                "sneak_risk_band": action_risks["sneak"]["band"],
+                "steal_risk_band": action_risks["steal"]["band"],
+                "stealth_kill_risk_band": action_risks["stealth_kill"]["band"],
+                "fight_win_pct": action_risks["fight"]["pct"],
+                "sneak_win_pct": action_risks["sneak"]["pct"],
+                "steal_win_pct": action_risks["steal"]["pct"],
+                "stealth_kill_win_pct": action_risks["stealth_kill"]["pct"],
+                "combat_attack": risk["player_attack"],
+                "combat_effective_defense": risk["player_effective_defense"],
+                "combat_round_damage": risk["player_round_damage"],
+                "combat_incoming_damage": risk["monster_round_damage"],
+                "combat_rounds_to_kill": risk["rounds_to_kill"],
+                "combat_rounds_to_die": risk["rounds_to_die"],
+            })
 
         return ctx
 
@@ -998,6 +1668,101 @@ class GameController:
         if not rows:
             rows.append({"text": "Your inventory is empty.", "action": None, "enabled": False})
         return rows
+
+    def _build_character_stats_rows(self):
+        skills, _, _ = self.engine.get_effective_skills()
+        rows = []
+        for skill in ("fighting", "defending", "magic", "stealth", "spotting", "salvaging", "camping", "medical"):
+            base = self.engine.base_skills.get(skill, 0)
+            effective = skills.get(skill, base)
+            delta = effective - base
+            delta_text = f"+{delta}" if delta >= 0 else str(delta)
+            rows.append({
+                "text": f"{skill.title():<10}  Base: {base:<3}  Effective: {effective:<3}  Net: {delta_text}",
+                "action": None,
+                "enabled": False,
+            })
+        return rows
+
+    def _build_character_equipment_rows(self):
+        rows = []
+        for slot, item in self.engine.equipment.items():
+            label = self.EQUIPMENT_SLOT_LABELS.get(slot, slot)
+            if not item:
+                rows.append({"text": f"{label}: (empty)", "action": None, "enabled": False})
+                continue
+            if item.get("skill"):
+                bonus = f"+{item.get('skill_val', 0)} {item.get('skill', '')}"
+            else:
+                bonus = "Relic effect"
+            rows.append({
+                "text": f"{label}: {item['name']} ({item.get('tier', '')}) {bonus} | {item['weight']}wt",
+                "action": None,
+                "enabled": False,
+            })
+        return rows
+
+    def _leg_monster_cap(self, stat_name):
+        leg = self.engine.current_leg_idx + 1
+        values = [data.get(stat_name, 0) for data in MONSTERS.values() if data.get("leg") == leg]
+        return max(values) if values else 0
+
+    def _band_for_title(self, value, cap):
+        if cap <= 0:
+            return "neutral"
+        if value >= cap * 0.75:
+            return "high"
+        if value <= cap * 0.25:
+            return "low"
+        return "neutral"
+
+    def _character_title(self):
+        if not self.engine:
+            return ""
+
+        skills, _, _ = self.engine.get_effective_skills()
+        fight_band = self._band_for_title(skills["fighting"], self._leg_monster_cap("fighting"))
+        def_band = self._band_for_title(skills["defending"], self._leg_monster_cap("defending"))
+        magic_band = self._band_for_title(skills["magic"], self._leg_monster_cap("magic"))
+        sneak_band = self._band_for_title(skills["stealth"], self._leg_monster_cap("defending"))
+
+        if magic_band == "high":
+            attack_title = "Master Sourcer"
+        elif magic_band == "low":
+            attack_title = "Tower Mage"
+        elif sneak_band == "high":
+            attack_title = "Night Assassin"
+        elif sneak_band == "low":
+            attack_title = "Catburgular"
+        elif fight_band == "high":
+            attack_title = "Hard Striking"
+        elif fight_band == "low":
+            attack_title = "Light Striking"
+        else:
+            attack_title = "Balanced"
+
+        defense_title = ""
+        if def_band == "high":
+            defense_title = "Heavily Armoured"
+        elif def_band == "low":
+            defense_title = "Lightly Armoured"
+
+        core_parts = []
+        if attack_title != "Balanced":
+            core_parts.append(attack_title)
+        if defense_title:
+            core_parts.append(defense_title)
+        if not core_parts:
+            core_parts.append("Balanced Adventurer")
+        core_title = ", ".join(core_parts)
+
+        honor_mark = min(15, self.engine.super_monsters_defeated + self.engine.dungeons_cleared)
+        honor = self.HONORIFIC_TITLES[honor_mark]
+        if honor["placement"] == "prefix":
+            if honor["text"] == "The unproven":
+                return f"{honor['text']} {core_title}"
+            return f"{honor['text']}, {core_title}"
+        return f"{core_title}, {honor['text']}"
 
     def _build_levelup_rows(self):
         rows = []
@@ -1099,6 +1864,8 @@ class GameController:
         self.pending_name = ""
         self.pending_class = ""
         self.engine = None
+        self.ctx = {}
+        self.current_narration = ""
         self.screen = "character_creation"
 
     def _action_select_class(self, class_name):
@@ -1109,17 +1876,57 @@ class GameController:
         if not self.pending_name or not self.pending_class:
             return
         self.engine = HeroAdventureEngine(self.pending_name, self.pending_class)
+        self.current_narration = ""
         self.screen = "journey"
 
     def _action_quit(self):
         self.quit_requested = True
 
+    def _action_load_game(self):
+        try:
+            payload = json.loads(self.SAVE_PATH.read_text())
+        except (FileNotFoundError, json.JSONDecodeError):
+            self._set_menu_message("No valid save file was found.")
+            return
+
+        if self._restore_payload(payload):
+            self._set_save_message("Game loaded.")
+        else:
+            self.engine = None
+            self.screen = "front_page"
+            self.ctx = {"menu_message": "Save file is invalid or incompatible."}
+
+    def _action_save_game(self):
+        if not self.engine:
+            self._set_menu_message("Start or load a game before saving.")
+            return
+        try:
+            payload = self._save_payload()
+            tmp_path = self.SAVE_PATH.with_suffix(".tmp")
+            tmp_path.write_text(json.dumps(payload, separators=(",", ":")))
+            tmp_path.replace(self.SAVE_PATH)
+            self._set_save_message(f"Game saved to {self.SAVE_PATH.name}.")
+        except OSError:
+            self._set_save_message("Failed to save game.")
+
     # -- Inventory (openable from journey/combat, returns to prior screen) --
     def _action_open_inventory(self):
-        self.previous_screen = self.screen
+        origin = self.screen if self.screen != "inventory" else (self.inventory_return_screen or "journey")
+        self.previous_screen = origin
+        self.inventory_return_screen = origin
         self.screen = "inventory"
 
     def _action_close_inventory(self):
+        target = self.inventory_return_screen or self.previous_screen or "journey"
+        if target == "inventory":
+            target = "journey"
+        self.screen = target
+
+    def _action_open_character_sheet(self):
+        self.previous_screen = self.screen
+        self.screen = "character_sheet"
+
+    def _action_close_character_sheet(self):
         self.screen = self.previous_screen or "journey"
 
     def _action_select_item(self, letter):
@@ -1197,7 +2004,12 @@ class GameController:
         dungeon = e.try_spot_dungeon()
         if dungeon:
             self.dungeon_pending = dungeon
-            self.ctx = {"dungeon_name": dungeon["name"], "dungeon_boss": dungeon["boss"]}
+            self._set_narration("dungeon_found", dungeon_name=dungeon["name"])
+            self.ctx = {
+                "dungeon_name": dungeon["name"],
+                "dungeon_boss": dungeon["boss"],
+                "event_narration": self.current_narration,
+            }
             self.screen = "dungeon_found"
             return
 
@@ -1215,27 +2027,35 @@ class GameController:
 
         event_type = e.roll_journey_event_type()
         if event_type == "TAVERN":
-            self.ctx = {}
+            self._set_narration("tavern")
+            self.ctx = {"event_narration": self.current_narration}
             self.screen = "tavern_event"
         elif event_type == "CAMP":
-            self.ctx = {}
+            self._set_narration("camp")
+            self.ctx = {"event_narration": self.current_narration}
             self.screen = "camping_event"
         elif event_type == "SUPER_MONSTER":
             sm_name = LEGS[e.current_leg_idx]["super_monster"]
             m = MONSTERS[sm_name]
+            self._set_narration("super_monster")
             self.ctx = {"monster_name": sm_name, "monster_fighting": m["fighting"],
-                        "monster_defending": m["defending"], "monster_magic": m["magic"]}
+                        "monster_defending": m["defending"], "monster_magic": m["magic"],
+                        "event_narration": self.current_narration}
             self.screen = "super_monster_preview"
         elif event_type == "MAGIC_SHRINE":
             result = e.resolve_magic_shrine()
+            self._set_narration("magic_shrine")
             self.ctx = {"loot_cash": result["cash_gained"], "loot_items": result["new_items"],
-                        "loot_lines": self._format_loot_lines(result["new_items"])}
+                        "loot_lines": self._format_loot_lines(result["new_items"]),
+                        "event_narration": self.current_narration}
             self.screen = "magic_shrine_event"
         elif event_type == "WANDERING_TRADER":
             self.trader_offer = e.generate_trader_offer()
-            self.ctx = {}
+            self._set_narration("wandering_trader")
+            self.ctx = {"event_narration": self.current_narration}
             self.screen = "wandering_trader"
         elif event_type == "WANDER_GROUP":
+            self._set_narration("wander_group")
             e.apply_wander_group_advance(5)
             transition = e.try_leg_transition()
             if transition == "LEVEL_UP":
@@ -1248,14 +2068,17 @@ class GameController:
                 self.ctx = {}
                 self.screen = "capital"
                 return
-            self.ctx = {}
+            self.ctx = {"event_narration": self.current_narration}
             self.screen = "journey"
         elif event_type == "FAIRY_FOUND":
+            self._set_narration("fairy_found")
             e.capture_fairy()
-            self.ctx = {}
+            self.ctx = {"event_narration": self.current_narration}
             self.screen = "journey"
         else:
-            self._start_combat(e.get_random_monster(), "regular", allow_run=True)
+            monster = e.get_random_monster()
+            self._set_narration("fight", monster_name=monster)
+            self._start_combat(monster, "regular", allow_run=True)
 
     # -- Tavern / Camping ---------------------------------------------------
     def _action_rest_tavern(self):
@@ -1291,6 +2114,8 @@ class GameController:
     # -- Super monster ------------------------------------------------------
     def _action_fight_super_monster(self):
         sm_name = self.ctx.get("monster_name")
+        if sm_name:
+            self._set_narration("super_monster", monster_name=sm_name)
         self._start_combat(sm_name, "super_monster", allow_run=False)
 
     def _action_ignore_super_monster(self):
@@ -1313,10 +2138,16 @@ class GameController:
         monster_name = e.get_dungeon_floor_monster()
         m = MONSTERS[monster_name]
         is_boss = e.dungeon_event_count >= 5
+        self._set_narration(
+            "dungeon_boss" if is_boss else "dungeon_floor",
+            dungeon_name=e.dungeon_name,
+            floor_number=min(e.dungeon_event_count + 1, 5),
+        )
         self.ctx = {
             "floor_monster": monster_name, "floor_number": min(e.dungeon_event_count + 1, 5),
             "monster_fighting": m["fighting"], "monster_defending": m["defending"], "monster_magic": m["magic"],
             "is_boss": is_boss,
+            "event_narration": self.current_narration,
         }
         self.screen = "dungeon_boss_preview" if is_boss else "dungeon_floor_preview"
 
@@ -1377,10 +2208,19 @@ class GameController:
     # -- Combat -----------------------------------------------------------
     def _start_combat(self, monster_name, kind, allow_run=True):
         m = MONSTERS[monster_name]
+        if not self.current_narration:
+            event_type = "dungeon_boss" if kind == "dungeon_boss" else "dungeon_floor" if kind == "dungeon_floor" else "fight"
+            self._set_narration(
+                event_type,
+                monster_name=monster_name,
+                dungeon_name=self.engine.dungeon_name if self.engine else "",
+                floor_number=(self.engine.dungeon_event_count + 1) if self.engine else "",
+            )
         self.ctx = {
             "monster_name": monster_name,
             "monster_fighting": m["fighting"], "monster_defending": m["defending"], "monster_magic": m["magic"],
             "combat_kind": kind, "allow_run": allow_run,
+            "event_narration": self.current_narration,
         }
         self.screen = "combat"
 
@@ -1408,7 +2248,12 @@ class GameController:
         before_cash = e.cash
         before_len = len(e.inventory)
 
-        res = e.resolve_fight(monster, choice=choice)
+        res = e.resolve_fight(monster, choice=choice, encounter_type=kind)
+        combat_summary = e.last_combat_summary if isinstance(e.last_combat_summary, dict) else {}
+        rounds_text = ""
+        if combat_summary.get("rounds"):
+            rounds_text = f" ({combat_summary['rounds']} rounds)"
+        combat_lines = combat_summary.get("round_texts", [])
 
         if res == "JOURNEY":
             self.ctx["result_text"] = f"You slip past {monster} without a fight!"
@@ -1416,7 +2261,7 @@ class GameController:
             self.ctx["loot_items"] = []
         elif res == "LOSS_WINDOW":
             damage = before_hp - e.hp
-            self.ctx["result_text"] = f"You were bested by {monster}! You take {damage} damage."
+            self.ctx["result_text"] = f"You were bested by {monster}{rounds_text}! You take {damage} damage."
             self.ctx["result_won"] = False
             self.ctx["damage"] = damage
             if kind in ("dungeon_floor", "dungeon_boss"):
@@ -1424,11 +2269,13 @@ class GameController:
         else:
             cash_gained = e.cash - before_cash
             new_items = e.inventory[before_len:]
-            self.ctx["result_text"] = f"Victory! You defeat {monster}."
+            self.ctx["result_text"] = f"Victory! You defeat {monster}{rounds_text}."
             self.ctx["result_won"] = True
             self.ctx["loot_cash"] = cash_gained
             self.ctx["loot_items"] = new_items
             self.ctx["loot_lines"] = self._format_loot_lines(new_items)
+
+        self.ctx["combat_rounds"] = [{"text": line, "action": None, "enabled": False} for line in combat_lines]
 
         self.screen = "death" if e.game_over else "combat_result"
 

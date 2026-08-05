@@ -233,7 +233,7 @@ The score is described as the players name, house name and the pension band, wit
 
 The game is a UI game made out of menus and buttons.  The ui is described as pages with controls, subpages may exist and will have an entry point and exit point which is another page.  The pages are described as follows:
 - Character Creation - The player creates their character by selecting a class and setting their skill level, name, and class.
-- Journey - The player progresses through the journey showing their progress, a pause button to pause and look at their inventory, and a button to continue the journey.  It shows how long till the next event, and the current gold/cash of the player.  It also shows the current leg of the journey and the number of events completed.
+- Journey - The player progresses through the journey and can continue to the next event, open inventory, open the character sheet, or save the game. It shows current HP, cash, leg, events completed, and key effective stats.
 - Dungeon - Like the journey but shows the progress through the dungeon with an option to pause or exit the dungeon. On every dungeon floor—including right before facing the Dungeon Boss—the player can inspect the monster they are about to fight and has an explicit "Exit Dungeon" button to leave the dungeon safely at any time before initiating combat, returning to the journey.  It's entry is from a "dungeon found" event in the journey and its exit is the journey where we left off.
 - Capital - The player can buy a home and retire if they have enough fortune (cash).  There are options for each house, and the calculated score so you can choose the best option.  If you do not have enough fortune to buy a home, you can only choose tavern.  There is a button to end the adventure which secures the choice and takes to the end game.
 - Event - There are the following major event types:
@@ -248,15 +248,16 @@ The game is a UI game made out of menus and buttons.  The ui is described as pag
   - Super monster - The player spots a super monster with a relic and can choose to fight or ignore it.  If they fight, they go to the fight event, if they ignore it, they continue the journey without taking damage or fighting.  If they win, they get a loot relic and 10000 Cash, if they lose, they get a loss window with a punishing loss of health.
   - Tavern - The player finds a tavern and can choose to rest or continue the journey.  If they rest, they gain a lot of their health back at the cost of 100 cash.  If they continue, they get no other benefit.  The amount of health is based on a random roll of 40 + random(0-20).  If the player has a healing item equipped, the healing item may be consumed and the amount of health gained will be doubled, the player will be informed of the amount healed before asking if they want to double it.  No skills are used when staying in a tavern.
   - Camping spot - The player finds a camping spot and can choose to rest or continue the journey.  If they rest, they gain some of their health back based on their camping score * 1.  This can be * 2 if they have a healing item equipped, the healing item will be consumed if they take this option.  If they continue, they get no other benefit.
-- Fight screen - The fight screen shows the player the monster they are fighting and their skills, and the monsters skills.  It also has a button to fight, a button to sneak past, a button to steal their loot, and a button for a stealth kill. There may be an option to run away if the event grants it, or by a relic.  Every one of these actions is resolved as a contested dice roll (see the Fighting section) rather than a flat stat comparison, so the favored side usually wins but never with certainty.  If the player wins the Fight roll, they go to the loot window, if they lose, they go to the loss window.  If they chose steal, it is a contested roll of their stealth and salvaging skills added together vs the monsters defending skill * 2.  If they win, they go to the loot window, if they lose, they go to the loss window.  If they chose sneak past, it is a contested roll of their stealth skill vs the monsters defending skill.  If they win, they continue the journey, if they lose, they go to the loss window. If they chose stealth kill, it is a contested roll of the player's stealth skill vs the monster's defending skill. If they win the roll, the player defeats the monster and gets loot, if they lose, the player is caught and must fight.
-- Inventory - The player can view their inventory and the weight of the items they are carrying.  They can choose to drop items to reduce their weight, or use items that have a use effect.  The inventory shows the items in a list with their name, value, weight, and use effect if any.
+- Fight screen - The fight screen shows enemy stats, player HP, a fight profile (attack, effective defense, per-round damage in/out), estimated rounds to win, estimated rounds before death, and risk bands for each action. The action buttons include success percentages in the label for Fight, Sneak, Steal, and Stealth Kill.
+- Inventory - The player can view inventory and carry weight, inspect items, equip/unequip items, drop items, use medical items, and save the game.
+- Character Sheet - The player can view all skills as Base vs Effective values and see equipped items by slot with each item's bonus/effect.
 - Loss window - The loss window shows the player that they have lost the event and the reason for the loss, it shows an amount of hit points lost.  It also has an Ok button which takes us back to the journey page, if we were in a dungeon it says that "The hero left the dungeon."
 - Loot Found - A loot window that shows the items found and the cash amount.  The player can choose to take the loot or leave it.  If they take it, it is added to their inventory and the weight is calculated.  If they leave it, they continue the journey/dungeon.
 - Death window - The death window shows the player that they have died and the reason for the death.  It also has an Ok button which takes us to the end game page.  You get no entry to the score board if you die.
 - End game - The end game tells a short story of the hero's life in the capital.  It says "The hero, [name], has retired to a [house] with a pension of [pension] and lived a [short/medium/long] life before dying to [death reason]."  It also has an Ok button which takes us to the score board.  The death reason is chosen from a random list I will write.  The short medium and long life is based on the pension, with a short life is based on how high the value is within the pension band.  < half way through the pension band is short, and the top 3/4 of the pension band is medium with long being an option if in the top 1/4 of the band.  The death reason is based on a random selection from a list of reasons I will write.
 - Score board - The top 5 scores and an button to go to the front page
 - Trade window -  option to sell, which shows only the players items, and an option to buy which shows only the traders items.  Cash and player stats are updated when any transaction occurs.
-- Front page - The front page has a button to start a new game, and a button to view the score board.  It also has a button to view the rules of the game.
+- Front page - The front page has Start New Game, Load Game, score board, rules, credits, and quit options.
 - Rules - The rules page has a button to go back to the front page.  It also has a button to view the character creation rules, and a button to view the journey rules, and a button to view the scoring rules.  It has buttons for the sub sections of the rules, but each of those only returns to the rules page.  The character creation rules describe how to create a character, the journey rules describe how the journey works, and the scoring rules describe how the scoring works.
 - Credits - The credits page has a button to go back to the front page.  It also has a list of the people who worked on the game and their roles.
 
@@ -293,6 +294,8 @@ For each leg, we compute an average player combat profile from these checkpoints
 - Mid-tier monsters are distributed between those two targets
 
 This keeps each leg challenging even when players are not at top gear, while preserving progression.
+
+Each leg now also includes extra regular monsters that lean more strongly into stealth or magic themes, so bandit-heavy roads feel more slippery and later legs lean harder into spellcasters and shadowy attackers.
 
 Weak monsters always have 1-2 equipment, and strong monsters always have 2-3 equipment. The super monsters always have a relic and 1-2 equipment.
 
@@ -354,21 +357,23 @@ The table below is a thematic lookup (monster roster, loot bands, and progressio
 
 ## Fighting
 
-Every combat action - Fight, Sneak, Steal, and Stealth Kill - is resolved with a contested dice roll rather than a flat stat comparison, so no outcome is ever fully guaranteed by stats alone. Both sides add a random 1-20 swing on top of their relevant stat before comparing totals: a big stat advantage still makes success likely, but a lucky or unlucky roll can flip the result either way.
+All combat actions use contested rolls with a 1-20 random swing, but straight Fight is now resolved as a multi-round battle.
 
-For a straight Fight: if a player's magic skill is higher than their fighting skill, we use the magic skill for the player's attack score. Additionally, when using magic for attack (magic > fighting), the player gains a Magical Ward equal to 50% of their magic skill (100% with the Amulet of Arcane Shielding) added directly to their defending skill when calculating monster hit damage. The player's combined attack + effective defending, plus a random 1-20 roll, is compared against the monster's combined fighting + defending, plus its own random 1-20 roll - whichever total is higher wins the exchange. If the winning margin is 20 or more, it's a Critical: a critical win grants 50% bonus cash loot. On a loss, the player takes damage equal to (monster fighting - player's effective defending, minimum 5). Relics may affect this - see the Relics section.
+For Fight:
+- Player attack uses `max(fighting, magic)`.
+- If `magic > fighting`, a Magical Ward is added to defense (`+50% magic`, or `+100%` with Amulet of Arcane Shielding).
+- Crown of the Archmage can raise effective defense up to magic.
+- Monster HP is derived from monster stats, and combat runs round-by-round (capped to keep fights bounded).
+- On a won round, monster HP is reduced by player round damage.
+- On a lost round, player HP is reduced by monster round damage (Behemoth Shield halves this).
+- If the player wins any round by a large margin, a Critical flag can apply bonus cash to the final victory loot.
 
-The player can choose to sneak past the monster, steal from the monster, or execute a Stealth Kill instead of fighting head-on - each is its own contested dice roll:
+Alternative actions:
+- Sneak: contested `stealth` vs monster `defending`; failure falls through into Fight. Boots of Stealth can rescue failed sneaks.
+- Steal: contested `(stealth + salvaging)` vs `(monster defending * 2)`; success grants loot directly, failure falls through into Fight.
+- Stealth Kill: contested `(stealth * 2)` vs `(monster defending * 1.5)`; success grants loot directly, failure falls through into Fight.
 
-- Sneaking past pits the player's stealth against the monster's defending. Sneaking past never rewards loot, but never hurts the player either - if the roll fails, it simply becomes a Fight. With Boots of Stealth equipped, a failed sneak gets a 50% chance to re-roll into a success.
-- Stealing pits (the player's stealth + salvaging) against (the monster's defending * 2). A successful steal rewards loot without ever risking damage; a failed steal becomes a Fight.
-- A Stealth Kill pits the player's stealth against the monster's defending as a straight contested stealth check. Success instantly defeats the monster for full loot without taking damage; failure becomes a Fight.
-
-On a defeat (including a failed Fight that followed a failed Sneak/Steal/Stealth Kill), the player loses HP as described above. The player never loses cash or items on a defeat.
-
-Relics may cause a re-roll, or materially affect the outcome of any of these actions - the relic itself details its effect in the Relics section. Sword of Power and Plate of Invincibility each grant a 50% chance to re-roll a Fight loss into a win when held alone, and guarantee victory outright when both are equipped together; Mirror of Fate can flip a Fight loss into an instant win once per game; and Behemoth Shield halves incoming damage whenever a Fight is lost.
-
-Monsters still have no HP pool of their own - each encounter remains a single decisive roll rather than a multi-round battle, so fights stay quick while the dice keep every one of them meaningfully uncertain.
+Relics can materially change outcomes (guaranteed win combos, rerolls, one-time loss flip, damage mitigation, and class synergies), and are applied in the engine at fight resolution time.
 
 ## Loot table
 
@@ -399,7 +404,7 @@ The loot table is made up of the following items for each leg of the journey and
 
 Medical items have a use count based on their quality, with common having 1 use, uncommon having 2 uses, rare having 3 uses, and epic having 5 uses.  The use count is displayed in the inventory and is decremented when used.  When the use count reaches 0, the item is removed from the inventory.  The value is a ratio of the un-used count to the total count, so a common with 1 use left is worth 100% of its value, an uncommon with 1 use left is worth 50% of its value, and an epic with 2 uses left is worth 40% of its value.
 
-Medical items can only be used in resting events.
+Medical items can be used directly from inventory. Healing scales with camping skill plus a random component, and item uses are consumed.
 
 Each item has a colour and a quality associated with it. The quality of the item will determine how much it will change the associated skill. The colours are:
 - Common - white

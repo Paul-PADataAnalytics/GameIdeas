@@ -2,6 +2,7 @@
   "id": "super_monster_preview",
   "title": "Super Monster: {monster_name}",
   "text": [
+    "{event_narration}",
     "Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}",
     "You may fight or ignore this encounter."
   ],

@@ -2,16 +2,20 @@
   "id": "combat",
   "title": "\u2694\ufe0f Encounter: {monster_name}",
   "text": [
-    "Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}",
-    "Your HP: {hp}/{max_hp}   Fighting: {fighting}  Defending: {defending}  Stealth: {stealth}  Salvaging: {salvaging}",
-    "Sneak uses stealth vs defending; stealth kill uses a straight stealth vs defending check."
+    "{event_narration}",
+    "Enemy Stats -> Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}",
+    "Your HP: {hp}/{max_hp}",
+    "Fight profile -> Attack:{combat_attack}  Effective Def:{combat_effective_defense}  Your dmg/round:{combat_round_damage}  Incoming/round:{combat_incoming_damage}",
+    "Estimated rounds -> To win: {combat_rounds_to_kill}  |  Before death: {combat_rounds_to_die}",
+    "Action outlook -> Fight: {fight_risk_band}  |  Sneak: {sneak_risk_band}  |  Steal: {steal_risk_band}  |  Stealth Kill: {stealth_kill_risk_band}"
   ],
   "buttons": [
-    { "label": "\u2694\ufe0f Fight", "action": "fight" },
-    { "label": "\ud83d\udc65 Sneak", "action": "sneak" },
-    { "label": "\ud83e\uddb6 Steal", "action": "steal" },
-    { "label": "\ud83d\udd2a Stealth Kill", "action": "stealth_kill" },
+    { "label": "\u2694\ufe0f Fight ({fight_win_pct}%)", "action": "fight" },
+    { "label": "\ud83d\udc65 Sneak ({sneak_win_pct}%)", "action": "sneak" },
+    { "label": "\ud83e\uddb6 Steal ({steal_win_pct}%)", "action": "steal" },
+    { "label": "\ud83d\udd2a Stealth Kill ({stealth_kill_win_pct}%)", "action": "stealth_kill" },
     { "label": "\ud83c\udfc3 Run Away", "action": "run_away", "visible_if": "allow_run" },
+    { "label": "\ud83e\uddd1 Character", "action": "open_character_sheet" },
     { "label": "\ud83c\udf92 Inventory", "action": "open_inventory" }
   ]
 }

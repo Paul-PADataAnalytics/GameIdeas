@@ -114,7 +114,7 @@ class MonteCarloAgent:
                 # Default behavior: avoid only when low HP.
                 elif self.engine.hp >= 60:
                     choice = self.choose_tactical_action(None, sm_name)
-                    self.engine.resolve_fight(sm_name, choice=choice)
+                    self.engine.resolve_fight(sm_name, choice=choice, encounter_type="super_monster")
                 else:
                     self.engine.log("SUPER_MONSTER_BYPASSED", {"monster": sm_name, "hp": self.engine.hp})
             elif res == "WANDERING_TRADER":

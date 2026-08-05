@@ -2,6 +2,7 @@
   "id": "dungeon_floor_preview",
   "title": "Dungeon Floor {floor_number}",
   "text": [
+    "{event_narration}",
     "Floor monster: {floor_monster}",
     "Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}",
     "You can inspect the fight and leave before engaging."

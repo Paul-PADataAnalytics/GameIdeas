@@ -3,14 +3,18 @@
   "title": "Leg {leg}/5: {leg_name}",
   "text": [
     "HP: {hp}/{max_hp}    Gold: ${cash}",
+    "{event_narration}",
     "Event {event}/20   Dungeons found this leg: {dungeons_found}/2",
     "Fight:{fighting} Def:{defending} Magic:{magic} Stealth:{stealth} Spot:{spotting} Salv:{salvaging} Camp:{camping} Med:{medical}",
     "Carry Weight: {total_weight}/{max_weight}   Equipped: {equipped_summary}",
-    "Journey events include fights, dungeons, rest, traders, wander groups, and fairy finds."
+    "Journey events include fights, dungeons, rest, traders, wander groups, and fairy finds.",
+    "{save_message}"
   ],
   "buttons": [
     { "label": "\u25b6 Continue Journey", "action": "advance_event" },
+    { "label": "\ud83e\uddd1 Character", "action": "open_character_sheet" },
     { "label": "\ud83c\udf92 Inventory", "action": "open_inventory" },
+    { "label": "\ud83d\udcbe Save Game", "action": "save_game" },
     { "label": "Quit to Menu", "action": "goto:front_page" }
   ]
 }
