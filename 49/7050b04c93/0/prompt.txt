@@ -1,1 +1,121 @@
-Commit and push the changes we've made.
+[[PLAN]] I want you to work specifically on a new approach to the UI problem I've been having. Mostly that the agents I've asked to work on the UI have made terrible messes of the UI, from misplaced text, to too many lines used and running off hte bottom of the screen to bad layout. This project institutes a form of declarative ui in JSON files so work to optimise them results in messed up UI between version. I'm thinking that we need to mandate some kind of predefined structure of frames which, while described in the base, their dimensions belong to the implementation and the ability to describe the content of the base. Also I think we need to define some bars whose fullness visually describes an ammount, not scroll bars, but illustrative bars that we can use to describe certian quantities. I want you to look at the code, look at what information we show to the user as they play and describe a split for these frames that makes sense. We will implement it later in the gui and terminal versions. I want you to look at dcss for influence as it's UI is terminal based and represents an example of good approach. Present me 3 possible layouts.
+
+<system_notification>
+Reminder: This session currently has an auto-generated or placeholder name. Before replying to the user, call the `rename_session` tool to give it a short, descriptive title based on the user's intent.
+</system_notification>
+
+---
+
+[[PLAN]] This is too many frames, Can we compress to 4, and define clear ratios for their content and importance?
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+[[PLAN]] Start by tweaking the GUI version and use the experience of implementing the frames to drive the future approach, write a guide on it as well for the porting to other platforms. I also want you to implement a change in the JSON files to describe items as "progressbar" and to define in which frame the control sits.
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+Have you tested each change and validated it? It's a terminal app so I expect you to test that, in a normal sized terminal, all the information is visible and that the frame is holding the correct information and that all we defined is where it should be.
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+[[PLAN]] This is not what I envisaged, the screen is not separated into frames with specific information in the frame, it's the same as before, how did you use 44 credits and 30 minutes to make no visual changes! Describe again to me the default ratios we developed.
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+[[PLAN]] I have the terminal version, play.py and there is one named frame for the let and everything is just in a bundle at the top, status is muddled up with a ton of other details. The majority of the screen is filled with controls that could have been stack horizontally, but are stacked verticlaly with only 7 lines of text left for everything else, the gui version looks the same.
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+analyse how each piece is used and if there is value in keeping it. If one section is used a lot for a lot of info, it may be worth splitting out the fixed info into a specific new area. Make changes to improve readability and screen use efficiency in the terminal version. change the GUI version ot work like the terminal verison.
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+continue
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+what branch are all these changes on?
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+You have not yet marked the task as complete using the task_complete tool. If you were planning, stop planning and start implementing. You aren't done until you have fully completed the task.
+
+IMPORTANT: Do NOT call task_complete if:
+- You have open questions or ambiguities - make good decisions and keep working
+- You encountered an error - try to resolve it or find an alternative approach
+- There are remaining steps - complete them first
+
+Keep working autonomously until the task is truly finished, then call task_complete.
+
+---
+
+What does this mean "git checkout paul-padataanalytics-design-fixed-ui-frames
+fatal: 'paul-padataanalytics-design-fixed-ui-frames' is already used by worktree at '/home/paul/flutter/copilot-worktrees/gameideas/paul-padataanalytics-laughing-carnival'"
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+I launched play.py and the buttons have no text on the start screen. Make sure the buttons always have visible text.
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+[[PLAN]] When fighting, I want to display the individual rounds of combat and how each one went with the flavour text. Show me a plan for that
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+[[PLAN]] When fighting, I want to display the individual rounds of combat and how each one went with the flavour text. Show me a plan for that
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
+
+---
+
+This new detail should't be in the context, it should be the Scene part, this is the game! The scene should be the outcome of the event. Context should be stats that relate to the event. Too many things in the UI are in the context rather than the scene. Look through and move the actual outcomes into the scene
+
+<canvas-context>
+- name="plan" type="plan" title="Plan" panel="closed" file="/home/paul/.copilot/session-state/84ce6e97-f0c3-44de-9c93-ed8ea61d7450/plan.md" media="text/markdown"
+</canvas-context>
