@@ -1,0 +1,225 @@
+{
+  "cli_version": "0.9.0",
+  "checkpoint_id": "497050b04c93",
+  "session_id": "84ce6e97-f0c3-44de-9c93-ed8ea61d7450",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-08T05:44:05.098181154Z",
+  "branch": "paul-padataanalytics-design-fixed-ui-frames",
+  "checkpoints_count": 13,
+  "save_step_count": 11,
+  "files_touched": [
+    "uigames/hero_adventure/GUI_README.md",
+    "uigames/hero_adventure/README_PLAY.md",
+    "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md",
+    "uigames/hero_adventure/hero_engine.py",
+    "uigames/hero_adventure/play.py",
+    "uigames/hero_adventure/play_gui.py",
+    "uigames/hero_adventure/ui/camping_event.json",
+    "uigames/hero_adventure/ui/capital.json",
+    "uigames/hero_adventure/ui/capital_result.json",
+    "uigames/hero_adventure/ui/character_creation.json",
+    "uigames/hero_adventure/ui/character_sheet.json",
+    "uigames/hero_adventure/ui/combat.json",
+    "uigames/hero_adventure/ui/combat_result.json",
+    "uigames/hero_adventure/ui/credits.json",
+    "uigames/hero_adventure/ui/death.json",
+    "uigames/hero_adventure/ui/dungeon_boss_preview.json",
+    "uigames/hero_adventure/ui/dungeon_floor_preview.json",
+    "uigames/hero_adventure/ui/dungeon_found.json",
+    "uigames/hero_adventure/ui/dungeon_victory.json",
+    "uigames/hero_adventure/ui/front_page.json",
+    "uigames/hero_adventure/ui/high_scores.json",
+    "uigames/hero_adventure/ui/inventory.json",
+    "uigames/hero_adventure/ui/item_detail.json",
+    "uigames/hero_adventure/ui/journey.json",
+    "uigames/hero_adventure/ui/level_up.json",
+    "uigames/hero_adventure/ui/loot_screen.json",
+    "uigames/hero_adventure/ui/magic_shrine_event.json",
+    "uigames/hero_adventure/ui/rules.json",
+    "uigames/hero_adventure/ui/rules_character_creation.json",
+    "uigames/hero_adventure/ui/rules_journey.json",
+    "uigames/hero_adventure/ui/rules_scoring.json",
+    "uigames/hero_adventure/ui/super_monster_preview.json",
+    "uigames/hero_adventure/ui/tavern_event.json",
+    "uigames/hero_adventure/ui/wandering_trader.json"
+  ],
+  "agent": "Copilot CLI",
+  "model": "gpt-5.6-luna",
+  "turn_id": "5fc9ce94d55a",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 159515,
+    "api_call_count": 326
+  },
+  "session_metrics": {
+    "turn_count": 13
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-08T05:44:04.740480473Z",
+    "agent_lines": 3499,
+    "agent_removed": 243,
+    "human_added": 570,
+    "human_modified": 148,
+    "human_removed": 0,
+    "total_committed": 4201,
+    "total_lines_changed": 4460,
+    "agent_percentage": 83.90134529147983,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3358,
+      "agent_lines_removed": 301
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 10,
+      "user_lines_removed": 2,
+      "agent_lines_added": 3738,
+      "agent_lines_removed": 374,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 10
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 2
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 10,
+      "user_lines_removed": 2,
+      "agent_lines_added": 3738,
+      "agent_lines_removed": 374,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 10
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 2
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 187,
+      "user_lines_removed": 33,
+      "agent_lines_added": 3915,
+      "agent_lines_removed": 374,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 36,
+        "uigames/hero_adventure/play.py": 84,
+        "uigames/hero_adventure/play_gui.py": 67
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 13,
+        "uigames/hero_adventure/play.py": 16,
+        "uigames/hero_adventure/play_gui.py": 4
+      }
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 56,
+      "user_lines_removed": 13,
+      "agent_lines_added": 4046,
+      "agent_lines_removed": 373,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 56
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 13
+      }
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 56,
+      "user_lines_removed": 13,
+      "agent_lines_added": 4046,
+      "agent_lines_removed": 373,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 56
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 13
+      }
+    },
+    {
+      "checkpoint_number": 8,
+      "user_lines_added": 56,
+      "user_lines_removed": 13,
+      "agent_lines_added": 4046,
+      "agent_lines_removed": 373,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 56
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 13
+      }
+    },
+    {
+      "checkpoint_number": 9,
+      "user_lines_added": 56,
+      "user_lines_removed": 13,
+      "agent_lines_added": 4046,
+      "agent_lines_removed": 373,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 56
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 13
+      }
+    },
+    {
+      "checkpoint_number": 10,
+      "user_lines_added": 56,
+      "user_lines_removed": 13,
+      "agent_lines_added": 4074,
+      "agent_lines_removed": 372,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 56
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 13
+      }
+    },
+    {
+      "checkpoint_number": 11,
+      "user_lines_added": 73,
+      "user_lines_removed": 14,
+      "agent_lines_added": 4268,
+      "agent_lines_removed": 375,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 72,
+        "uigames/hero_adventure/ui/combat_result.json": 1
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 13,
+        "uigames/hero_adventure/ui/combat_result.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 12,
+      "user_lines_added": 80,
+      "user_lines_removed": 16,
+      "agent_lines_added": 4270,
+      "agent_lines_removed": 375,
+      "user_added_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 79,
+        "uigames/hero_adventure/savegame.json": 1
+      },
+      "user_removed_per_file": {
+        "uigames/hero_adventure/UI_FRAME_PORTING_GUIDE.md": 16
+      }
+    }
+  ]
+}
