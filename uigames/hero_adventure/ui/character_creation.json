@@ -1,18 +1,101 @@
 {
   "id": "character_creation",
   "title": "Character Creation",
-  "text": [
-    "Name: {pending_name}",
-    "Class: {pending_class}",
-    "",
-    "Hitter: +20 Fighting/Defending/Camping | Blaster: +20 Magic/Spotting/Medical | Hider: +20 Stealth/Salvaging/Spotting"
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "buttons": [
-    { "label": "\u2694\ufe0f Hitter (+20 Fight/Def/Camp)", "action": "select_class:Hitter" },
-    { "label": "\ud83d\udd2e Blaster (+20 Magic/Spot/Med)", "action": "select_class:Blaster" },
-    { "label": "\ud83d\udc5f Hider (+20 Stealth/Salv/Spot)", "action": "select_class:Hider" },
-    { "label": "\u2705 Confirm & Begin Journey", "action": "confirm_character" },
-    { "label": "Back", "action": "goto:front_page" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Character Creation",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "input",
+      "id": "name_input",
+      "frame": "scene",
+      "label": "Hero Name:",
+      "value": "{pending_name}",
+      "placeholder": "Enter hero name"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Name: {pending_name}"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Class: {pending_class}"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": ""
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Hitter: +20 Fighting/Defending/Camping | Blaster: +20 Magic/Spotting/Medical | Hider: +20 Stealth/Salvaging/Spotting"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\u2694\ufe0f Hitter (+20 Fight/Def/Camp)",
+      "action": "select_class:Hitter"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83d\udd2e Blaster (+20 Magic/Spot/Med)",
+      "action": "select_class:Blaster"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83d\udc5f Hider (+20 Stealth/Salv/Spot)",
+      "action": "select_class:Hider"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\u2705 Confirm & Begin Journey",
+      "action": "confirm_character"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Back",
+      "action": "goto:front_page"
+    }
   ]
 }
-

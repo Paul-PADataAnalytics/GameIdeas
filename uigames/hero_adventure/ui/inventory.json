@@ -1,17 +1,131 @@
 {
   "id": "inventory",
   "title": "Inventory",
-  "text": [
-    "Browse your equipped items and backpack contents.",
-    "Equipped items count toward skills immediately.",
-    "{save_message}"
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "lists": [
-    { "id": "list_inventory", "label": "Inventory" }
-  ],
-  "buttons": [
-    { "label": "\ud83e\uddd1 Character", "action": "open_character_sheet" },
-    { "label": "\ud83d\udcbe Save Game", "action": "save_game" },
-    { "label": "Close", "action": "close_inventory" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Inventory",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "id": "hero_identity",
+      "frame": "status",
+      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Gold: ${cash}"
+    },
+    {
+      "type": "progressbar",
+      "id": "hp_bar",
+      "frame": "status",
+      "label": "HP",
+      "value": "{hp}",
+      "max": "{max_hp}",
+      "kind": "health",
+      "thresholds": {
+        "warning": 0.35,
+        "critical": 0.15
+      },
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "progressbar",
+      "id": "carry_bar",
+      "frame": "status",
+      "label": "Carry",
+      "value": "{total_weight}",
+      "max": "{max_weight}",
+      "kind": "capacity",
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 1.0
+      },
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "progressbar",
+      "id": "journey_bar",
+      "frame": "status",
+      "label": "Leg {leg}/5 \u00b7 Event",
+      "value": "{event}",
+      "max": 20,
+      "kind": "journey",
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Browse your equipped items and backpack contents."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Equipped items count toward skills immediately."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{save_message}"
+    },
+    {
+      "type": "list",
+      "id": "list_inventory",
+      "frame": "context",
+      "label": "Inventory",
+      "overflow": "page",
+      "max_rows": 12
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83e\uddd1 Character",
+      "action": "open_character_sheet"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83d\udcbe Save Game",
+      "action": "save_game"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Close",
+      "action": "close_inventory"
+    }
   ]
 }

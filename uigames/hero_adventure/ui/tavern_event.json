@@ -1,12 +1,112 @@
 {
   "id": "tavern_event",
   "title": "Tavern Rest",
-  "text": [
-    "{event_narration}",
-    "Rest for 100 cash and recover health, or continue on."
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "buttons": [
-    { "label": "Rest", "action": "rest_tavern" },
-    { "label": "Continue", "action": "skip_tavern" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Tavern Rest",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "id": "hero_identity",
+      "frame": "status",
+      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Gold: ${cash}"
+    },
+    {
+      "type": "progressbar",
+      "id": "hp_bar",
+      "frame": "status",
+      "label": "HP",
+      "value": "{hp}",
+      "max": "{max_hp}",
+      "kind": "health",
+      "thresholds": {
+        "warning": 0.35,
+        "critical": 0.15
+      },
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "progressbar",
+      "id": "carry_bar",
+      "frame": "status",
+      "label": "Carry",
+      "value": "{total_weight}",
+      "max": "{max_weight}",
+      "kind": "capacity",
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 1.0
+      },
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "progressbar",
+      "id": "journey_bar",
+      "frame": "status",
+      "label": "Leg {leg}/5 \u00b7 Event",
+      "value": "{event}",
+      "max": 20,
+      "kind": "journey",
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{event_narration}"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Rest for 100 cash and recover health, or continue on."
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Rest",
+      "action": "rest_tavern"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Continue",
+      "action": "skip_tavern"
+    }
   ]
 }

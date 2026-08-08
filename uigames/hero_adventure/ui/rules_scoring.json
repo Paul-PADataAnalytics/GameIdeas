@@ -1,14 +1,74 @@
 {
   "id": "rules_scoring",
   "title": "Scoring Rules",
-  "text": [
-    "At the Capital, the hero may buy a house or keep their pension.",
-    "Score = house multiplier × pension.",
-    "If the hero cannot or does not buy a house, the score is the pension only.",
-    "",
-    "Pension tiers and house prices are defined in the design and engine tables."
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "buttons": [
-    { "label": "Back", "action": "goto:rules" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Scoring Rules",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "At the Capital, the hero may buy a house or keep their pension."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Score = house multiplier \u00d7 pension."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "If the hero cannot or does not buy a house, the score is the pension only."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": ""
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Pension tiers and house prices are defined in the design and engine tables."
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Back",
+      "action": "goto:rules"
+    }
   ]
 }

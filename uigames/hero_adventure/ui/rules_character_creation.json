@@ -1,17 +1,89 @@
 {
   "id": "rules_character_creation",
   "title": "Character Creation Rules",
-  "text": [
-    "Choose a name and one of three classes.",
-    "All heroes start with 5 in every skill and 100 HP.",
-    "",
-    "Hitter: +20 Fighting, Defending, Camping.",
-    "Blaster: +20 Magic, Spotting, Medical.",
-    "Hider: +20 Stealth, Salvaging, Spotting.",
-    "",
-    "Class-specific gear and relics should match the design guide."
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "buttons": [
-    { "label": "Back", "action": "goto:rules" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Character Creation Rules",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Choose a name and one of three classes."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "All heroes start with 5 in every skill and 100 HP."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": ""
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Hitter: +20 Fighting, Defending, Camping."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Blaster: +20 Magic, Spotting, Medical."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Hider: +20 Stealth, Salvaging, Spotting."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": ""
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Class-specific gear and relics should match the design guide."
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Back",
+      "action": "goto:rules"
+    }
   ]
 }

@@ -366,6 +366,26 @@ class HeroAdventureEngine:
             return self._combat_line("stealth_kill", **kwargs)
         return ""
 
+    def _combat_round_detail(
+        self,
+        number,
+        outcome,
+        text,
+        damage_dealt=0,
+        damage_taken=0,
+        hero_hp=None,
+        monster_hp=None,
+    ):
+        return {
+            "round": number,
+            "outcome": outcome,
+            "text": text,
+            "damage_dealt": damage_dealt,
+            "damage_taken": damage_taken,
+            "hero_hp": self.hp if hero_hp is None else hero_hp,
+            "monster_hp": monster_hp,
+        }
+
     def _magic_spell_name(self):
         prefixes = [
             "Ackerman's Terrible", "Bridger's Snapping", "Merrick's Smoldering",
@@ -578,6 +598,25 @@ class HeroAdventureEngine:
             if eq and eq.get("name") == "Cloak of Invisibility":
                 if choice in ["sneak", "fight", "stealth_kill"]:
                     self.log("FIGHT_SUCCESS", {"monster": monster_name, "choice": choice, "relic": "Cloak of Invisibility"})
+                    round_text = self._combat_action_line(
+                        "fight_win",
+                        value="a flawless strike",
+                        monster_name=monster_name,
+                    )
+                    self.last_combat_summary = {
+                        "rounds": 1,
+                        "round_texts": [round_text],
+                        "round_details": [
+                            self._combat_round_detail(
+                                1,
+                                "hit",
+                                round_text,
+                                monster_hp=0,
+                            )
+                        ],
+                        "mode": choice,
+                        "monster_name": monster_name,
+                    }
                     return self.grant_monster_loot(monster_name)
 
         has_boots = any(eq and eq.get("name") == "Boots of Stealth" for eq in self.equipment.values())
@@ -602,9 +641,13 @@ class HeroAdventureEngine:
                     self.super_monsters_defeated = min(5, self.super_monsters_defeated + 1)
                 elif encounter_type == "dungeon_boss":
                     self.dungeons_cleared = min(10, self.dungeons_cleared + 1)
+                round_text = self._combat_action_line("steal", value="a pouch of loot")
                 self.last_combat_summary = {
                     "rounds": 1,
-                    "round_texts": [self._combat_action_line("steal", value="a pouch of loot")],
+                    "round_texts": [round_text],
+                    "round_details": [
+                        self._combat_round_detail(1, "hit", round_text, monster_hp=0)
+                    ],
                     "mode": "steal",
                     "monster_name": monster_name,
                 }
@@ -635,9 +678,22 @@ class HeroAdventureEngine:
                     self.super_monsters_defeated = min(5, self.super_monsters_defeated + 1)
                 elif encounter_type == "dungeon_boss":
                     self.dungeons_cleared = min(10, self.dungeons_cleared + 1)
+                round_text = self._combat_action_line(
+                    "stealth_kill",
+                    value=f"{player_round_damage} damage",
+                )
                 self.last_combat_summary = {
                     "rounds": 1,
-                    "round_texts": [self._combat_action_line("stealth_kill", value=f"{player_round_damage} damage")],
+                    "round_texts": [round_text],
+                    "round_details": [
+                        self._combat_round_detail(
+                            1,
+                            "hit",
+                            round_text,
+                            damage_dealt=player_round_damage,
+                            monster_hp=0,
+                        )
+                    ],
                     "mode": "stealth_kill",
                     "monster_name": monster_name,
                 }
@@ -663,6 +719,7 @@ class HeroAdventureEngine:
             monster_max_hp = max(20, (m_stats["fighting"] + m_stats["defending"]) * 2)
             monster_hp = monster_max_hp
             round_texts = []
+            round_details = []
             magic_attack_mode = skills["magic"] > skills["fighting"]
             spell_name = self._magic_spell_name()
             shield_name = self._magic_shield_name()
@@ -682,6 +739,15 @@ class HeroAdventureEngine:
                         monster_name=monster_name,
                         spell_name=spell_name,
                         weapon_name=spell_name,
+                    )
+                )
+                round_details.append(
+                    self._combat_round_detail(
+                        1,
+                        "hit",
+                        round_texts[-1],
+                        damage_dealt=player_round_damage,
+                        monster_hp=monster_hp,
                     )
                 )
             else:
@@ -711,6 +777,16 @@ class HeroAdventureEngine:
                                 weapon_name=spell_name,
                             )
                         )
+                        round_details.append(
+                            self._combat_round_detail(
+                                r,
+                                "hit",
+                                round_texts[-1],
+                                damage_dealt=player_round_damage,
+                                hero_hp=self.hp,
+                                monster_hp=monster_hp,
+                            )
+                        )
                         if monster_hp <= 0:
                             win = True
                             break
@@ -727,6 +803,16 @@ class HeroAdventureEngine:
                             )
                         )
                         self.take_damage(damage, f"slain by {monster_name}")
+                        round_details.append(
+                            self._combat_round_detail(
+                                r,
+                                "loss",
+                                round_texts[-1],
+                                damage_taken=damage,
+                                hero_hp=self.hp,
+                                monster_hp=monster_hp,
+                            )
+                        )
                         if self.game_over:
                             break
 
@@ -761,6 +847,7 @@ class HeroAdventureEngine:
                 "player_hp_after": self.hp,
                 "hp_lost": max(0, player_hp_before - self.hp),
                 "round_texts": round_texts,
+                "round_details": round_details,
                 "mode": "fight",
             }
 
@@ -788,6 +875,30 @@ class HeroAdventureEngine:
                     if has_shield:
                         timeout_damage = max(1, timeout_damage // 2)
                     self.take_damage(timeout_damage, f"slain by {monster_name}")
+                    timeout_text = self._combat_action_line(
+                        "fight_loss",
+                        value=timeout_damage,
+                        monster_name=monster_name,
+                    )
+                    round_texts.append(timeout_text)
+                    round_details.append(
+                        self._combat_round_detail(
+                            rounds_fought + 1,
+                            "attrition",
+                            timeout_text,
+                            damage_taken=timeout_damage,
+                            hero_hp=self.hp,
+                            monster_hp=monster_hp,
+                        )
+                    )
+                    self.last_combat_summary["rounds"] = len(round_details)
+                    self.last_combat_summary["round_texts"] = round_texts
+                    self.last_combat_summary["round_details"] = round_details
+                    self.last_combat_summary["player_hp_after"] = self.hp
+                    self.last_combat_summary["hp_lost"] = max(
+                        0,
+                        player_hp_before - self.hp,
+                    )
                 self.log("FIGHT_LOSS", {"monster": monster_name, "hp_loss": max(0, player_hp_before - self.hp), "critical": crit, "rounds": rounds_fought})
                 return "LOSS_WINDOW"
 
@@ -1592,6 +1703,7 @@ class GameController:
                 "camping": skills["camping"], "medical": skills["medical"],
                 "total_weight": total_weight, "max_weight": max_weight,
                 "dungeon_name": e.dungeon_name, "dungeon_boss": e.dungeon_boss,
+                "dungeon_event": e.dungeon_event_count, "dungeon_max": 6,
                 "death_reason": e.death_reason or "unknown causes",
                 "equipped_summary": equipped_summary,
             })
@@ -1832,6 +1944,45 @@ class GameController:
         if not lines:
             lines.append({"text": "No items dropped.", "action": None, "enabled": False})
         return lines
+
+    def _format_combat_rounds(self, round_details, fallback_lines):
+        rows = []
+        outcome_labels = {
+            "hit": "HIT",
+            "loss": "LOSS",
+            "attrition": "ATTRITION",
+        }
+        for detail in round_details:
+            facts = []
+            if detail.get("damage_dealt"):
+                facts.append(f"dealt {detail['damage_dealt']}")
+            if detail.get("damage_taken"):
+                facts.append(f"took {detail['damage_taken']}")
+            if detail.get("hero_hp") is not None:
+                facts.append(f"hero HP {detail['hero_hp']}")
+            if detail.get("monster_hp") is not None:
+                facts.append(f"enemy HP {detail['monster_hp']}")
+            facts_text = f" ({'; '.join(facts)})" if facts else ""
+            label = outcome_labels.get(detail.get("outcome"), "EVENT")
+            rows.append({
+                "text": (
+                    f"R{detail['round']} {label}: "
+                    f"{detail.get('text', '')}{facts_text}"
+                ),
+                "action": None,
+                "enabled": False,
+                "outcome": detail.get("outcome"),
+            })
+        if rows:
+            return rows
+        return [
+            {
+                "text": f"R{index}: {line}",
+                "action": None,
+                "enabled": False,
+            }
+            for index, line in enumerate(fallback_lines, start=1)
+        ]
 
     # ------------------------------------------------------------------
     # Action dispatch
@@ -2254,6 +2405,10 @@ class GameController:
         if combat_summary.get("rounds"):
             rounds_text = f" ({combat_summary['rounds']} rounds)"
         combat_lines = combat_summary.get("round_texts", [])
+        combat_rounds = self._format_combat_rounds(
+            combat_summary.get("round_details", []),
+            combat_lines,
+        )
 
         if res == "JOURNEY":
             self.ctx["result_text"] = f"You slip past {monster} without a fight!"
@@ -2275,7 +2430,7 @@ class GameController:
             self.ctx["loot_items"] = new_items
             self.ctx["loot_lines"] = self._format_loot_lines(new_items)
 
-        self.ctx["combat_rounds"] = [{"text": line, "action": None, "enabled": False} for line in combat_lines]
+        self.ctx["combat_rounds"] = combat_rounds
 
         self.screen = "death" if e.game_over else "combat_result"
 

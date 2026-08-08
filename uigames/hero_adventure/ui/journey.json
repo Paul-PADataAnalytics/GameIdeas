@@ -1,20 +1,154 @@
 {
   "id": "journey",
   "title": "Leg {leg}/5: {leg_name}",
-  "text": [
-    "HP: {hp}/{max_hp}    Gold: ${cash}",
-    "{event_narration}",
-    "Event {event}/20   Dungeons found this leg: {dungeons_found}/2",
-    "Fight:{fighting} Def:{defending} Magic:{magic} Stealth:{stealth} Spot:{spotting} Salv:{salvaging} Camp:{camping} Med:{medical}",
-    "Carry Weight: {total_weight}/{max_weight}   Equipped: {equipped_summary}",
-    "Journey events include fights, dungeons, rest, traders, wander groups, and fairy finds.",
-    "{save_message}"
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "buttons": [
-    { "label": "\u25b6 Continue Journey", "action": "advance_event" },
-    { "label": "\ud83e\uddd1 Character", "action": "open_character_sheet" },
-    { "label": "\ud83c\udf92 Inventory", "action": "open_inventory" },
-    { "label": "\ud83d\udcbe Save Game", "action": "save_game" },
-    { "label": "Quit to Menu", "action": "goto:front_page" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Leg {leg}/5: {leg_name}",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "id": "hero_identity",
+      "frame": "status",
+      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Gold: ${cash}"
+    },
+    {
+      "type": "progressbar",
+      "id": "hp_bar",
+      "frame": "status",
+      "label": "HP",
+      "value": "{hp}",
+      "max": "{max_hp}",
+      "kind": "health",
+      "thresholds": {
+        "warning": 0.35,
+        "critical": 0.15
+      },
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "progressbar",
+      "id": "carry_bar",
+      "frame": "status",
+      "label": "Carry",
+      "value": "{total_weight}",
+      "max": "{max_weight}",
+      "kind": "capacity",
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 1.0
+      },
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "progressbar",
+      "id": "journey_bar",
+      "frame": "status",
+      "label": "Leg {leg}/5 \u00b7 Event",
+      "value": "{event}",
+      "max": 20,
+      "kind": "journey",
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "text",
+      "id": "journey_context",
+      "frame": "context",
+      "value": "Dungeons this leg: {dungeons_found}/2"
+    },
+    {
+      "type": "text",
+      "id": "journey_skills",
+      "frame": "context",
+      "value": "Key skills: Fight {fighting} · Defence {defending} · Magic {magic}"
+    },
+    {
+      "type": "text",
+      "id": "journey_equipment",
+      "frame": "context",
+      "value": "Equipment: {equipped_summary}",
+      "show_empty": true
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{event_narration}"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Journey events include fights, dungeons, rest, traders, wander groups, and fairy finds."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{save_message}"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\u25b6 Continue Journey",
+      "action": "advance_event"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83e\uddd1 Character",
+      "action": "open_character_sheet"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83c\udf92 Inventory",
+      "action": "open_inventory"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83d\udcbe Save Game",
+      "action": "save_game"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Quit to Menu",
+      "action": "goto:front_page"
+    }
   ]
 }

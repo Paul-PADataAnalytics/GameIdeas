@@ -1,21 +1,202 @@
 {
   "id": "combat",
   "title": "\u2694\ufe0f Encounter: {monster_name}",
-  "text": [
-    "{event_narration}",
-    "Enemy Stats -> Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}",
-    "Your HP: {hp}/{max_hp}",
-    "Fight profile -> Attack:{combat_attack}  Effective Def:{combat_effective_defense}  Your dmg/round:{combat_round_damage}  Incoming/round:{combat_incoming_damage}",
-    "Estimated rounds -> To win: {combat_rounds_to_kill}  |  Before death: {combat_rounds_to_die}",
-    "Action outlook -> Fight: {fight_risk_band}  |  Sneak: {sneak_risk_band}  |  Steal: {steal_risk_band}  |  Stealth Kill: {stealth_kill_risk_band}"
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "buttons": [
-    { "label": "\u2694\ufe0f Fight ({fight_win_pct}%)", "action": "fight" },
-    { "label": "\ud83d\udc65 Sneak ({sneak_win_pct}%)", "action": "sneak" },
-    { "label": "\ud83e\uddb6 Steal ({steal_win_pct}%)", "action": "steal" },
-    { "label": "\ud83d\udd2a Stealth Kill ({stealth_kill_win_pct}%)", "action": "stealth_kill" },
-    { "label": "\ud83c\udfc3 Run Away", "action": "run_away", "visible_if": "allow_run" },
-    { "label": "\ud83e\uddd1 Character", "action": "open_character_sheet" },
-    { "label": "\ud83c\udf92 Inventory", "action": "open_inventory" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "\u2694\ufe0f Encounter: {monster_name}",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "id": "hero_identity",
+      "frame": "status",
+      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Gold: ${cash}"
+    },
+    {
+      "type": "progressbar",
+      "id": "hp_bar",
+      "frame": "status",
+      "label": "HP",
+      "value": "{hp}",
+      "max": "{max_hp}",
+      "kind": "health",
+      "thresholds": {
+        "warning": 0.35,
+        "critical": 0.15
+      },
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "progressbar",
+      "id": "carry_bar",
+      "frame": "status",
+      "label": "Carry",
+      "value": "{total_weight}",
+      "max": "{max_weight}",
+      "kind": "capacity",
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 1.0
+      },
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "progressbar",
+      "id": "journey_bar",
+      "frame": "status",
+      "label": "Leg {leg}/5 \u00b7 Event",
+      "value": "{event}",
+      "max": 20,
+      "kind": "journey",
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{event_narration}"
+    },
+    {
+      "type": "text",
+      "frame": "context",
+      "value": "Enemy Stats -> Fighting: {monster_fighting}  Defending: {monster_defending}  Magic: {monster_magic}"
+    },
+    {
+      "type": "text",
+      "frame": "context",
+      "value": "Your HP: {hp}/{max_hp}"
+    },
+    {
+      "type": "text",
+      "frame": "context",
+      "value": "Fight profile -> Attack:{combat_attack}  Effective Def:{combat_effective_defense}  Your dmg/round:{combat_round_damage}  Incoming/round:{combat_incoming_damage}"
+    },
+    {
+      "type": "text",
+      "frame": "context",
+      "value": "Estimated rounds -> To win: {combat_rounds_to_kill}  |  Before death: {combat_rounds_to_die}"
+    },
+    {
+      "type": "progressbar",
+      "id": "fight_odds",
+      "frame": "context",
+      "label": "Fight",
+      "value": "{fight_win_pct}",
+      "max": 100,
+      "kind": "odds",
+      "compact": true,
+      "show_text": true
+    },
+    {
+      "type": "progressbar",
+      "id": "sneak_odds",
+      "frame": "context",
+      "label": "Sneak",
+      "value": "{sneak_win_pct}",
+      "max": 100,
+      "kind": "odds",
+      "compact": true,
+      "show_text": true
+    },
+    {
+      "type": "progressbar",
+      "id": "steal_odds",
+      "frame": "context",
+      "label": "Steal",
+      "value": "{steal_win_pct}",
+      "max": 100,
+      "kind": "odds",
+      "compact": true,
+      "show_text": true
+    },
+    {
+      "type": "progressbar",
+      "id": "stealth_kill_odds",
+      "frame": "context",
+      "label": "Stealth Kill",
+      "value": "{stealth_kill_win_pct}",
+      "max": 100,
+      "kind": "odds",
+      "compact": true,
+      "show_text": true
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\u2694\ufe0f Fight ({fight_win_pct}%)",
+      "action": "fight"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83d\udc65 Sneak ({sneak_win_pct}%)",
+      "action": "sneak"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83e\uddb6 Steal ({steal_win_pct}%)",
+      "action": "steal"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83d\udd2a Stealth Kill ({stealth_kill_win_pct}%)",
+      "action": "stealth_kill"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83c\udfc3 Run Away",
+      "action": "run_away",
+      "visible_if": "allow_run"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83e\uddd1 Character",
+      "action": "open_character_sheet"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83c\udf92 Inventory",
+      "action": "open_inventory"
+    }
   ]
 }

@@ -1,15 +1,79 @@
 {
   "id": "rules_journey",
   "title": "Journey Rules",
-  "text": [
-    "The journey has 5 legs with 20 events each.",
-    "Fights are the dominant journey event.",
-    "Rest events cannot appear in the first half of a leg and must respect a 3-event cooldown.",
-    "Wander Group advances the leg by 5 events.",
-    "Fairy Found can save a life if equipped in the camping/medical slot.",
-    "Dungeons are optional and can be exited before combat."
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "buttons": [
-    { "label": "Back", "action": "goto:rules" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Journey Rules",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "The journey has 5 legs with 20 events each."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Fights are the dominant journey event."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Rest events cannot appear in the first half of a leg and must respect a 3-event cooldown."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Wander Group advances the leg by 5 events."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Fairy Found can save a life if equipped in the camping/medical slot."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Dungeons are optional and can be exited before combat."
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Back",
+      "action": "goto:rules"
+    }
   ]
 }

@@ -1,16 +1,87 @@
 {
   "id": "rules",
   "title": "Rules",
-  "text": [
-    "Hero Adventure is a five-leg journey from the frontier to the Capital.",
-    "The UI is declarative; the engine owns the rules and the JSON files define the screens.",
-    "",
-    "Use the sections below to review character creation, journey flow, and scoring."
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "buttons": [
-    { "label": "Character Creation Rules", "action": "goto:rules_character_creation" },
-    { "label": "Journey Rules", "action": "goto:rules_journey" },
-    { "label": "Scoring Rules", "action": "goto:rules_scoring" },
-    { "label": "Back", "action": "goto:front_page" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Rules",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Hero Adventure is a five-leg journey from the frontier to the Capital."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "The UI is declarative; the engine owns the rules and the JSON files define the screens."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": ""
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Use the sections below to review character creation, journey flow, and scoring."
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Character Creation Rules",
+      "action": "goto:rules_character_creation"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Journey Rules",
+      "action": "goto:rules_journey"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Scoring Rules",
+      "action": "goto:rules_scoring"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Back",
+      "action": "goto:front_page"
+    }
   ]
 }

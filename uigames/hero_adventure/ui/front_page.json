@@ -1,17 +1,94 @@
 {
   "id": "front_page",
   "title": "\u2694\ufe0f HERO ADVENTURE \u2694\ufe0f",
-  "text": [
-    "Welcome, brave adventurer!",
-    "An epic journey awaits you across five treacherous lands.",
-    "{menu_message}"
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "buttons": [
-    { "label": "\ud83c\udfae Start New Game", "action": "new_game" },
-    { "label": "\ud83d\udcc2 Load Game", "action": "load_game" },
-    { "label": "\u2b50 View High Scores", "action": "goto:high_scores" },
-    { "label": "\ud83d\udcd6 View Rules", "action": "goto:rules" },
-    { "label": "\ud83c\udfc6 Credits", "action": "goto:credits" },
-    { "label": "\u274c Quit", "action": "quit" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "\u2694\ufe0f HERO ADVENTURE \u2694\ufe0f",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Welcome, brave adventurer!"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "An epic journey awaits you across five treacherous lands."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{menu_message}"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83c\udfae Start New Game",
+      "action": "new_game"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83d\udcc2 Load Game",
+      "action": "load_game"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\u2b50 View High Scores",
+      "action": "goto:high_scores"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83d\udcd6 View Rules",
+      "action": "goto:rules"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\ud83c\udfc6 Credits",
+      "action": "goto:credits"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\u274c Quit",
+      "action": "quit"
+    }
   ]
 }

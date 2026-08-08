@@ -93,7 +93,8 @@ hero_adventure/
 ├── hero_engine.py       ← Core game engine (unchanged)
 ├── game_data.py         ← Game data tables (unchanged)
 ├── heroadventure.md     ← Design specification (unchanged)
-└── UI files (preserved for reference)
+├── UI files                   ← Four-frame declarative screen definitions
+└── UI_FRAME_PORTING_GUIDE.md  ← Shared schema and porting guide
 ```
 
 ### Requirements
@@ -121,6 +122,19 @@ Tkinter is included with Python from python.org
 - **Error**: Red (#ff3333)
 - **Warnings**: Yellow (#ffaa00)
 
+### Four-Frame UI
+
+The GUI now renders every screen through four semantic frames: a full-width `status`
+header (15% height), a middle row with `scene` and optional `context`, and a full-width
+`actions` footer (15% height). The middle row uses the normalized 50:20 width split,
+expanding dense context to 35% and collapsing empty context. JSON controls explicitly
+declare their target frame. `progressbar` controls visualize bounded amounts such as
+HP, carry weight, journey progress, and combat odds; they are not scrollbars.
+The `scene` is the event feed and owns narration, results, loot, and combat history;
+`context` is reserved for supporting stats and reference data related to the event.
+
+See `UI_FRAME_PORTING_GUIDE.md` for the schema and guidance for other renderers.
+
 ---
 
 ## Comparison: GUI vs Terminal
@@ -131,9 +145,13 @@ Tkinter is included with Python from python.org
 | Visual Style | Dark theme with colors | ANSI colors |
 | Input Method | Click | Type |
 | Accessibility | Point-and-click | Keyboard only |
-| Window Size | 900x700 pixels | Full terminal |
+| Window Size | 980x760 pixels | Full terminal |
 | Speed | Fast UI rendering | Instant text |
 | Portability | Requires Tkinter | Works everywhere |
+
+Both renderers consume the four-frame schema. The terminal renderer uses a compact
+four-column action layout at normal widths, two-column dense context rows, and keeps
+scene/context content bounded. The GUI mirrors those same geometry decisions.
 
 ---
 

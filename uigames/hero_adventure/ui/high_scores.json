@@ -1,13 +1,62 @@
 {
   "id": "high_scores",
   "title": "High Scores",
-  "text": [
-    "Top scores are shown below."
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
   ],
-  "lists": [
-    { "id": "list_scores", "label": "Scores" }
-  ],
-  "buttons": [
-    { "label": "Back", "action": "goto:front_page" }
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "High Scores",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Top scores are shown below."
+    },
+    {
+      "type": "list",
+      "id": "list_scores",
+      "frame": "context",
+      "label": "Scores",
+      "overflow": "page",
+      "max_rows": 10
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Back",
+      "action": "goto:front_page"
+    }
   ]
 }

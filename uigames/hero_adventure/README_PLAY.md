@@ -1,14 +1,17 @@
 # Hero Adventure - Game Launcher
 
-A complete, playable text-based RPG adventure game for the terminal!
+A complete, playable RPG adventure game with GUI and terminal ports.
 
 ## Quick Start
 
-To launch the game, run:
+To launch the current GUI implementation, run:
 
 ```bash
-python3 play.py
+python3 play_gui.py
 ```
+
+Both renderers now consume the four-frame JSON schema. Use `python3 play_gui.py` for
+the GUI or `python3 play.py` for the terminal implementation.
 
 ## Game Features
 
