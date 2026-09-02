@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Simulation output (regenerable via sim_runner.py, not meant for version control)
+sim_logs/
+saves/
+
 # C extensions
 *.so
 
