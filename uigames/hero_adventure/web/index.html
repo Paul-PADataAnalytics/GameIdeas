@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Hero Adventure</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="boot">
+    <p>Loading Hero Adventure&hellip;</p>
+    <p class="boot-sub">Starting a Python runtime in your browser (first load only, a few seconds).</p>
+  </div>
+
+  <div id="app" hidden>
+    <header id="frame-status" class="frame"></header>
+    <div id="frame-middle">
+      <main id="frame-scene" class="frame"></main>
+      <aside id="frame-context" class="frame"></aside>
+    </div>
+    <footer id="frame-actions" class="frame"></footer>
+  </div>
+
+  <div id="error-banner" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
