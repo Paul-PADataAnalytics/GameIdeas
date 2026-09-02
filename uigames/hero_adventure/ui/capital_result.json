@@ -43,7 +43,7 @@
       "type": "text",
       "id": "hero_identity",
       "frame": "status",
-      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Gold: ${cash}"
+      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Age {age} \u00b7 Gold: ${cash}"
     },
     {
       "type": "progressbar",

@@ -182,6 +182,13 @@
     {
       "type": "button",
       "frame": "actions",
+      "label": "\ud83c\udfaf Throw Item (escape, lose item+loot)",
+      "action": "throw_item",
+      "visible_if": "has_throwable_item"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
       "label": "\ud83c\udfc3 Run Away",
       "action": "run_away",
       "visible_if": "allow_run"
@@ -189,13 +196,7 @@
     {
       "type": "button",
       "frame": "actions",
-      "label": "\ud83e\uddd1 Character",
-      "action": "open_character_sheet"
-    },
-    {
-      "type": "button",
-      "frame": "actions",
-      "label": "\ud83c\udf92 Inventory",
+      "label": "\ud83e\uddd1 Character & Inventory",
       "action": "open_inventory"
     }
   ]

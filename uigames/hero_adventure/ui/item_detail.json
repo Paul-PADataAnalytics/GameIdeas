@@ -118,13 +118,6 @@
     {
       "type": "button",
       "frame": "actions",
-      "label": "Use",
-      "action": "use_medical",
-      "visible_if": "is_medical"
-    },
-    {
-      "type": "button",
-      "frame": "actions",
       "label": "Drop",
       "action": "drop_item"
     },

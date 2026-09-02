@@ -64,7 +64,7 @@
       "type": "button",
       "frame": "actions",
       "label": "\ud83d\udcc2 Load Game",
-      "action": "load_game"
+      "action": "view_load_game"
     },
     {
       "type": "button",

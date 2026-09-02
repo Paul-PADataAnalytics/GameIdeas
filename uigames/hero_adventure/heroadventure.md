@@ -8,7 +8,7 @@ The hero is the player character and we create them by picking a class and setti
 
 The classes are Hitter, Blaster, and Hider.  These classes set the skills and capabilities of the player character.  The choice of a class gives and initial boost to three of ten skills.
 
-The hero always has a max HP of 100 and starts with 100 HP.  The hero can lose HP during events and if they reach 0 HP, they die and the game ends.  The hero can regain HP by resting at a tavern or camping spot, or by using medical supplies.
+The hero always has a max HP of 100 and starts with 100 HP.  The hero can lose HP during events and if they reach 0 HP, they die and the game ends.  There is no way to heal during the journey itself - HP lost during a leg can only be recovered afterward, during the mandatory town recovery stay described in Aging & Town Recovery below.
 
 The skills are:
 
@@ -38,15 +38,27 @@ The skills are used to determine the outcome of the game.  The events will have 
 
 ## Journey
 
-The Hero is on a journey across the country to find fortune and will end in the Capital. If the hero has accumulated enough fortune (gold/cash), they will be able to buy a home and retire. If not, they will work in a tavern and live a life of obscurity. The end of the journey represents the end of the game character and the score is based on the life they ended up with. There are a selection of houses that can be purchased and the resulting cash is given up as a pension - the score is the two multiplied together. If the hero ends up in a tavern, the score is based only on the pension.
+The Hero is on a journey across the country to find fortune and will end in the Capital. If the hero has accumulated enough fortune (gold/cash), they will be able to buy a home and retire. If not, they will work in a tavern and live a life of obscurity. The end of the journey represents the end of the game character and the score is based on the life they ended up with. There are a selection of houses that can be purchased and the resulting cash is given up as a pension - the score is the two multiplied together. If the hero ends up in a tavern, the score is based only on the pension. The pension itself is also scaled by the hero's age at retirement - see Aging & Town Recovery.
 
 The journey is made up of 5 legs of 20 events.  The journey is a series of events.  The events are randomly selected from a pool of events that are appropriate for the leg of the journey.  The events will have a function that calculates the two outcomes of success or failure, these are described in the event.  See the Dungeons section for details on dungeon discovery and exploration.
 
-A player levels at the end of a leg of the journey, and can choose to increase three of their skills by 5 points.  The player can only level up at the end of the leg of the journey.
+A player levels at the end of a leg of the journey, and can choose to increase three of their skills by 5 points.  The player can only level up at the end of the leg of the journey. Before leveling up, if the hero is not at full HP, they must first go through the town recovery sequence described in Aging & Town Recovery.
 
-There are some specifics however: fights are the dominant event type in every leg; rest stops (camping and taverns) can not occur in the first half of a leg, and rest events must never occur within 3 events of each other.  Free-loot style journey events (Magic Shrine and Wandering Trader) also have a per-type 3-event cooldown so they cannot chain too frequently.  The super monster can only occur once per leg of the journey, and is a special event that is more difficult than the regular monsters of the leg.  The super monster will always have a relic and 1-2 equipment items.
+There are some specifics however: fights are the dominant event type in every leg. Free-loot style journey events (Magic Shrine and Wandering Trader) also have a per-type 3-event cooldown so they cannot chain too frequently.  The super monster can only occur once per leg of the journey, and is a special event that is more difficult than the regular monsters of the leg.  The super monster will always have a relic and 1-2 equipment items.
 
 There are specific monsters that are assigned to each leg of the journey, and they are listed in the Monster Lookup Table.  The monsters have a chance to drop loot, and the loot is based on the leg of the journey.
+
+## Aging & Town Recovery
+
+There is no healing available during the journey itself - the only way to recover lost HP is to return to town, which happens automatically and mandatorily at the start of every new leg (right before the level-up screen). If the hero is already at full HP when a leg ends, the town recovery sequence is skipped entirely and the hero goes straight to leveling up.
+
+If the hero is hurt, town recovery plays out one year at a time: each year heals 10 HP (or whatever is left to reach full HP, if less than 10 is needed) and ages the hero by 1 year, starting from an initial age of 17. Every year comes with a short, silly blurb about the odd job the hero took to make ends meet while recovering (a medieval profession, with a touch of injury-based humor). After each year, the player chooses to keep working and recovering for another year, or head back out on the road immediately at their current HP (ending the recovery sequence early, at less than full health).
+
+Each year in town also carries a small (5%) chance that the hero is offered a permanent, steady job in town instead of another year of recovery. If offered, the player can choose to retire on the spot (ending the game, with a score based on their pension) or turn it down and keep adventuring.
+
+If a hero's age reaches 50 during town recovery, they are forced into retirement immediately - too old to keep adventuring. This ends the game as "the failed adventurer": the hero still goes through the normal house-buying/pension choice, but the final score is reduced to 25% of what it would otherwise be.
+
+The pension awarded at retirement (whether from reaching the Capital, an early job offer, or a forced age-50 retirement) is based on the hero's remaining cash, scaled by age: a random end-of-life age between 60 and 90 is rolled once per hero, and the fewer years remaining until that age, the further the same amount of cash goes. A younger hero therefore needs to accumulate more cash to retire as comfortably as an older one.
 
 ## Dungeons
 

@@ -43,7 +43,7 @@
       "type": "text",
       "id": "hero_identity",
       "frame": "status",
-      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Gold: ${cash}"
+      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Age {age} \u00b7 Gold: ${cash}"
     },
     {
       "type": "progressbar",
@@ -85,6 +85,18 @@
       "kind": "journey",
       "show_text": true,
       "compact": true
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{hero_name} the failed adventurer, forced into retirement at age {age}.",
+      "visible_if": "failed_adventurer"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{failed_adventurer_text}",
+      "visible_if": "failed_adventurer"
     },
     {
       "type": "text",

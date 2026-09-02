@@ -6,7 +6,9 @@ Fully compliant with heroadventure.md design specification.
 CLASSES = {
     "Hitter": {"fighting": 20, "defending": 20, "camping": 20},
     "Blaster": {"magic": 20, "spotting": 20, "medical": 20},
-    "Hider": {"stealth": 20, "salvaging": 20, "spotting": 20}
+    # Small fighting/defending floor bump (5 -> 12) so a failed sneak/steal
+    # doesn't dump a stealth build into a fight it has almost no stats for.
+    "Hider": {"stealth": 20, "salvaging": 20, "spotting": 20, "fighting": 7, "defending": 7}
 }
 
 LEGS = [
@@ -245,15 +247,14 @@ ITEM_CATEGORIES = {
     "stealth": {"slot": "defending_armor", "names": ["Cloak", "Boots", "Sneak Suit"], "weight": 5},
     "salvaging": {"slot": "salvaging_tool", "names": ["Crowbar", "Hammer", "Saw"], "weight": 5},
     "spotting": {"slot": "spotting_item", "names": ["Binoculars", "Telescope", "Magnifying Glass"], "weight": 5},
-    "camping": {"slot": "camping_medical", "names": ["Tent", "Sleeping Bag", "Campfire Kit"], "weight": 5},
-    "medical": {"slot": "camping_medical", "names": ["Bandages", "Potions", "Herbs"], "weight": 5}
+    "camping": {"slot": "camping_medical", "names": ["Tent", "Sleeping Bag", "Campfire Kit"], "weight": 5}
 }
 
 QUALITY_TIERS = {
-    "Common": {"code": "c", "color": "white", "skill_min": 5, "skill_max": 10, "cash_min": 10, "cash_max": 50, "med_uses": 1},
-    "Uncommon": {"code": "u", "color": "green", "skill_min": 15, "skill_max": 25, "cash_min": 100, "cash_max": 500, "med_uses": 2},
-    "Rare": {"code": "r", "color": "blue", "skill_min": 30, "skill_max": 40, "cash_min": 1000, "cash_max": 5000, "med_uses": 3},
-    "Epic": {"code": "e", "color": "purple", "skill_min": 50, "skill_max": 60, "cash_min": 10000, "cash_max": 50000, "med_uses": 5}
+    "Common": {"code": "c", "color": "white", "skill_min": 5, "skill_max": 10, "cash_min": 10, "cash_max": 50},
+    "Uncommon": {"code": "u", "color": "green", "skill_min": 15, "skill_max": 25, "cash_min": 100, "cash_max": 500},
+    "Rare": {"code": "r", "color": "blue", "skill_min": 30, "skill_max": 40, "cash_min": 1000, "cash_max": 5000},
+    "Epic": {"code": "e", "color": "purple", "skill_min": 50, "skill_max": 60, "cash_min": 10000, "cash_max": 50000}
 }
 
 RELICS = {
@@ -306,4 +307,50 @@ PENSIONS = [
     {"min": 5000, "max": 9999, "pension": 1000},
     {"min": 1000, "max": 4999, "pension": 500},
     {"min": 0, "max": 999, "pension": 100}
+]
+
+# -- Aging / Town Recovery ---------------------------------------------------
+# The hero starts at age 17. Every 10 HP of damage taken translates into one
+# year spent recovering in town at the start of the next leg (journey-time
+# healing has been removed entirely - see get_pension()/GameController's
+# town recovery flow in hero_engine.py).
+AGE_START = 17
+DAMAGE_PER_TOWN_YEAR = 10
+TOWN_JOB_OFFER_CHANCE = 0.05
+FORCED_RETIREMENT_AGE = 50
+PENSION_END_AGE_MIN = 60
+PENSION_END_AGE_MAX = 90
+# The flat PENSIONS table above is calibrated to fund roughly this many
+# years of retirement; get_pension() scales it up/down based on how many
+# years actually remain until the hero's randomly rolled end-of-life age.
+PENSION_BASELINE_YEARS = 20
+
+# Optional experimental toggle (off by default): when enabled, monsters
+# flagged relic=True (dungeon bosses / super monsters) get their combat
+# stats scaled up independently of regular per-leg trash-monster tuning.
+RELIC_MONSTER_SCALE = 1.2
+
+TOWN_PROFESSION_MODIFIERS = [
+    "miniature", "wandering", "sleepy", "eccentric", "one-eyed", "left-handed",
+    "suspiciously cheerful", "perpetually damp", "unlicensed", "semi-retired",
+    "self-taught", "moderately famous", "extremely superstitious", "part-time",
+    "notoriously slow", "surprisingly gentle", "off-duty", "freelance",
+]
+
+TOWN_PROFESSIONS = [
+    "cobbler", "blacksmith's assistant", "goat herder", "town crier", "rat catcher",
+    "candlestick maker", "well digger", "scribe", "tanner", "miller",
+    "brewer", "thatcher", "gong farmer", "fishmonger", "bell ringer",
+    "gravedigger", "stable hand", "chimney sweep", "weaver", "innkeeper",
+]
+
+TOWN_INJURIES = [
+    "splinter", "blister", "bruise", "sunburn", "cramp", "papercut",
+    "stubbed toe", "pulled muscle", "rash", "sprain", "nasty pinch",
+    "case of the hiccups", "black eye", "twisted ankle", "burn",
+]
+
+TOWN_BODY_PARTS = [
+    "left thumb", "right elbow", "big toe", "lower back", "eyebrow",
+    "kneecap", "shoulder", "earlobe", "shin", "wrist", "chin", "heel",
 ]

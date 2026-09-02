@@ -1,0 +1,23 @@
+{
+  "id": "town_recovery",
+  "title": "Town Recovery",
+  "frames": [
+    {"id": "status", "role": "status", "ratio": 0.15, "priority": "P0", "overflow": "collapse"},
+    {"id": "scene", "role": "scene", "ratio": 0.5, "priority": "P0", "overflow": "truncate"},
+    {"id": "context", "role": "context", "ratio": 0.2, "priority": "P1", "overflow": "page"},
+    {"id": "actions", "role": "actions", "ratio": 0.15, "priority": "P0", "overflow": "collapse"}
+  ],
+  "controls": [
+    {"type": "text", "frame": "scene", "value": "Town Recovery", "id": "screen_title", "variant": "title"},
+    {"type": "text", "id": "hero_identity", "frame": "status", "value": "{hero_name} \u00b7 {hero_class} \u00b7 Age {age} \u00b7 Gold: ${cash}"},
+    {"type": "progressbar", "id": "hp_bar", "frame": "status", "label": "HP", "value": "{hp}", "max": "{max_hp}", "kind": "health", "thresholds": {"warning": 0.35, "critical": 0.15}, "show_text": true, "compact": true},
+    {"type": "progressbar", "id": "carry_bar", "frame": "status", "label": "Carry", "value": "{total_weight}", "max": "{max_weight}", "kind": "capacity", "thresholds": {"warning": 0.8, "critical": 1.0}, "show_text": true, "compact": true},
+    {"type": "progressbar", "id": "journey_bar", "frame": "status", "label": "Leg {leg}/5 \u00b7 Event", "value": "{event}", "max": 20, "kind": "journey", "show_text": true, "compact": true},
+    {"type": "text", "frame": "scene", "value": "{event_narration}"},
+    {"type": "text", "frame": "scene", "value": "A steady position has opened up - a real chance to retire as a {town_profession}.", "visible_if": "town_job_offer"},
+    {"type": "text", "frame": "scene", "value": "Fully recovered and ready to get back on the road.", "visible_if": "town_fully_healed"},
+    {"type": "button", "frame": "actions", "label": "Retire as {town_profession}", "action": "town_retire", "visible_if": "town_job_offer"},
+    {"type": "button", "frame": "actions", "label": "Work and recover for another year", "action": "town_work"},
+    {"type": "button", "frame": "actions", "label": "Go back to adventuring", "action": "town_leave"}
+  ]
+}

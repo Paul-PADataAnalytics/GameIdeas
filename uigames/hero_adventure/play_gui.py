@@ -313,12 +313,19 @@ class DeclarativeGUI:
             action = row.get("action")
             enabled = row.get("enabled", True)
             if action and enabled:
+                highlight = row.get("highlight")
+                text_color = {
+                    "better": "#9be59b",
+                    "worse": "#e08283",
+                }.get(highlight)
+                kwargs = {"text_color": text_color} if text_color else {}
                 ctk.CTkButton(
                     parent,
                     text=text,
                     command=lambda a=action: self._dispatch(a),
                     anchor="w",
                     height=32,
+                    **kwargs,
                 ).pack(fill="x", pady=2)
             else:
                 outcome = row.get("outcome")

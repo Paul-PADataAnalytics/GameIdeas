@@ -180,6 +180,14 @@ class HeroAdventureTUI(App):
         color: $error;
     }
 
+    .action_button.inv_better {
+        color: $success;
+    }
+
+    .action_button.inv_worse {
+        color: $error;
+    }
+
     .input_row {
         width: 1fr;
         height: 3;
@@ -428,7 +436,13 @@ class HeroAdventureTUI(App):
             enabled = row.get("enabled", True)
             if action and enabled:
                 button_id = self._button_id(action)
-                await parent.mount(Button(text, classes="action_button", id=button_id))
+                classes = "action_button"
+                highlight = row.get("highlight")
+                if highlight == "better":
+                    classes += " inv_better"
+                elif highlight == "worse":
+                    classes += " inv_worse"
+                await parent.mount(Button(text, classes=classes, id=button_id))
             else:
                 classes = "disabled_line"
                 if row.get("outcome"):

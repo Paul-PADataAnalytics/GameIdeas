@@ -1,0 +1,62 @@
+{
+  "id": "load_game",
+  "title": "Load Game",
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
+  ],
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Load Game",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Pick a save to continue from."
+    },
+    {
+      "type": "list",
+      "id": "list_save_slots",
+      "frame": "scene",
+      "label": "Saved Journeys",
+      "overflow": "page",
+      "max_rows": 10
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Back",
+      "action": "goto:front_page"
+    }
+  ]
+}

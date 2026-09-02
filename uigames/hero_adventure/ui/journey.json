@@ -113,11 +113,6 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "Journey events include fights, dungeons, rest, traders, wander groups, and fairy finds."
-    },
-    {
-      "type": "text",
-      "frame": "scene",
       "value": "{save_message}"
     },
     {
@@ -129,26 +124,14 @@
     {
       "type": "button",
       "frame": "actions",
-      "label": "\ud83e\uddd1 Character",
-      "action": "open_character_sheet"
-    },
-    {
-      "type": "button",
-      "frame": "actions",
-      "label": "\ud83c\udf92 Inventory",
+      "label": "\ud83e\uddd1 Character & Inventory",
       "action": "open_inventory"
     },
     {
       "type": "button",
       "frame": "actions",
-      "label": "\ud83d\udcbe Save Game",
-      "action": "save_game"
-    },
-    {
-      "type": "button",
-      "frame": "actions",
-      "label": "Quit to Menu",
-      "action": "goto:front_page"
+      "label": "\ud83d\udcbe Save & Quit",
+      "action": "save_and_quit"
     }
   ]
 }

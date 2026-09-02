@@ -89,7 +89,7 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "Take the loot or leave it behind."
+      "value": "Tap an item to toggle Keep/Discard, then continue."
     },
     {
       "type": "list",
@@ -102,7 +102,7 @@
     {
       "type": "button",
       "frame": "actions",
-      "label": "Continue",
+      "label": "Confirm & Continue",
       "action": "loot_continue"
     }
   ]

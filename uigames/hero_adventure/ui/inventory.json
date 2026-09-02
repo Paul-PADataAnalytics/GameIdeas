@@ -1,6 +1,6 @@
 {
   "id": "inventory",
-  "title": "Inventory",
+  "title": "Character & Inventory",
   "frames": [
     {
       "id": "status",
@@ -35,7 +35,7 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "Inventory",
+      "value": "Character & Inventory",
       "id": "screen_title",
       "variant": "title"
     },
@@ -43,7 +43,7 @@
       "type": "text",
       "id": "hero_identity",
       "frame": "status",
-      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Gold: ${cash}"
+      "value": "{hero_name} \u00b7 {hero_class} \u00b7 Age {age} \u00b7 Gold: ${cash}"
     },
     {
       "type": "progressbar",
@@ -104,16 +104,41 @@
     {
       "type": "list",
       "id": "list_inventory",
-      "frame": "context",
-      "label": "Inventory",
+      "frame": "scene",
+      "label": "Backpack",
       "overflow": "page",
       "max_rows": 12
     },
     {
-      "type": "button",
-      "frame": "actions",
-      "label": "\ud83e\uddd1 Character",
-      "action": "open_character_sheet"
+      "type": "text",
+      "frame": "context",
+      "value": "Title: {character_title}"
+    },
+    {
+      "type": "progressbar",
+      "id": "honor_progress",
+      "frame": "context",
+      "label": "Honor",
+      "value": "{honor_mark}",
+      "max": 15,
+      "kind": "honor",
+      "show_text": true
+    },
+    {
+      "type": "list",
+      "id": "list_character_stats",
+      "frame": "context",
+      "label": "Stats (Base vs Effective)",
+      "overflow": "page",
+      "max_rows": 8
+    },
+    {
+      "type": "list",
+      "id": "list_character_equipment",
+      "frame": "context",
+      "label": "Equipment Bonuses by Slot",
+      "overflow": "page",
+      "max_rows": 7
     },
     {
       "type": "button",

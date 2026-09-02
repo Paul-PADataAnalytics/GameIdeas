@@ -60,6 +60,11 @@
     {
       "type": "text",
       "frame": "scene",
+      "value": "{creation_message}"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
       "value": ""
     },
     {
@@ -84,12 +89,6 @@
       "frame": "actions",
       "label": "\ud83d\udc5f Hider (+20 Stealth/Salv/Spot)",
       "action": "select_class:Hider"
-    },
-    {
-      "type": "button",
-      "frame": "actions",
-      "label": "\u2705 Confirm & Begin Journey",
-      "action": "confirm_character"
     },
     {
       "type": "button",

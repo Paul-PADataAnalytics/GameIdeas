@@ -10,7 +10,11 @@ import random
 from pathlib import Path
 from game_data import (
     CLASSES, LEGS, MONSTERS, ITEM_CATEGORIES, QUALITY_TIERS,
-    RELICS, HOUSES, PENSIONS
+    RELICS, HOUSES, PENSIONS,
+    AGE_START, DAMAGE_PER_TOWN_YEAR, TOWN_JOB_OFFER_CHANCE, FORCED_RETIREMENT_AGE,
+    PENSION_END_AGE_MIN, PENSION_END_AGE_MAX, PENSION_BASELINE_YEARS,
+    TOWN_PROFESSIONS, TOWN_PROFESSION_MODIFIERS, TOWN_INJURIES, TOWN_BODY_PARTS,
+    RELIC_MONSTER_SCALE,
 )
 
 
@@ -30,11 +34,19 @@ DUNGEON_MONSTER_NAMES = _build_dungeon_monster_name_set()
 
 
 class HeroAdventureEngine:
-    def __init__(self, hero_name="Hero", hero_class="Hitter", fast_mode=True):
+    def __init__(self, hero_name="Hero", hero_class="Hitter", fast_mode=True, relic_scaling_enabled=False,
+                 stealth_atk_enabled=True, hider_stat_bonus_enabled=True, throw_item_enabled=True):
         self.fast_mode = fast_mode
         self.hero_name = hero_name
         self.hero_class = hero_class
         self.skip_journey_fights = False
+        # Experimental toggle: scale relic-flagged monsters (bosses/super
+        # monsters) independently of regular per-leg monster tuning.
+        self.relic_scaling_enabled = relic_scaling_enabled
+        # Balance-experiment toggles (all default on; kept togglable purely
+        # so sim_runner.py can A/B-test each change in isolation).
+        self.stealth_atk_enabled = stealth_atk_enabled
+        self.throw_item_enabled = throw_item_enabled
         
         # Base Skills (all start at 5)
         self.base_skills = {
@@ -46,10 +58,17 @@ class HeroAdventureEngine:
         if hero_class in CLASSES:
             for skill, boost in CLASSES[hero_class].items():
                 self.base_skills[skill] += boost
+        # Hider's small fighting/defending floor bump (see CLASSES in
+        # game_data.py) can be disabled in isolation for balance testing.
+        if hero_class == "Hider" and not hider_stat_bonus_enabled:
+            self.base_skills["fighting"] -= 7
+            self.base_skills["defending"] -= 7
 
         self.hp = 100
         self.max_hp = 100
         self.cash = 0
+        self.age = AGE_START
+        self.end_age = None  # rolled once (lazily, in get_pension) between 60-90
         
         # Inventory & Equipment
         self.inventory = []  # items held in backpack
@@ -169,8 +188,8 @@ class HeroAdventureEngine:
             "skill_val": skill_val,
             "weight": cat_data["weight"],
             "value": cash_val,
-            "uses": q_data["med_uses"] if cat_key == "medical" else 1,
-            "max_uses": q_data["med_uses"] if cat_key == "medical" else 1
+            "uses": 1,
+            "max_uses": 1
         }
         return item
 
@@ -421,11 +440,37 @@ class HeroAdventureEngine:
                 effective_def = max(effective_def, skills["magic"])
                 break
 
-        player_atk = max(skills["fighting"], skills["magic"])
+        # Stealth counts as a viable (if weaker) combat stat too, so a
+        # stealth-built hero isn't defenseless whenever a sneak/steal fails
+        # and they're dumped into a straight fight.
+        stealth_component = int(skills["stealth"] * 0.5) if self.stealth_atk_enabled else 0
+        player_atk = max(skills["fighting"], skills["magic"], stealth_component)
         return skills, player_atk, effective_def
 
-    def estimate_fight_risk(self, monster_name):
+    def _get_monster_stats(self, monster_name):
+        """Returns monster combat stats, optionally scaled up for
+        relic-flagged monsters (dungeon bosses/super monsters) when
+        relic_scaling_enabled is set - a way to tune late-game/boss
+        difficulty independently of regular per-leg monster stats."""
         m_stats = MONSTERS[monster_name]
+        if self.relic_scaling_enabled and m_stats.get("relic"):
+            scaled = dict(m_stats)
+            for stat in ("fighting", "defending", "magic"):
+                if stat in scaled:
+                    scaled[stat] = int(scaled[stat] * RELIC_MONSTER_SCALE)
+            return scaled
+        return m_stats
+
+    def _pick_throwable_item(self):
+        """Returns the cheapest non-relic inventory item usable as a
+        distraction to throw at a monster, or None if nothing's available."""
+        candidates = [it for it in self.inventory if it.get("category") != "relic"]
+        if not candidates:
+            return None
+        return min(candidates, key=lambda it: it.get("value", 0))
+
+    def estimate_fight_risk(self, monster_name):
+        m_stats = self._get_monster_stats(monster_name)
         skills, player_atk, effective_def = self._fight_core_stats()
 
         has_cloak = any(eq and eq.get("name") == "Cloak of Invisibility" for eq in self.equipment.values())
@@ -547,7 +592,7 @@ class HeroAdventureEngine:
         return "No Way"
 
     def estimate_combat_action_risks(self, monster_name):
-        m_stats = MONSTERS[monster_name]
+        m_stats = self._get_monster_stats(monster_name)
         fight = self.estimate_fight_risk(monster_name)
         skills, _, _ = self._fight_core_stats()
 
@@ -589,7 +634,7 @@ class HeroAdventureEngine:
         carries genuine risk - even a heavily favored hero can get unlucky,
         and a "fight" can end in a costly trade of blows rather than a
         clean win or loss."""
-        m_stats = MONSTERS[monster_name]
+        m_stats = self._get_monster_stats(monster_name)
         self.last_combat_summary = {}
         skills, player_atk, effective_def = self._fight_core_stats()
         
@@ -698,6 +743,25 @@ class HeroAdventureEngine:
                     "monster_name": monster_name,
                 }
                 return loot
+            else:
+                choice = "fight"
+
+        if choice == "throw_item":
+            item = self._pick_throwable_item()
+            if item:
+                self.inventory.remove(item)
+                self.log("THROW_ITEM_ESCAPE", {"monster": monster_name, "item": item["name"]})
+                round_text = f"You hurl your {item['name']} at {monster_name} and slip away in the confusion - the item and any loot are lost."
+                self.last_combat_summary = {
+                    "rounds": 1,
+                    "round_texts": [round_text],
+                    "round_details": [
+                        self._combat_round_detail(1, "escape", round_text, monster_hp=None)
+                    ],
+                    "mode": "throw_item",
+                    "monster_name": monster_name,
+                }
+                return "JOURNEY"
             else:
                 choice = "fight"
 
@@ -1023,34 +1087,22 @@ class HeroAdventureEngine:
         """Rolls the next journey event with pacing constraints.
         Rules:
         - Mostly fights.
-        - Rest events (tavern/camp) only in second half of a leg.
-        - Rest events cannot occur within 3 events of another rest event.
+        - There is no in-journey healing/rest event anymore (see the town
+          recovery mechanic, triggered at leg transitions instead).
         - Free-loot style events (magic shrine, wandering trader) cannot
           repeat within 3 events of themselves.
         - Super monster appears at most once per leg and also respects
           a 3-event self-cooldown.
         """
         # Weights are intentionally fight-heavy.
-        if self.leg_event_count <= 10:
-            weighted_events = [
-                ("FIGHT", 78),
-                ("SUPER_MONSTER", 8),
-                ("MAGIC_SHRINE", 6),
-                ("WANDERING_TRADER", 6),
-                ("WANDER_GROUP", 4),
-                ("FAIRY_FOUND", 2),
-            ]
-        else:
-            weighted_events = [
-                ("FIGHT", 70),
-                ("SUPER_MONSTER", 8),
-                ("MAGIC_SHRINE", 6),
-                ("WANDERING_TRADER", 6),
-                ("TAVERN", 4),
-                ("CAMP", 4),
-                ("WANDER_GROUP", 4),
-                ("FAIRY_FOUND", 2),
-            ]
+        weighted_events = [
+            ("FIGHT", 78),
+            ("SUPER_MONSTER", 8),
+            ("MAGIC_SHRINE", 6),
+            ("WANDERING_TRADER", 6),
+            ("WANDER_GROUP", 4),
+            ("FAIRY_FOUND", 2),
+        ]
 
         def within_three_events(last_turn):
             return last_turn is not None and (self.leg_event_count - last_turn) <= 3
@@ -1061,11 +1113,6 @@ class HeroAdventureEngine:
                 if self.super_monster_seen_in_leg:
                     continue
                 if within_three_events(self.last_journey_event_turn.get("SUPER_MONSTER")):
-                    continue
-            elif event_type in ("TAVERN", "CAMP"):
-                # Rest events are blocked in first-half legs by construction,
-                # and share a mutual cooldown window.
-                if within_three_events(self.last_journey_event_turn.get("REST")):
                     continue
             elif event_type in ("MAGIC_SHRINE", "WANDERING_TRADER"):
                 if within_three_events(self.last_journey_event_turn.get(event_type)):
@@ -1096,8 +1143,6 @@ class HeroAdventureEngine:
         if chosen_event == "SUPER_MONSTER":
             self.super_monster_seen_in_leg = True
             self.last_journey_event_turn["SUPER_MONSTER"] = self.leg_event_count
-        elif chosen_event in ("TAVERN", "CAMP"):
-            self.last_journey_event_turn["REST"] = self.leg_event_count
         elif chosen_event in ("MAGIC_SHRINE", "WANDERING_TRADER"):
             self.last_journey_event_turn[chosen_event] = self.leg_event_count
         elif chosen_event == "WANDER_GROUP":
@@ -1173,45 +1218,17 @@ class HeroAdventureEngine:
         """Call after winning a dungeon floor fight to move to the next floor."""
         self.dungeon_event_count += 1
 
-    def apply_tavern_rest(self, cost=100):
-        """Attempts to rest at a tavern. Returns the HP healed, or None if
-        the hero cannot afford it."""
-        if self.cash < cost:
-            return None
-        self.cash -= cost
-        heal = 40 + random.randint(0, 20)
-        self.hp = min(self.max_hp, self.hp + heal)
-        self.log("TAVERN_REST", {"heal": heal, "hp": self.hp})
-        return heal
-
-    def apply_camp_rest(self):
-        """Rests at a campsite. Heal = camping skill (doubled and the
-        medical item consumed if one is equipped). Returns (heal, doubled)."""
-        skills, _, _ = self.get_effective_skills()
-        heal = skills["camping"]
-        doubled = False
-        med_item = self.equipment.get("camping_medical")
-        if med_item and med_item.get("category") == "medical":
-            heal *= 2
-            doubled = True
-            med_item["uses"] -= 1
-            if med_item["uses"] <= 0:
-                self.equipment["camping_medical"] = None
-        self.hp = min(self.max_hp, self.hp + heal)
-        self.log("CAMPING_REST", {"heal": heal, "hp": self.hp})
-        return heal, doubled
-
     def resolve_magic_shrine(self):
-        """Restores HP and grants loot with zero risk. Returns a summary dict."""
-        self.hp = min(self.max_hp, self.hp + 20)
-        self.log("MAGIC_SHRINE_RESTORE", {"hp": self.hp})
+        """Grants loot with zero risk. Journey-time healing has been removed
+        entirely (see the town recovery mechanic), so this no longer restores
+        HP - it is purely a free-loot event. Returns a summary dict."""
+        self.log("MAGIC_SHRINE_LOOT", {})
         before_cash = self.cash
         before_len = len(self.inventory)
         self.grant_monster_loot("Goblin")
         return {
             "cash_gained": self.cash - before_cash,
             "new_items": self.inventory[before_len:],
-            "hp": self.hp,
         }
 
     def capture_fairy(self):
@@ -1295,10 +1312,24 @@ class HeroAdventureEngine:
                 self.equipment[slot] = None
 
     def get_pension(self):
+        """Pension = flat cash-based lookup, scaled by how many years the
+        pension needs to last. A random end-of-life age (60-90) is rolled
+        once per hero and reused for every pension calculation that run, so
+        a younger hero (more years left to fund) gets a smaller multiplier
+        for the same cash than an older one - i.e. the younger hero needs
+        more cash to retire equally comfortably."""
+        base = None
         for p in PENSIONS:
             if p["min"] <= self.cash <= p["max"]:
-                return p["pension"]
-        return 5000 if self.cash >= 50000 else 100
+                base = p["pension"]
+                break
+        if base is None:
+            base = 5000 if self.cash >= 50000 else 100
+        if self.end_age is None:
+            self.end_age = random.randint(PENSION_END_AGE_MIN, PENSION_END_AGE_MAX)
+        years_remaining = max(1, self.end_age - self.age)
+        multiplier = max(0.2, min(PENSION_BASELINE_YEARS / years_remaining, 3.0))
+        return round(base * multiplier)
 
     def get_house_options(self):
         """Returns (options, pension) for the Capital screen. Score preview
@@ -1348,13 +1379,7 @@ class HeroAdventureEngine:
             return transition
 
         event_type = self.roll_journey_event_type()
-        if event_type == "TAVERN":
-            self.apply_tavern_rest()
-            return "JOURNEY"
-        elif event_type == "CAMP":
-            self.apply_camp_rest()
-            return "JOURNEY"
-        elif event_type == "SUPER_MONSTER":
+        if event_type == "SUPER_MONSTER":
             return "SUPER_MONSTER"
         elif event_type == "MAGIC_SHRINE":
             self.resolve_magic_shrine()
@@ -1379,19 +1404,9 @@ class HeroAdventureEngine:
             choice = self.get_tactical_choice(m_name)
             return self.resolve_fight(m_name, choice=choice)
 
-    def use_town_transport(self):
-        """Hires transport back to last town to heal HP for a leg-scaled cash fee."""
-        cost = 100 + (self.current_leg_idx * 50)
-        if self.cash >= cost:
-            self.cash -= cost
-            self.hp = 100
-            self.log("TOWN_TRANSPORT_USED", {"cost": cost, "leg": self.current_leg_idx + 1})
-            return True
-        return False
-
     def get_tactical_choice(self, monster_name):
         skills, _, _ = self.get_effective_skills()
-        m_stats = MONSTERS[monster_name]
+        m_stats = self._get_monster_stats(monster_name)
         m_def = m_stats["defending"]
         
         has_dagger = any(eq and eq.get("name") == "Shadowstep Dagger" for eq in self.equipment.values())
@@ -1406,12 +1421,19 @@ class HeroAdventureEngine:
             return "stealth_kill"
         elif (skills["stealth"] + skills["salvaging"]) > (m_def * 2):
             return "steal"
-        elif skills["stealth"] > (m_def * 2) and self.hp < 40:
+        elif self.hp < self.max_hp * 0.5:
+            # Below half HP: a low-stealth build (e.g. Hitter) is unlikely to
+            # sneak away, so prefer a guaranteed escape by throwing a spare
+            # item if one's available. Otherwise fall back to the free
+            # sneak attempt - a failed sneak just becomes a normal fight,
+            # so there's no downside to trying it.
+            if self.throw_item_enabled and skills["stealth"] < m_def and self._pick_throwable_item():
+                return "throw_item"
             return "sneak"
         else:
             return "fight"
 
-    def calculate_score(self, chosen_house_name=None):
+    def calculate_score(self, chosen_house_name=None, failed_adventurer=False):
         self.sell_all_for_capital()
 
         bought_house = None
@@ -1426,12 +1448,15 @@ class HeroAdventureEngine:
 
         pension_val = self.get_pension()
         final_score = (house_mult * pension_val) if bought_house else pension_val
+        if failed_adventurer:
+            final_score = round(final_score * 0.25)
         return {
             "hero_name": self.hero_name,
             "house": bought_house["name"] if bought_house else "Tavern",
             "pension": pension_val,
             "remaining_cash": self.cash,
-            "score": final_score
+            "score": final_score,
+            "failed_adventurer": failed_adventurer
         }
 
 
@@ -1494,17 +1519,21 @@ class GameController:
             "Near {leg_vibe}, {hero_name} found a hole in the ground that looked far too intentional.",
             "While crossing {leg_vibe}, {hero_name} saw a dungeon door pretending to be part of the landscape.",
         ],
-        "tavern": [
-            "After slogging through {leg_vibe}, {hero_name} followed the smell of ale to a tavern.",
-            "On {leg_vibe}, {hero_name} heard laughter and decided the universe was offering a drink.",
-            "While crossing {leg_vibe}, {hero_name} found a tavern that looked like a very good idea.",
-            "Near {leg_vibe}, {hero_name} reached a tavern and pretended it was a tactical decision.",
+        "town_recovery": [
+            "{hero_name} spends the year working as a {modifier} {profession}, nursing a {injury} to the {body_part}.",
+            "Back in town, {hero_name} takes up honest work as a {modifier} {profession} while a {injury} to the {body_part} heals up.",
+            "{hero_name} settles into a year of quiet recovery, moonlighting as a {modifier} {profession} despite a {injury} to the {body_part}.",
+            "While healing, {hero_name} picks up odd jobs as a {modifier} {profession}, favoring a sore {body_part} from a lingering {injury}.",
         ],
-        "camp": [
-            "As night crept over {leg_vibe}, {hero_name} looked for a place to camp.",
-            "While wandering {leg_vibe}, {hero_name} found a half-decent patch of ground and called it home for the night.",
-            "On {leg_vibe}, {hero_name} set up camp where the weather only looked mildly insulting.",
-            "Near {leg_vibe}, {hero_name} chose a camp spot with just enough dignity to survive the evening.",
+        "town_job_offer": [
+            "While working as a {modifier} {profession}, {hero_name} is offered a permanent, steady post - the kind adventurers usually only dream about.",
+            "{hero_name}'s work as a {modifier} {profession} has impressed the locals enough to offer a permanent position.",
+            "A {modifier} local guild offers {hero_name} a permanent job as a {profession}, no more monsters required.",
+        ],
+        "failed_adventurer": [
+            "At {age}, {hero_name}'s joints finally outvote their ambitions. It's time to hang up the sword for good.",
+            "{hero_name} is {age} now, and the road no longer agrees with the body. Adventuring days are over.",
+            "After one too many years recovering in town, {age}-year-old {hero_name} is forced into retirement.",
         ],
         "wandering_trader": [
             "While crossing {leg_vibe}, {hero_name} met a wandering trader who was definitely not suspicious at all.",
@@ -1550,18 +1579,19 @@ class GameController:
         ],
     }
     NARRATION_EVENT_SCREENS = {
-        "journey", "dungeon_found", "camping_event", "tavern_event", "wandering_trader",
+        "journey", "dungeon_found", "town_recovery", "wandering_trader",
         "magic_shrine_event", "super_monster_preview", "combat", "dungeon_floor_preview",
         "dungeon_boss_preview",
     }
     SAVE_VERSION = 1
-    SAVE_PATH = Path(__file__).resolve().parent / "savegame.json"
+    SAVE_DIR = Path(__file__).resolve().parent / "saves"
 
     def __init__(self):
         self.engine = None
         self.screen = "front_page"
         self.pending_name = ""
         self.pending_class = ""
+        self.creation_message = ""
         self.scores = []
         self.quit_requested = False
         self.ctx = {}
@@ -1569,9 +1599,12 @@ class GameController:
         self.inventory_return_screen = "journey"
         self.dungeon_pending = None
         self.trader_offer = []
+        self._save_slot_paths = []
         self.levelup_chosen = []
         self.selected_item_letter = None
         self.current_narration = ""
+        self.loot_discarded_indices = set()
+        self.failed_adventurer = False
 
     def _save_payload(self):
         return {
@@ -1588,6 +1621,7 @@ class GameController:
                 "selected_item_letter": self.selected_item_letter,
                 "current_narration": self.current_narration,
                 "scores": self.scores,
+                "failed_adventurer": self.failed_adventurer,
             },
             "engine": self.engine.__dict__ if self.engine else None,
         }
@@ -1621,6 +1655,7 @@ class GameController:
         self.selected_item_letter = controller_data.get("selected_item_letter")
         self.current_narration = controller_data.get("current_narration", "")
         self.scores = controller_data.get("scores", []) or []
+        self.failed_adventurer = controller_data.get("failed_adventurer", False)
 
         if not self.screen:
             self.screen = "journey"
@@ -1694,7 +1729,7 @@ class GameController:
             equipped_summary = ", ".join(item["name"] for item in e.equipment.values() if item) or "(none)"
             ctx.update({
                 "hero_name": e.hero_name, "hero_class": e.hero_class,
-                "hp": e.hp, "max_hp": e.max_hp, "cash": e.cash,
+                "hp": e.hp, "max_hp": e.max_hp, "cash": e.cash, "age": e.age,
                 "leg": e.current_leg_idx + 1, "leg_name": leg_info["name"],
                 "event": e.leg_event_count, "dungeons_found": e.dungeons_found_in_leg,
                 "fighting": skills["fighting"], "defending": skills["defending"],
@@ -1714,16 +1749,19 @@ class GameController:
         ctx["event_narration"] = self.current_narration if self.screen in self.NARRATION_EVENT_SCREENS else ""
         ctx["pending_name"] = self.pending_name
         ctx["pending_class"] = self.pending_class or "(none)"
+        ctx["creation_message"] = self.creation_message
         ctx["levelup_count"] = len(self.levelup_chosen)
-        ctx["load_available"] = self.SAVE_PATH.exists()
+        ctx["load_available"] = self.SAVE_DIR.exists() and any(self.SAVE_DIR.glob("*.json"))
+        ctx["failed_adventurer"] = self.failed_adventurer
 
         if self.screen == "inventory":
             ctx["list_inventory"] = self._build_inventory_rows()
-        elif self.screen == "character_sheet":
             ctx["character_title"] = self._character_title()
             ctx["honor_mark"] = min(15, self.engine.super_monsters_defeated + self.engine.dungeons_cleared)
             ctx["list_character_stats"] = self._build_character_stats_rows()
             ctx["list_character_equipment"] = self._build_character_equipment_rows()
+        elif self.screen == "loot_screen":
+            ctx["loot_lines"] = self._build_combat_loot_rows()
         elif self.screen == "item_detail":
             item, slot = self._find_letter_item(self.selected_item_letter)
             if item:
@@ -1733,7 +1771,6 @@ class GameController:
                     "item_stat": stat, "item_value": item["value"], "item_weight": item["weight"],
                     "item_uses": item.get("uses"), "item_slot": item.get("slot", ""),
                     "can_equip": slot is None, "can_unequip": slot is not None,
-                    "is_medical": item.get("category") == "medical",
                 })
         elif self.screen == "level_up":
             ctx["list_levelup_skills"] = self._build_levelup_rows()
@@ -1769,16 +1806,54 @@ class GameController:
 
         return ctx
 
+    def _item_highlight(self, item):
+        """Returns 'better', 'worse', or None for a backpack item, comparing it
+        only against the equipped item in the same slot that shares its skill
+        effect (an empty slot always counts as 'better')."""
+        skill = item.get("skill")
+        if not skill:
+            return None
+        target_slot = item.get("slot")
+        if target_slot == "accessory":
+            if not self.engine.equipment.get("accessory_1"):
+                target_slot = "accessory_1"
+            elif not self.engine.equipment.get("accessory_2"):
+                target_slot = "accessory_2"
+            else:
+                target_slot = "accessory_1"
+        equipped = self.engine.equipment.get(target_slot)
+        if not equipped:
+            return "better"
+        if equipped.get("skill") != skill:
+            return None
+        return "better" if item.get("skill_val", 0) > equipped.get("skill_val", 0) else "worse"
+
     def _build_inventory_rows(self):
         rows = []
         for letter, item, slot in self._letter_items():
-            tag = "Equipped" if slot else "Backpack"
+            tag = "\u2705 Equipped" if slot else "\U0001f392 Backpack"
             stat = f"+{item.get('skill_val', 0)} {item.get('skill', '')}" if item.get("skill") else "Relic"
             text = (f"{letter} - [{tag}] {item['name']} ({item.get('tier', '')}) "
                     f"{stat} | ${item['value']} | {item['weight']}wt")
-            rows.append({"text": text, "action": f"select_item:{letter}", "enabled": True})
+            highlight = None if slot else self._item_highlight(item)
+            rows.append({"text": text, "action": f"select_item:{letter}", "enabled": True, "highlight": highlight})
         if not rows:
             rows.append({"text": "Your inventory is empty.", "action": None, "enabled": False})
+        return rows
+
+    def _build_combat_loot_rows(self):
+        """Rows for the post-fight loot screen, letting the player toggle
+        each drop between kept and discarded before it lands in the backpack."""
+        items = self.ctx.get("loot_items") or []
+        if not items:
+            return [{"text": "No items dropped.", "action": None, "enabled": False}]
+        rows = []
+        for idx, item in enumerate(items):
+            stat = f"+{item.get('skill_val', 0)} {item.get('skill', '')}" if item.get("skill") else "Relic"
+            tag = "\u274c DISCARD" if idx in self.loot_discarded_indices else "\u2705 KEEP"
+            text = (f"[{tag}] {item['name']} ({item.get('tier', '')}) {stat} | "
+                    f"${item['value']} | {item['weight']}wt")
+            rows.append({"text": text, "action": f"toggle_loot_item:{idx}", "enabled": True})
         return rows
 
     def _build_character_stats_rows(self):
@@ -1951,6 +2026,7 @@ class GameController:
             "hit": "HIT",
             "loss": "LOSS",
             "attrition": "ATTRITION",
+            "escape": "ESCAPE",
         }
         for detail in round_details:
             facts = []
@@ -2014,18 +2090,28 @@ class GameController:
     def _action_new_game(self):
         self.pending_name = ""
         self.pending_class = ""
+        self.creation_message = ""
         self.engine = None
         self.ctx = {}
         self.current_narration = ""
         self.screen = "character_creation"
 
     def _action_select_class(self, class_name):
-        if class_name in CLASSES:
-            self.pending_class = class_name
+        if class_name not in CLASSES:
+            return
+        self.pending_class = class_name
+        self._action_confirm_character()
 
     def _action_confirm_character(self):
         if not self.pending_name or not self.pending_class:
             return
+        if self._save_name_exists(self.pending_name):
+            self.creation_message = (
+                f"A save already exists for '{self.pending_name}'. "
+                "Choose a different name or load that save instead."
+            )
+            return
+        self.creation_message = ""
         self.engine = HeroAdventureEngine(self.pending_name, self.pending_class)
         self.current_narration = ""
         self.screen = "journey"
@@ -2033,11 +2119,74 @@ class GameController:
     def _action_quit(self):
         self.quit_requested = True
 
-    def _action_load_game(self):
-        try:
-            payload = json.loads(self.SAVE_PATH.read_text())
-        except (FileNotFoundError, json.JSONDecodeError):
+    @staticmethod
+    def _slot_filename(hero_name):
+        safe = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in hero_name.strip())
+        return safe or "hero"
+
+    def _save_slot_path(self, hero_name):
+        return self.SAVE_DIR / f"{self._slot_filename(hero_name)}.json"
+
+    def _save_name_exists(self, hero_name):
+        return self._save_slot_path(hero_name).exists()
+
+    def _save_summary(self, payload):
+        if not isinstance(payload, dict) or payload.get("version") != self.SAVE_VERSION:
+            return None
+        engine_data = payload.get("engine")
+        if not engine_data:
+            return None
+        return {
+            "hero_name": engine_data.get("hero_name", "Unknown"),
+            "hero_class": engine_data.get("hero_class", "Unknown"),
+            "leg": engine_data.get("current_leg_idx", 0) + 1,
+            "event": engine_data.get("leg_event_count", 0),
+        }
+
+    def _list_save_slots(self):
+        """Returns ordered (path, summary) pairs for every valid save file."""
+        slots = []
+        if not self.SAVE_DIR.exists():
+            return slots
+        for path in sorted(self.SAVE_DIR.glob("*.json")):
+            try:
+                payload = json.loads(path.read_text())
+            except (OSError, json.JSONDecodeError):
+                continue
+            summary = self._save_summary(payload)
+            if summary:
+                slots.append((path, summary))
+        return slots
+
+    def _action_view_load_game(self):
+        slots = self._list_save_slots()
+        if not slots:
             self._set_menu_message("No valid save file was found.")
+            return
+        self._save_slot_paths = [path for path, _ in slots]
+        rows = [
+            {
+                "text": f"Leg {summary['leg']} - Event {summary['event']} - Hero: {summary['hero_name']}",
+                "action": f"load_slot:{idx}",
+                "enabled": True,
+            }
+            for idx, (_, summary) in enumerate(slots)
+        ]
+        self.ctx = {"list_save_slots": rows}
+        self.screen = "load_game"
+
+    def _action_load_slot(self, idx_str):
+        try:
+            idx = int(idx_str)
+        except (TypeError, ValueError):
+            return
+        if not (0 <= idx < len(self._save_slot_paths)):
+            return
+        try:
+            payload = json.loads(self._save_slot_paths[idx].read_text())
+        except (OSError, json.JSONDecodeError):
+            self.ctx = {"menu_message": "Save file is invalid or incompatible."}
+            self.screen = "front_page"
             return
 
         if self._restore_payload(payload):
@@ -2052,13 +2201,20 @@ class GameController:
             self._set_menu_message("Start or load a game before saving.")
             return
         try:
+            self.SAVE_DIR.mkdir(exist_ok=True)
             payload = self._save_payload()
-            tmp_path = self.SAVE_PATH.with_suffix(".tmp")
+            path = self._save_slot_path(self.engine.hero_name)
+            tmp_path = path.with_suffix(".tmp")
             tmp_path.write_text(json.dumps(payload, separators=(",", ":")))
-            tmp_path.replace(self.SAVE_PATH)
-            self._set_save_message(f"Game saved to {self.SAVE_PATH.name}.")
+            tmp_path.replace(path)
+            self._set_save_message(f"Game saved to {path.name}.")
         except OSError:
             self._set_save_message("Failed to save game.")
+
+    def _action_save_and_quit(self):
+        self._action_save_game()
+        self.ctx = {}
+        self.screen = "front_page"
 
     # -- Inventory (openable from journey/combat, returns to prior screen) --
     def _action_open_inventory(self):
@@ -2072,13 +2228,6 @@ class GameController:
         if target == "inventory":
             target = "journey"
         self.screen = target
-
-    def _action_open_character_sheet(self):
-        self.previous_screen = self.screen
-        self.screen = "character_sheet"
-
-    def _action_close_character_sheet(self):
-        self.screen = self.previous_screen or "journey"
 
     def _action_select_item(self, letter):
         self.selected_item_letter = letter
@@ -2130,23 +2279,6 @@ class GameController:
         self.screen = "inventory"
         self.selected_item_letter = None
 
-    def _action_use_medical(self):
-        letter = self.selected_item_letter
-        item, slot = self._find_letter_item(letter)
-        if item and item.get("category") == "medical":
-            skills, _, _ = self.engine.get_effective_skills()
-            heal = skills["camping"] + random.randint(0, max(1, skills["camping"]))
-            item["uses"] -= 1
-            self.engine.hp = min(self.engine.max_hp, self.engine.hp + heal)
-            if item["uses"] <= 0:
-                if slot is not None:
-                    self.engine.equipment[slot] = None
-                elif item in self.engine.inventory:
-                    self.engine.inventory.remove(item)
-            self.engine.log("MEDICAL_ITEM_USED", {"heal": heal, "hp": self.engine.hp})
-        self.screen = "inventory"
-        self.selected_item_letter = None
-
     # -- Journey ----------------------------------------------------------
     def _action_advance_event(self):
         e = self.engine
@@ -2166,26 +2298,17 @@ class GameController:
 
         transition = e.try_leg_transition()
         if transition == "LEVEL_UP":
-            self.levelup_chosen = []
-            self.ctx = {}
-            self.screen = "level_up"
+            self._enter_town_recovery()
             return
         elif transition == "CAPITAL":
             e.sell_all_for_capital()
+            self.failed_adventurer = False
             self.ctx = {}
             self.screen = "capital"
             return
 
         event_type = e.roll_journey_event_type()
-        if event_type == "TAVERN":
-            self._set_narration("tavern")
-            self.ctx = {"event_narration": self.current_narration}
-            self.screen = "tavern_event"
-        elif event_type == "CAMP":
-            self._set_narration("camp")
-            self.ctx = {"event_narration": self.current_narration}
-            self.screen = "camping_event"
-        elif event_type == "SUPER_MONSTER":
+        if event_type == "SUPER_MONSTER":
             sm_name = LEGS[e.current_leg_idx]["super_monster"]
             m = MONSTERS[sm_name]
             self._set_narration("super_monster")
@@ -2210,12 +2333,11 @@ class GameController:
             e.apply_wander_group_advance(5)
             transition = e.try_leg_transition()
             if transition == "LEVEL_UP":
-                self.levelup_chosen = []
-                self.ctx = {}
-                self.screen = "level_up"
+                self._enter_town_recovery()
                 return
             elif transition == "CAPITAL":
                 e.sell_all_for_capital()
+                self.failed_adventurer = False
                 self.ctx = {}
                 self.screen = "capital"
                 return
@@ -2231,28 +2353,81 @@ class GameController:
             self._set_narration("fight", monster_name=monster)
             self._start_combat(monster, "regular", allow_run=True)
 
-    # -- Tavern / Camping ---------------------------------------------------
-    def _action_rest_tavern(self):
-        heal = self.engine.apply_tavern_rest()
-        if heal is None:
-            self.ctx["rest_text"] = "You don't have enough gold to rest here (needs $100)."
-        else:
-            self.ctx["rest_text"] = f"You rest and recover {heal} HP! (HP now {self.engine.hp}/{self.engine.max_hp})"
-        self.ctx["resolved"] = True
+    # -- Town Recovery (aging) ------------------------------------------
+    def _generate_town_blurb(self, job_offer=False):
+        profession = random.choice(TOWN_PROFESSIONS)
+        modifier = random.choice(TOWN_PROFESSION_MODIFIERS)
+        injury = random.choice(TOWN_INJURIES)
+        body_part = random.choice(TOWN_BODY_PARTS)
+        event_type = "town_job_offer" if job_offer else "town_recovery"
+        blurb = self._set_narration(
+            event_type, profession=profession, modifier=modifier,
+            injury=injury, body_part=body_part,
+        )
+        return blurb, profession
 
-    def _action_skip_tavern(self):
-        self.ctx["rest_text"] = "You continue on your way."
-        self.ctx["resolved"] = True
+    def _enter_town_recovery(self):
+        """Mandatory town stop at the start of a new leg. Skipped entirely
+        if the hero is already at full HP; otherwise plays out one year at
+        a time (10 HP healed per year, hero ages by 1), with a per-year
+        5% chance of a permanent job offer and a forced failed-adventurer
+        ending if age 50 is reached."""
+        if self.engine.hp >= self.engine.max_hp:
+            self._enter_level_up()
+            return
+        self._prepare_town_year()
 
-    def _action_rest_camp(self):
-        heal, doubled = self.engine.apply_camp_rest()
-        extra = " (medical supply consumed for double effect)" if doubled else ""
-        self.ctx["rest_text"] = f"You make camp and recover {heal} HP{extra}! (HP now {self.engine.hp}/{self.engine.max_hp})"
-        self.ctx["resolved"] = True
+    def _enter_level_up(self):
+        self.levelup_chosen = []
+        self.ctx = {}
+        self.screen = "level_up"
 
-    def _action_skip_camp(self):
-        self.ctx["rest_text"] = "You continue on your way."
-        self.ctx["resolved"] = True
+    def _prepare_town_year(self):
+        e = self.engine
+        if random.random() < TOWN_JOB_OFFER_CHANCE:
+            blurb, profession = self._generate_town_blurb(job_offer=True)
+            self.ctx = {"town_job_offer": True, "town_profession": profession,
+                        "event_narration": blurb}
+            self.screen = "town_recovery"
+            return
+
+        blurb, _ = self._generate_town_blurb(job_offer=False)
+        heal = min(DAMAGE_PER_TOWN_YEAR, e.max_hp - e.hp)
+        e.hp = min(e.max_hp, e.hp + heal)
+        e.age += 1
+        e.log("TOWN_RECOVERY_YEAR", {"age": e.age, "heal": heal, "hp": e.hp})
+        if e.age >= FORCED_RETIREMENT_AGE:
+            self._enter_failed_adventurer(blurb)
+            return
+        self.ctx = {"town_job_offer": False, "town_fully_healed": e.hp >= e.max_hp,
+                     "event_narration": blurb}
+        self.screen = "town_recovery"
+
+    def _enter_failed_adventurer(self, blurb):
+        e = self.engine
+        e.sell_all_for_capital()
+        self.failed_adventurer = True
+        self.ctx = {"failed_adventurer_text": blurb}
+        self.screen = "capital"
+
+    def _action_town_work(self):
+        if self.ctx.get("town_job_offer"):
+            return
+        self._prepare_town_year()
+
+    def _action_town_leave(self):
+        self.ctx = {}
+        self._enter_level_up()
+
+    def _action_town_retire(self):
+        e = self.engine
+        profession = self.ctx.get("town_profession", "adventurer")
+        e.sell_all_for_capital()
+        pension = e.get_pension()
+        result = f"Retired early as a {profession}"
+        self.scores.append({"name": e.hero_name, "class": e.hero_class, "score": pension, "result": result})
+        self.ctx = {"final_house": result, "final_score": pension, "final_pension": pension}
+        self.screen = "capital_result"
 
     def _action_continue_journey(self):
         self.ctx = {}
@@ -2371,6 +2546,7 @@ class GameController:
             "monster_name": monster_name,
             "monster_fighting": m["fighting"], "monster_defending": m["defending"], "monster_magic": m["magic"],
             "combat_kind": kind, "allow_run": allow_run,
+            "has_throwable_item": bool(self.engine._pick_throwable_item()),
             "event_narration": self.current_narration,
         }
         self.screen = "combat"
@@ -2386,6 +2562,9 @@ class GameController:
 
     def _action_stealth_kill(self):
         self._resolve_combat_choice("stealth_kill")
+
+    def _action_throw_item(self):
+        self._resolve_combat_choice("throw_item")
 
     def _action_run_away(self):
         self.ctx = {}
@@ -2411,7 +2590,10 @@ class GameController:
         )
 
         if res == "JOURNEY":
-            self.ctx["result_text"] = f"You slip past {monster} without a fight!"
+            if combat_summary.get("mode") == "throw_item":
+                self.ctx["result_text"] = f"{combat_lines[0] if combat_lines else 'You escape, but lose an item and any loot.'}"
+            else:
+                self.ctx["result_text"] = f"You slip past {monster} without a fight!"
             self.ctx["result_won"] = True
             self.ctx["loot_items"] = []
         elif res == "LOSS_WINDOW":
@@ -2440,11 +2622,27 @@ class GameController:
             self.screen = "journey"
             return
         if self.ctx.get("loot_items"):
+            self.loot_discarded_indices = set()
             self.screen = "loot_screen"
         else:
             self._route_after_win()
 
+    def _action_toggle_loot_item(self, idx_str):
+        try:
+            idx = int(idx_str)
+        except (TypeError, ValueError):
+            return
+        if idx in self.loot_discarded_indices:
+            self.loot_discarded_indices.discard(idx)
+        else:
+            self.loot_discarded_indices.add(idx)
+
     def _action_loot_continue(self):
+        items = self.ctx.get("loot_items") or []
+        discarded = [item for idx, item in enumerate(items) if idx in self.loot_discarded_indices]
+        if discarded:
+            self.engine.inventory = [it for it in self.engine.inventory if not any(it is d for d in discarded)]
+        self.loot_discarded_indices = set()
         self._route_after_win()
 
     def _route_after_win(self):
@@ -2472,19 +2670,34 @@ class GameController:
         pension = e.get_pension()
         e.cash -= house["cost"]
         score = house["multiplier"] * pension
+        result = f"Bought {house['name']}"
+        if self.failed_adventurer:
+            score = round(score * 0.25)
+            result += " (Failed Adventurer)"
         self.scores.append({"name": e.hero_name, "class": e.hero_class, "score": score,
-                             "result": f"Bought {house['name']}"})
+                             "result": result})
         self.ctx = {"final_house": house["name"], "final_score": score, "final_pension": pension}
+        self.failed_adventurer = False
         self.screen = "capital_result"
 
     def _action_keep_pension(self):
         e = self.engine
         pension = e.get_pension()
-        self.scores.append({"name": e.hero_name, "class": e.hero_class, "score": pension, "result": "Tavern"})
-        self.ctx = {"final_house": "Tavern", "final_score": pension, "final_pension": pension}
+        score = pension
+        result = "Tavern"
+        if self.failed_adventurer:
+            score = round(score * 0.25)
+            result += " (Failed Adventurer)"
+        self.scores.append({"name": e.hero_name, "class": e.hero_class, "score": score, "result": result})
+        self.ctx = {"final_house": "Tavern", "final_score": score, "final_pension": pension}
+        self.failed_adventurer = False
         self.screen = "capital_result"
 
     def _action_capital_continue(self):
+        if self.engine:
+            path = self._save_slot_path(self.engine.hero_name)
+            if path.exists():
+                path.unlink()
         self.engine = None
         self.ctx = {}
         self.screen = "front_page"
