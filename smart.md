@@ -195,3 +195,32 @@ A/B-tested four fixes in [hero_engine.py](uigames/hero_adventure/hero_engine.py)
 - Cumulative 2000-run results: initial 15.3% -> +1 14.8% -> +1+2 25.0% ->
   **+1+2+3 37.8% (shipped)** -> +1+2+3+4 20.8% (rejected).
 
+## 12. Fight round text could repeat within one fight; no closing "kill" line
+
+**Answer:** `_combat_line()` in [hero_engine.py](uigames/hero_adventure/hero_engine.py)
+now takes an optional `used_lines` set - `resolve_fight()` creates one fresh set per
+encounter and threads it through every `_combat_action_line()` call in that fight, so
+the same (category, opening-line, closing-line) template combo is never picked twice
+in a row across rounds (falls back to allowing repeats only if every combo in a
+category has genuinely been exhausted, which 50 combos vs. an 8-round cap makes
+essentially impossible). Also added `KILL_PHRASES` (10 lines, including your
+"...and then they goofed the whole pooch") and a `_kill_phrase()` helper - appended to
+the round text at every point a monster actually dies mid-narration: the killing blow
+of a multi-round fight, an instant relic-combo win, and a successful stealth kill.
+(Steal/sneak/run/throw-item don't get one - the monster isn't dead in those cases.)
+
+## 13. Repeated monster encounters felt identical - no acknowledgement it's the "same" monster type
+
+**Answer:** Added `HeroAdventureEngine.monster_encounter_counts` (a `{monster_name:
+count}` dict, part of the normal engine state so it saves/loads for free via the
+existing `engine.__dict__` payload). Each regular journey fight
+(`_action_advance_event`'s fallthrough case) increments the count for that monster
+name and passes it to `_set_narration`, which now has a `REPEAT_ENCOUNTER_TEMPLATES`
+table keyed by encounter number: distinct 2nd- and 3rd-encounter phrasing (e.g. "ran
+into another Cave Spider - maybe it's the first one's brother", "encountered yet
+another Cave Spider, this one seems particularly vengeful" - both close to your exact
+examples), then a "many" tier for the 4th+ that uses an ordinal ("braced for the 5th
+Cave Spider of the trip") so it keeps scaling without needing one template per count.
+Scoped to regular journey monsters only (not dungeon/boss/super monsters, which
+already have distinct one-off narration and are far less repetitive by design).
+

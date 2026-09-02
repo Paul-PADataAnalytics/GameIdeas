@@ -95,6 +95,11 @@ class HeroAdventureEngine:
         self.dungeon_event_count = 0  # 0 to 6 (1-5 floor fights, 6 boss)
         self.dungeon_boss = ""
         self.dungeon_floors = []
+        # How many times each regular monster has been encountered on the
+        # journey this run - used to give repeat encounters a callback
+        # ("...ran into another Cave Spider, maybe it's the first one's
+        # brother.") instead of the same generic first-encounter text.
+        self.monster_encounter_counts = {}
         
         # Relic tracking & state
         self.relics_found = []
@@ -234,8 +239,28 @@ class HeroAdventureEngine:
         def_roll = defender_stat + random.randint(1, die)
         return atk_roll > def_roll, abs(atk_roll - def_roll)
 
-    def _combat_line(self, category, **kwargs):
-        """Builds a silly combat narration line from a 50+ line generated pool."""
+    KILL_PHRASES = [
+        "and then they goofed the whole pooch.",
+        "and that was the last mistake it ever made.",
+        "and promptly forgot how to be a threat.",
+        "and folded like a lawn chair in a hurricane.",
+        "and simply gave up on the concept of continuing to exist.",
+        "and went down clutching its own bad decisions.",
+        "and that, as they say, was that.",
+        "and the universe quietly filed it under 'no longer a problem'.",
+        "and became a cautionary tale for future monsters.",
+        "and exited the story rather abruptly.",
+    ]
+
+    def _kill_phrase(self):
+        return random.choice(self.KILL_PHRASES)
+
+    def _combat_line(self, category, used_lines=None, **kwargs):
+        """Builds a silly combat narration line from a 50+ line generated pool.
+
+        `used_lines`, if given, is a set shared across a single fight; the
+        (category, start_idx, end_idx) template combo is tracked so the same
+        flavour text is never repeated across rounds of the same encounter."""
         pools = {
             "fight_win": (
                 [
@@ -365,24 +390,34 @@ class HeroAdventureEngine:
             ),
         }
         start, end = pools[category]
-        start_text = random.choice(start).format(**kwargs)
-        end_text = random.choice(end).format(**kwargs)
+        if used_lines is not None:
+            combos = [(s, e) for s in range(len(start)) for e in range(len(end))
+                      if (category, s, e) not in used_lines]
+            if not combos:
+                combos = [(s, e) for s in range(len(start)) for e in range(len(end))]
+            s_idx, e_idx = random.choice(combos)
+            used_lines.add((category, s_idx, e_idx))
+        else:
+            s_idx = random.randrange(len(start))
+            e_idx = random.randrange(len(end))
+        start_text = start[s_idx].format(**kwargs)
+        end_text = end[e_idx].format(**kwargs)
         line = f"{start_text} {kwargs.get('value', '')} {end_text}".strip()
         return " ".join(line.split())
 
-    def _combat_action_line(self, action, **kwargs):
+    def _combat_action_line(self, action, used_lines=None, **kwargs):
         if action == "fight_win":
-            return self._combat_line("fight_win", **kwargs)
+            return self._combat_line("fight_win", used_lines, **kwargs)
         if action == "fight_loss":
-            return self._combat_line("fight_loss", **kwargs)
+            return self._combat_line("fight_loss", used_lines, **kwargs)
         if action == "magic_attack":
-            return self._combat_line("magic_attack", **kwargs)
+            return self._combat_line("magic_attack", used_lines, **kwargs)
         if action == "magic_defense":
-            return self._combat_line("magic_defense", **kwargs)
+            return self._combat_line("magic_defense", used_lines, **kwargs)
         if action == "steal":
-            return self._combat_line("steal", **kwargs)
+            return self._combat_line("steal", used_lines, **kwargs)
         if action == "stealth_kill":
-            return self._combat_line("stealth_kill", **kwargs)
+            return self._combat_line("stealth_kill", used_lines, **kwargs)
         return ""
 
     def _combat_round_detail(
@@ -637,7 +672,11 @@ class HeroAdventureEngine:
         m_stats = self._get_monster_stats(monster_name)
         self.last_combat_summary = {}
         skills, player_atk, effective_def = self._fight_core_stats()
-        
+        # Tracks (category, start_idx, end_idx) template combos already used
+        # this fight so no two rounds of the same encounter reuse the same
+        # flavour text.
+        used_lines = set()
+
         # Check Cloak of Invisibility
         for eq in self.equipment.values():
             if eq and eq.get("name") == "Cloak of Invisibility":
@@ -645,9 +684,11 @@ class HeroAdventureEngine:
                     self.log("FIGHT_SUCCESS", {"monster": monster_name, "choice": choice, "relic": "Cloak of Invisibility"})
                     round_text = self._combat_action_line(
                         "fight_win",
+                        used_lines,
                         value="a flawless strike",
                         monster_name=monster_name,
                     )
+                    round_text = f"{round_text} {self._kill_phrase()}"
                     self.last_combat_summary = {
                         "rounds": 1,
                         "round_texts": [round_text],
@@ -725,8 +766,10 @@ class HeroAdventureEngine:
                     self.dungeons_cleared = min(10, self.dungeons_cleared + 1)
                 round_text = self._combat_action_line(
                     "stealth_kill",
+                    used_lines,
                     value=f"{player_round_damage} damage",
                 )
+                round_text = f"{round_text} {self._kill_phrase()}"
                 self.last_combat_summary = {
                     "rounds": 1,
                     "round_texts": [round_text],
@@ -799,11 +842,12 @@ class HeroAdventureEngine:
                 round_texts.append(
                     self._combat_action_line(
                         "magic_attack" if magic_attack_mode else "fight_win",
+                        used_lines,
                         value=player_round_damage,
                         monster_name=monster_name,
                         spell_name=spell_name,
                         weapon_name=spell_name,
-                    )
+                    ) + f" {self._kill_phrase()}"
                 )
                 round_details.append(
                     self._combat_round_detail(
@@ -832,15 +876,17 @@ class HeroAdventureEngine:
 
                     if player_wins_round:
                         monster_hp = max(0, monster_hp - player_round_damage)
-                        round_texts.append(
-                            self._combat_action_line(
-                                "magic_attack" if magic_attack_mode else "fight_win",
-                                value=player_round_damage,
-                                monster_name=monster_name,
-                                spell_name=spell_name,
-                                weapon_name=spell_name,
-                            )
+                        line = self._combat_action_line(
+                            "magic_attack" if magic_attack_mode else "fight_win",
+                            used_lines,
+                            value=player_round_damage,
+                            monster_name=monster_name,
+                            spell_name=spell_name,
+                            weapon_name=spell_name,
                         )
+                        if monster_hp <= 0:
+                            line = f"{line} {self._kill_phrase()}"
+                        round_texts.append(line)
                         round_details.append(
                             self._combat_round_detail(
                                 r,
@@ -861,6 +907,7 @@ class HeroAdventureEngine:
                         round_texts.append(
                             self._combat_action_line(
                                 "magic_defense" if magic_attack_mode else "fight_loss",
+                                used_lines,
                                 value=damage,
                                 monster_name=monster_name,
                                 shield_name=shield_name,
@@ -941,6 +988,7 @@ class HeroAdventureEngine:
                     self.take_damage(timeout_damage, f"slain by {monster_name}")
                     timeout_text = self._combat_action_line(
                         "fight_loss",
+                        used_lines,
                         value=timeout_damage,
                         monster_name=monster_name,
                     )
@@ -1578,6 +1626,28 @@ class GameController:
             "Near {leg_vibe}, {hero_name} headed for the boss of {dungeon_name} with zero enthusiasm.",
         ],
     }
+    # Repeat-encounter callbacks for regular journey monsters, keyed by how
+    # many times this monster has been faced this run (2nd, 3rd, 4th+).
+    REPEAT_ENCOUNTER_TEMPLATES = {
+        2: [
+            "While walking through {leg_vibe}, {hero_name} ran into another {monster_name} - maybe it's the first one's brother.",
+            "On {leg_vibe}, {hero_name} spotted a second {monster_name}, oddly familiar around the eyes.",
+            "Near {leg_vibe}, {hero_name} crossed paths with another {monster_name}, which felt like too much of a coincidence.",
+            "While crossing {leg_vibe}, {hero_name} found a second {monster_name} - small world, apparently.",
+        ],
+        3: [
+            "While crossing {leg_vibe}, {hero_name} encountered yet another {monster_name} - this one seemed particularly vengeful.",
+            "On {leg_vibe}, {hero_name} found a third {monster_name} and started to suspect a conspiracy.",
+            "Near {leg_vibe}, {hero_name} met another {monster_name}, who looked personally aggrieved on behalf of the others.",
+            "While walking through {leg_vibe}, {hero_name} sighed at yet another {monster_name} blocking the way.",
+        ],
+        "many": [
+            "While walking through {leg_vibe}, {hero_name} braced for the {ordinal} {monster_name} of the trip.",
+            "On {leg_vibe}, {hero_name} has now met so many {monster_name_plural} that this one got a nickname.",
+            "Near {leg_vibe}, {hero_name} rolled their eyes at the {ordinal} {monster_name} - at this point it's basically a rivalry.",
+            "While crossing {leg_vibe}, {hero_name} wondered if the {monster_name_plural} were breeding on purpose just to annoy them.",
+        ],
+    }
     NARRATION_EVENT_SCREENS = {
         "journey", "dungeon_found", "town_recovery", "wandering_trader",
         "magic_shrine_event", "super_monster_preview", "combat", "dungeon_floor_preview",
@@ -1679,7 +1749,29 @@ class GameController:
             LEGS[self.engine.current_leg_idx]["name"].lower(),
         )
 
+    @staticmethod
+    def _ordinal(n):
+        if 10 <= n % 100 <= 20:
+            suffix = "th"
+        else:
+            suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
+        return f"{n}{suffix}"
+
     def _set_narration(self, event_type, **kwargs):
+        encounter_count = kwargs.pop("encounter_count", None)
+        if event_type == "fight" and encounter_count and encounter_count > 1:
+            templates = self.REPEAT_ENCOUNTER_TEMPLATES.get(
+                encounter_count, self.REPEAT_ENCOUNTER_TEMPLATES["many"]
+            )
+            data = {
+                "hero_name": self.engine.hero_name if self.engine else "the Hero",
+                "leg_vibe": self._build_leg_vibe(),
+                "ordinal": self._ordinal(encounter_count),
+                "monster_name_plural": f"{kwargs.get('monster_name', '')}s",
+            }
+            data.update(kwargs)
+            self.current_narration = random.choice(templates).format(**data)
+            return self.current_narration
         templates = self.EVENT_NARRATION_TEMPLATES.get(event_type, [])
         if not templates:
             self.current_narration = ""
@@ -2350,7 +2442,8 @@ class GameController:
             self.screen = "journey"
         else:
             monster = e.get_random_monster()
-            self._set_narration("fight", monster_name=monster)
+            e.monster_encounter_counts[monster] = e.monster_encounter_counts.get(monster, 0) + 1
+            self._set_narration("fight", monster_name=monster, encounter_count=e.monster_encounter_counts[monster])
             self._start_combat(monster, "regular", allow_run=True)
 
     # -- Town Recovery (aging) ------------------------------------------
