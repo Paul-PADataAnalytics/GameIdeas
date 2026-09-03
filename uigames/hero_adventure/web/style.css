@@ -32,6 +32,8 @@ html, body {
   padding: 2rem;
 }
 
+#boot[hidden] { display: none; }
+
 .boot-sub {
   color: var(--muted);
   font-size: 0.9rem;
