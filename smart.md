@@ -224,3 +224,85 @@ Cave Spider of the trip") so it keeps scaling without needing one template per c
 Scoped to regular journey monsters only (not dungeon/boss/super monsters, which
 already have distinct one-off narration and are far less repetitive by design).
 
+## 14. Journey needed more flavor/reminiscence text tied to actual events (not per-item lore)
+
+**Answer:** This was flagged as possibly "hideously expensive", so we talked
+through the design in chat before building anything, and deliberately dropped
+the most expensive sub-idea (per-loot-item backstory, e.g. reminiscing about
+a monster's mace needing repair) - there's no item-lore data to hang that on
+and inventing it for every item wasn't worth it. What shipped instead reuses
+data the engine already tracks or now tracks cheaply:
+
+- **`HeroAdventureEngine.special_moments`** - a FIFO log capped at the most
+  recent 10 entries *shared across all types*, via a new `_log_special_moment()`
+  helper. Logged at: a relic drop (`grant_monster_loot`), a dungeon boss beaten
+  (all three `resolve_fight` win paths - fight/steal/stealth_kill), and the
+  *first* time a regular monster's encounter count reaches 3 (in
+  `_action_advance_event`, reusing item #13's `monster_encounter_counts` - not
+  re-logged for every kill after that, since the live count can always be
+  re-read at recall time). Left generic enough that future special events
+  (camping/shrine/trader/tavern) can log into the same pool later.
+- **`HeroAdventureEngine.town_history`** - every town-recovery year
+  (`_generate_town_blurb`) now appends its rolled
+  profession/modifier/injury/body_part to a list, also capped at the most
+  recent 10, instead of being thrown away after one blurb.
+- **Reminiscence templates** (`GameController.REMINISCENCE_TEMPLATES`,
+  `_maybe_add_reminiscence()`): after building normal journey-event narration
+  (fight/dungeon/trader/shrine/super monster/wander group/fairy - not
+  town-recovery itself), there's an 18% chance (`REMINISCENCE_CHANCE`) of one
+  extra sentence pulled from whichever of these the hero actually has: a past
+  town job, a monster faced 3+ times, a logged special moment, or their fixed
+  backstory (see #15) - e.g. "Rin thought back to the year spent as a sleepy
+  candlestick maker, and how a blister to the heel never quite faded." All
+  data is stored structured (not pre-rendered), so wording can change later
+  without losing old memories, and it costs nothing extra to carry in saves
+  (goes along for free in the existing `engine.__dict__` dump).
+- **Design decisions made in chat, in order:** FIFO eviction across all
+  special-moment types (not per-type quotas); same-monster memory triggers
+  once at the 3rd encounter, not re-logged on every later kill; cap of 10 is
+  a starting guess, tunable later. A "tiered/toggle" idea (disable narrative
+  flavor on low-power ports) was raised and then explicitly dropped - this
+  Python version is the reference implementation ("the bible") other
+  ports/languages are carved from, so it always has the full feature; lower-
+  powered ports decide what to drop when they're built, not this one. A
+  "export the whole playthrough as a chapter-per-leg story" idea was raised
+  and intentionally **not** built yet - parked as a future item once the
+  reminiscence line pool has been tuned (see instrumentation below) and
+  proven readable over a full run.
+- **Instrumentation** (new
+  [narrative_instrument.py](uigames/hero_adventure/narrative_instrument.py)):
+  since "does this feel repetitive" isn't eyeball-able, this drives full
+  headless playthroughs through `GameController.dispatch()` (not the fast-sim
+  engine API, since narration only exists at the controller layer) and counts
+  how many times each template (`category:index`, via the new
+  `_choose_template()` helper used everywhere `random.choice(templates)` used
+  to be) gets picked in a single run, flagging anything reused more than 3
+  times (your stated target). A 100-run pass found the two new reminiscence
+  categories only occasionally exceed target (a couple of runs out of 100),
+  which is expected/acceptable at 3 templates each - but it also surfaced
+  that several *pre-existing* pools (`event_fight`, `event_dungeon_floor`,
+  `event_town_recovery`, `repeat_encounter_2`, all only 3-4 templates against
+  very high per-run frequency) exceed the target far more often (used in
+  25-40% of runs). Those pools predate this change and weren't touched here -
+  flagging for your review since the instrumentation was built specifically
+  to catch this.
+
+## 15. Add an introductory backstory before the first journey event
+
+**Answer:** New `origin_story` screen, shown once right after character
+creation (`_action_confirm_character`) and before the first journey event.
+`GameController._generate_backstory()` rolls a hometown, family member +
+one-line quirky trait, and a personal aspiration (new `HERO_HOMETOWNS` /
+`HERO_FAMILY_MEMBERS` / `HERO_FAMILY_TRAITS` / `HERO_ASPIRATIONS` lists in
+`game_data.py`), stored on `HeroAdventureEngine.backstory` for the whole run
+(persists via the existing save mechanism, and is the data source for #14's
+backstory-flavored reminiscence lines). `_build_origin_story()` combines a
+random `ORIGIN_STORY_TEMPLATES` paragraph with a fixed-variance
+`ORIGIN_STORY_CLOSERS` line that always restates the actual win condition
+(visit all 5 major cities, retire on a fortune) - a rules reminder wearing a
+narrative coat, per your explicit ask. New
+[ui/origin_story.json](uigames/hero_adventure/ui/origin_story.json) renders it
+with a single "Begin the Journey" button (`origin_continue` action). Fixed an
+a/an grammar bug along the way (`family_article`, computed once at generation
+time from the chosen family member, e.g. "an older sister" vs. "a mother").
+

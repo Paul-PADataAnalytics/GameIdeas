@@ -354,3 +354,51 @@ TOWN_BODY_PARTS = [
     "left thumb", "right elbow", "big toe", "lower back", "eyebrow",
     "kneecap", "shoulder", "earlobe", "shin", "wrist", "chin", "heel",
 ]
+
+# -- Hero Backstory / Origin Story -------------------------------------------
+# Rolled once at character creation and kept for the whole run - feeds both
+# the opening origin-story narration and later in-journey reminiscence lines.
+HERO_HOMETOWNS = [
+    "Millbrook", "Oakhollow", "Suddenmarsh", "Thistlewick", "Grayford",
+    "Pinehaven", "Cobbleton", "Ashford Vale", "Nettlebrook", "Farrow's End",
+    "Reedmoor", "Copperfield",
+]
+
+HERO_FAMILY_MEMBERS = [
+    "mother", "father", "older brother", "older sister", "younger brother",
+    "younger sister", "grandmother", "grandfather", "uncle", "aunt",
+]
+
+HERO_FAMILY_TRAITS = [
+    "always said adventurers come back either rich or not at all",
+    "never once believed a monster story until it was standing in the doorway",
+    "swore the only thing worse than debt was a boring life",
+    "kept a lucky coin that was, on closer inspection, just a button",
+    "insisted every scar was a story worth telling twice",
+    "warned that the family had terrible luck with maps",
+    "could never remember which of the five cities was which",
+    "was convinced the world beyond the hills was mostly rumor",
+    "still hasn't forgiven the goat for the incident",
+    "always packed too much bread and not enough advice",
+    "claimed to have fought a monster once, details unconfirmed",
+    "thought the family name deserved to be shouted somewhere important",
+]
+
+HERO_ASPIRATIONS = [
+    "prove the village elders wrong about how the story ends",
+    "see the sea for the first time",
+    "buy the family a roof that doesn't leak",
+    "find out if any of the old stories were true",
+    "come home with a name people actually remember",
+    "outdo whatever cousin keeps getting mentioned at dinner",
+    "settle a debt nobody else in the family will talk about",
+    "simply see something bigger than the hills around home",
+]
+
+# Fixed closing beat appended to every generated origin story - a rules
+# reminder (visit all 5 cities, retire on a fortune) wearing a narrative coat.
+ORIGIN_STORY_CLOSERS = [
+    "One thing is certain: this journey isn't over until all five great cities have been walked, and a fortune - and a place in the world - has been carved out along the way.",
+    "There's no calling this journey done short of setting foot in all five great cities and retiring on a pile of hard-won cash and loot.",
+    "The road ahead runs through all five great cities, and there's no version of this story that ends before a fortune is made and a place earned in the world.",
+]

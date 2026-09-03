@@ -15,6 +15,8 @@ from game_data import (
     PENSION_END_AGE_MIN, PENSION_END_AGE_MAX, PENSION_BASELINE_YEARS,
     TOWN_PROFESSIONS, TOWN_PROFESSION_MODIFIERS, TOWN_INJURIES, TOWN_BODY_PARTS,
     RELIC_MONSTER_SCALE,
+    HERO_HOMETOWNS, HERO_FAMILY_MEMBERS, HERO_FAMILY_TRAITS, HERO_ASPIRATIONS,
+    ORIGIN_STORY_CLOSERS,
 )
 
 
@@ -100,6 +102,17 @@ class HeroAdventureEngine:
         # ("...ran into another Cave Spider, maybe it's the first one's
         # brother.") instead of the same generic first-encounter text.
         self.monster_encounter_counts = {}
+        # Rolled once at character creation (see GameController._generate_backstory)
+        # and kept for the whole run - feeds the opening origin story and
+        # later in-journey reminiscence lines.
+        self.backstory = {}
+        # Past town-recovery years (profession/modifier/injury/body_part), most
+        # recent 10 kept - reminiscence material for "remember that year..." lines.
+        self.town_history = []
+        # Rare/notable run events (relic finds, dungeon bosses beaten, a
+        # monster faced 3+ times) kept as a FIFO of the most recent 10 across
+        # all types - reminiscence material, deliberately not exhaustive.
+        self.special_moments = []
         
         # Relic tracking & state
         self.relics_found = []
@@ -111,6 +124,14 @@ class HeroAdventureEngine:
         # Telemetry log
         self.event_logs = []
         self.last_combat_summary = {}
+
+    def _log_special_moment(self, moment_type, **detail):
+        """Records a rare/notable event (relic found, dungeon boss beaten, a
+        monster faced 3+ times) for later reminiscence callbacks. Keeps only
+        the most recent 10 (FIFO) shared across all moment types - deliberately
+        not exhaustive, so only the genuinely memorable stuff survives."""
+        self.special_moments.append({"type": moment_type, "leg": self.current_leg_idx + 1, **detail})
+        self.special_moments = self.special_moments[-10:]
 
     def log(self, event_type, details):
         entry = {
@@ -727,6 +748,7 @@ class HeroAdventureEngine:
                     self.super_monsters_defeated = min(5, self.super_monsters_defeated + 1)
                 elif encounter_type == "dungeon_boss":
                     self.dungeons_cleared = min(10, self.dungeons_cleared + 1)
+                    self._log_special_moment("dungeon_boss_beaten", dungeon_name=self.dungeon_name, boss_name=monster_name)
                 round_text = self._combat_action_line("steal", value="a pouch of loot")
                 self.last_combat_summary = {
                     "rounds": 1,
@@ -764,6 +786,7 @@ class HeroAdventureEngine:
                     self.super_monsters_defeated = min(5, self.super_monsters_defeated + 1)
                 elif encounter_type == "dungeon_boss":
                     self.dungeons_cleared = min(10, self.dungeons_cleared + 1)
+                    self._log_special_moment("dungeon_boss_beaten", dungeon_name=self.dungeon_name, boss_name=monster_name)
                 round_text = self._combat_action_line(
                     "stealth_kill",
                     used_lines,
@@ -967,6 +990,7 @@ class HeroAdventureEngine:
                     self.super_monsters_defeated = min(5, self.super_monsters_defeated + 1)
                 elif encounter_type == "dungeon_boss":
                     self.dungeons_cleared = min(10, self.dungeons_cleared + 1)
+                    self._log_special_moment("dungeon_boss_beaten", dungeon_name=self.dungeon_name, boss_name=monster_name)
                 if m_stats.get("relic"):
                     if is_grand_archmage:
                         self.hp = 100
@@ -1080,6 +1104,7 @@ class HeroAdventureEngine:
                 items_found.append(relic_item)
                 self.relics_found.append(relic_name)
                 relic_dropped = relic_name
+                self._log_special_moment("relic_found", relic_name=relic_name, monster_name=monster_name)
 
         self.inventory.extend(items_found)
         
@@ -1648,10 +1673,58 @@ class GameController:
             "While crossing {leg_vibe}, {hero_name} wondered if the {monster_name_plural} were breeding on purpose just to annoy them.",
         ],
     }
+    # Opening backstory paragraph, shown once after character creation.
+    ORIGIN_STORY_TEMPLATES = [
+        "{hero_name} grew up in {hometown}, raised in no small part by {family_article} {family_member} who {family_trait}. When the day finally came to leave, the only thing louder than the goodbyes was the hope of getting to {aspiration}.",
+        "Home was {hometown}, and for {hero_name} it meant {family_article} {family_member} who {family_trait}. Leaving wasn't easy, but the pull to {aspiration} won out in the end.",
+        "Before any of this, {hero_name} was just someone from {hometown} - the kind of place where {family_article} {family_member} {family_trait}. All {hero_name} ever wanted was to {aspiration}.",
+        "{hero_name}'s story starts in {hometown}, where {family_article} {family_member} {family_trait} and never let anyone forget it. The road out began with one simple hope: to {aspiration}.",
+    ]
+    # Occasional extra sentence appended to journey narration, pulling from
+    # backstory / town job history / special moments / monster tallies - see
+    # _maybe_add_reminiscence(). Keyed by source, not by screen/event.
+    REMINISCENCE_TEMPLATES = {
+        "town_job": [
+            "For a moment, {hero_name} thought back to the year spent as a {modifier} {profession}, and how a {injury} to the {body_part} never quite faded.",
+            "{hero_name} remembered the year as a {modifier} {profession} - that old {injury} to the {body_part} still aches sometimes.",
+            "A stray thought drifted back to the year working as a {modifier} {profession}, {body_part} still recalling that old {injury}.",
+        ],
+        "monster_tally": [
+            "{hero_name} thought about all the {monster_name_plural} faced so far, and wondered, not for the first time, whether they have families.",
+            "Somewhere around the {ordinal} {monster_name}, {hero_name} started keeping an unofficial tally, whether they meant to or not.",
+            "{hero_name} couldn't help but notice how many {monster_name_plural} this road had produced by now.",
+        ],
+        "relic_found": [
+            "{hero_name} thought back to finding the {relic_name} - still one of the stranger days of this whole trip.",
+            "For a moment {hero_name} remembered the day the {relic_name} turned up, and how little sense it made at the time.",
+        ],
+        "dungeon_boss_beaten": [
+            "{hero_name} remembered clearing {dungeon_name} and the fight with {boss_name} - a good day, all things considered.",
+            "A memory surfaced of {dungeon_name} and the fight against {boss_name}, still vivid after all this time.",
+        ],
+        "repeat_monster": [
+            "{hero_name} remembered the run of {monster_name_plural} that kept turning up around the {ordinal} encounter - hard to forget that stretch.",
+        ],
+        "backstory_family": [
+            "For a moment, {hero_name} thought of home in {hometown}, and {family_article} {family_member} who {family_trait}.",
+            "{hero_name} pictured {hometown} for a moment, and the {family_member} who {family_trait}.",
+            "A flicker of home crossed {hero_name}'s mind - {hometown}, and {family_article} {family_member} who {family_trait}.",
+        ],
+        "backstory_aspiration": [
+            "{hero_name} remembered, as always, the whole reason for this journey: to {aspiration}.",
+            "It came back around again, as it always did - {hero_name} was out here to {aspiration}.",
+            "For a moment, {hero_name} remembered exactly why this road was worth it: to {aspiration}.",
+        ],
+    }
+    REMINISCENCE_CHANCE = 0.18
+    REMINISCENCE_ELIGIBLE_EVENTS = {
+        "fight", "dungeon_found", "wandering_trader", "magic_shrine",
+        "super_monster", "wander_group", "fairy_found", "dungeon_floor", "dungeon_boss",
+    }
     NARRATION_EVENT_SCREENS = {
         "journey", "dungeon_found", "town_recovery", "wandering_trader",
         "magic_shrine_event", "super_monster_preview", "combat", "dungeon_floor_preview",
-        "dungeon_boss_preview",
+        "dungeon_boss_preview", "origin_story",
     }
     SAVE_VERSION = 1
     SAVE_DIR = Path(__file__).resolve().parent / "saves"
@@ -1675,6 +1748,11 @@ class GameController:
         self.current_narration = ""
         self.loot_discarded_indices = set()
         self.failed_adventurer = False
+        # Instrumentation only (not persisted in saves): counts how many
+        # times each narration template (category:index) has been chosen
+        # this playthrough, so we can measure repetition - see
+        # narrative_instrument.py.
+        self.line_usage_counts = {}
 
     def _save_payload(self):
         return {
@@ -1757,12 +1835,19 @@ class GameController:
             suffix = {1: "st", 2: "nd", 3: "rd"}.get(n % 10, "th")
         return f"{n}{suffix}"
 
+    def _choose_template(self, category, templates):
+        """Picks a random template and records (category:index) usage for
+        the line-reuse instrumentation (see narrative_instrument.py)."""
+        idx = random.randrange(len(templates))
+        key = f"{category}:{idx}"
+        self.line_usage_counts[key] = self.line_usage_counts.get(key, 0) + 1
+        return templates[idx]
+
     def _set_narration(self, event_type, **kwargs):
         encounter_count = kwargs.pop("encounter_count", None)
         if event_type == "fight" and encounter_count and encounter_count > 1:
-            templates = self.REPEAT_ENCOUNTER_TEMPLATES.get(
-                encounter_count, self.REPEAT_ENCOUNTER_TEMPLATES["many"]
-            )
+            tier = encounter_count if encounter_count in (2, 3) else "many"
+            templates = self.REPEAT_ENCOUNTER_TEMPLATES[tier]
             data = {
                 "hero_name": self.engine.hero_name if self.engine else "the Hero",
                 "leg_vibe": self._build_leg_vibe(),
@@ -1770,7 +1855,7 @@ class GameController:
                 "monster_name_plural": f"{kwargs.get('monster_name', '')}s",
             }
             data.update(kwargs)
-            self.current_narration = random.choice(templates).format(**data)
+            self.current_narration = self._choose_template(f"repeat_encounter_{tier}", templates).format(**data)
             return self.current_narration
         templates = self.EVENT_NARRATION_TEMPLATES.get(event_type, [])
         if not templates:
@@ -1781,8 +1866,81 @@ class GameController:
             "leg_vibe": self._build_leg_vibe(),
         }
         data.update(kwargs)
-        self.current_narration = random.choice(templates).format(**data)
+        self.current_narration = self._choose_template(f"event_{event_type}", templates).format(**data)
+        self._maybe_add_reminiscence(event_type)
         return self.current_narration
+
+    def _maybe_add_reminiscence(self, event_type):
+        """With low probability, appends one extra sentence of "remember
+        when..." flavor to the just-built narration, pulled from whichever
+        of these the hero actually has: past town jobs, monsters faced 3+
+        times, logged special moments, or their fixed backstory. Cheap by
+        design - all sources are data already being tracked for other
+        reasons, nothing new is generated here."""
+        e = self.engine
+        if not e or event_type not in self.REMINISCENCE_ELIGIBLE_EVENTS:
+            return
+        if random.random() >= self.REMINISCENCE_CHANCE:
+            return
+        sources = []
+        if e.town_history:
+            sources.append("town_job")
+        tallied = [m for m, c in e.monster_encounter_counts.items() if c >= 3]
+        if tallied:
+            sources.append("monster_tally")
+        if e.special_moments:
+            sources.append("special_moment")
+        if e.backstory:
+            sources.append("backstory_family")
+            sources.append("backstory_aspiration")
+        if not sources:
+            return
+        source = random.choice(sources)
+        data = {"hero_name": e.hero_name}
+        if source == "town_job":
+            data.update(random.choice(e.town_history))
+            text = self._choose_template("reminiscence_town_job", self.REMINISCENCE_TEMPLATES["town_job"]).format(**data)
+        elif source == "monster_tally":
+            monster = random.choice(tallied)
+            data.update({
+                "monster_name": monster,
+                "monster_name_plural": f"{monster}s",
+                "ordinal": self._ordinal(e.monster_encounter_counts[monster]),
+            })
+            text = self._choose_template("reminiscence_monster_tally", self.REMINISCENCE_TEMPLATES["monster_tally"]).format(**data)
+        elif source == "special_moment":
+            moment = random.choice(e.special_moments)
+            moment_type = moment["type"]
+            templates = self.REMINISCENCE_TEMPLATES.get(moment_type)
+            if not templates:
+                return
+            data.update({k: v for k, v in moment.items() if k not in ("type", "leg")})
+            if moment_type == "repeat_monster":
+                data["monster_name_plural"] = f"{moment.get('monster_name', '')}s"
+                data["ordinal"] = self._ordinal(moment.get("count", 3))
+            text = self._choose_template(f"reminiscence_{moment_type}", templates).format(**data)
+        else:
+            data.update(e.backstory)
+            text = self._choose_template(f"reminiscence_{source}", self.REMINISCENCE_TEMPLATES[source]).format(**data)
+        self.current_narration = f"{self.current_narration} {text}".strip()
+
+    def _generate_backstory(self):
+        family_member = random.choice(HERO_FAMILY_MEMBERS)
+        return {
+            "hometown": random.choice(HERO_HOMETOWNS),
+            "family_member": family_member,
+            "family_article": "an" if family_member[:1].lower() in "aeiou" else "a",
+            "family_trait": random.choice(HERO_FAMILY_TRAITS),
+            "aspiration": random.choice(HERO_ASPIRATIONS),
+        }
+
+    def _build_origin_story(self):
+        e = self.engine
+        data = {"hero_name": e.hero_name}
+        data.update(e.backstory)
+        paragraph = self._choose_template("origin_story", self.ORIGIN_STORY_TEMPLATES).format(**data)
+        closer = self._choose_template("origin_story_closer", ORIGIN_STORY_CLOSERS)
+        return f"{paragraph} {closer}"
 
     # ------------------------------------------------------------------
     # Item letter helpers (DCSS-style lettered inventory, shared by the
@@ -2205,6 +2363,13 @@ class GameController:
             return
         self.creation_message = ""
         self.engine = HeroAdventureEngine(self.pending_name, self.pending_class)
+        self.engine.backstory = self._generate_backstory()
+        self.line_usage_counts = {}
+        self.current_narration = self._build_origin_story()
+        self.screen = "origin_story"
+
+    def _action_origin_continue(self):
+        self.ctx = {}
         self.current_narration = ""
         self.screen = "journey"
 
@@ -2443,7 +2608,10 @@ class GameController:
         else:
             monster = e.get_random_monster()
             e.monster_encounter_counts[monster] = e.monster_encounter_counts.get(monster, 0) + 1
-            self._set_narration("fight", monster_name=monster, encounter_count=e.monster_encounter_counts[monster])
+            count = e.monster_encounter_counts[monster]
+            if count == 3:
+                e._log_special_moment("repeat_monster", monster_name=monster, count=count)
+            self._set_narration("fight", monster_name=monster, encounter_count=count)
             self._start_combat(monster, "regular", allow_run=True)
 
     # -- Town Recovery (aging) ------------------------------------------
@@ -2457,6 +2625,11 @@ class GameController:
             event_type, profession=profession, modifier=modifier,
             injury=injury, body_part=body_part,
         )
+        self.engine.town_history.append({
+            "profession": profession, "modifier": modifier,
+            "injury": injury, "body_part": body_part, "age": self.engine.age,
+        })
+        self.engine.town_history = self.engine.town_history[-10:]
         return blurb, profession
 
     def _enter_town_recovery(self):
