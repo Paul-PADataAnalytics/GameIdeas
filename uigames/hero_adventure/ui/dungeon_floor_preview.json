@@ -104,7 +104,7 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "You can inspect the fight and leave before engaging."
+      "value": "You take a moment to decide your next move."
     },
     {
       "type": "progressbar",
@@ -127,6 +127,12 @@
       "frame": "actions",
       "label": "Exit Dungeon",
       "action": "exit_dungeon"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "🧑 Character & Inventory",
+      "action": "open_inventory"
     }
   ]
 }

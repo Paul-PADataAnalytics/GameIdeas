@@ -113,6 +113,11 @@
     {
       "type": "text",
       "frame": "scene",
+      "value": "{inventory_full_message}"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
       "value": "{save_message}"
     },
     {

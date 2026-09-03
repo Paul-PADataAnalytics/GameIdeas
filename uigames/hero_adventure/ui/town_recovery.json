@@ -16,6 +16,10 @@
     {"type": "text", "frame": "scene", "value": "{event_narration}"},
     {"type": "text", "frame": "scene", "value": "A steady position has opened up - a real chance to retire as a {town_profession}.", "visible_if": "town_job_offer"},
     {"type": "text", "frame": "scene", "value": "Fully recovered and ready to get back on the road.", "visible_if": "town_fully_healed"},
+    {"type": "text", "frame": "scene", "value": "A wasted year behind bars - no healing, just time served.", "visible_if": "town_prison"},
+    {"type": "text", "frame": "scene", "value": "The town shop stocks gear typical of this stretch of the journey."},
+    {"type": "list", "id": "list_town_buy", "frame": "context", "label": "Buy", "overflow": "page", "max_rows": 5},
+    {"type": "list", "id": "list_town_sell", "frame": "context", "label": "Sell", "overflow": "page", "max_rows": 8},
     {"type": "button", "frame": "actions", "label": "Retire as {town_profession}", "action": "town_retire", "visible_if": "town_job_offer"},
     {"type": "button", "frame": "actions", "label": "Work and recover for another year", "action": "town_work"},
     {"type": "button", "frame": "actions", "label": "Go back to adventuring", "action": "town_leave"}

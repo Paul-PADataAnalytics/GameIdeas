@@ -77,6 +77,21 @@
     },
     {
       "type": "progressbar",
+      "id": "backpack_bar",
+      "frame": "status",
+      "label": "Pack",
+      "value": "{inventory_count}",
+      "max": 20,
+      "kind": "backpack",
+      "thresholds": {
+        "warning": 0.8,
+        "critical": 1.0
+      },
+      "show_text": true,
+      "compact": true
+    },
+    {
+      "type": "progressbar",
       "id": "journey_bar",
       "frame": "status",
       "label": "Leg {leg}/5 \u00b7 Event",
@@ -102,17 +117,26 @@
       "value": "{save_message}"
     },
     {
+      "type": "text",
+      "frame": "scene",
+      "value": "{inventory_full_message}"
+    },
+    {
       "type": "list",
       "id": "list_inventory",
       "frame": "scene",
       "label": "Backpack",
-      "overflow": "page",
-      "max_rows": 12
+      "overflow": "page"
     },
     {
       "type": "text",
       "frame": "context",
       "value": "Title: {character_title}"
+    },
+    {
+      "type": "text",
+      "frame": "context",
+      "value": "Karma: {karma}"
     },
     {
       "type": "progressbar",
@@ -129,16 +153,14 @@
       "id": "list_character_stats",
       "frame": "context",
       "label": "Stats (Base vs Effective)",
-      "overflow": "page",
-      "max_rows": 8
+      "overflow": "page"
     },
     {
       "type": "list",
       "id": "list_character_equipment",
       "frame": "context",
       "label": "Equipment Bonuses by Slot",
-      "overflow": "page",
-      "max_rows": 7
+      "overflow": "page"
     },
     {
       "type": "button",

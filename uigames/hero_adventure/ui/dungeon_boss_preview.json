@@ -127,6 +127,12 @@
       "frame": "actions",
       "label": "Exit Dungeon",
       "action": "exit_dungeon"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "🧑 Character & Inventory",
+      "action": "open_inventory"
     }
   ]
 }

@@ -34,6 +34,7 @@ class DeclarativeGUI:
     BAR_COLORS = {
         "health": "#35c759",
         "capacity": "#f0ad4e",
+        "backpack": "#f0ad4e",
         "journey": "#4ea1ff",
         "dungeon": "#b07cff",
         "levelup": "#ffd166",
@@ -267,6 +268,11 @@ class DeclarativeGUI:
             elif ratio <= thresholds.get("warning", 0.35):
                 color = "#f0ad4e"
         elif kind == "capacity":
+            if ratio >= thresholds.get("critical", 1.0):
+                color = "#ff4d4d"
+            elif ratio >= thresholds.get("warning", 0.8):
+                color = "#f0ad4e"
+        elif kind == "backpack":
             if ratio >= thresholds.get("critical", 1.0):
                 color = "#ff4d4d"
             elif ratio >= thresholds.get("warning", 0.8):

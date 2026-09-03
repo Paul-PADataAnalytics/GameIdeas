@@ -32,6 +32,7 @@ class HeroAdventureTUI(App):
     BAR_COLORS = {
         "health": "green",
         "capacity": "yellow",
+        "backpack": "yellow",
         "journey": "cyan",
         "dungeon": "magenta",
         "levelup": "yellow",
@@ -352,6 +353,11 @@ class HeroAdventureTUI(App):
                 color = "red"
             elif ratio >= thresholds.get("warning", 0.8):
                 color = "yellow"
+        elif kind == "backpack":
+            if ratio >= thresholds.get("critical", 1.0):
+                color = "red"
+            elif ratio >= thresholds.get("warning", 0.8):
+                color = "yellow"
 
         if dense:
             width = 4
@@ -366,6 +372,7 @@ class HeroAdventureTUI(App):
             label = {
                 "health": "HP",
                 "capacity": "Carry",
+                "backpack": "Pack",
                 "journey": "Prog",
                 "dungeon": "Dng",
                 "levelup": "Lvl",
@@ -376,6 +383,7 @@ class HeroAdventureTUI(App):
             label = {
                 "health": "HP",
                 "capacity": "Carry",
+                "backpack": "Pack",
                 "journey": "Prog",
                 "dungeon": "Dng",
                 "levelup": "Lvl",

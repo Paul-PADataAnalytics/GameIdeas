@@ -1,0 +1,8 @@
+# Sci-Fi Adventure Game
+
+Adventure through abandoned space stations, lost planetary installations inservice of a galactic salvage and speciaist services organisation that recovers valuable items, techology and lost unique items for a variety of clients.
+
+## Background
+
+The galactic council passed the indemnity deregulation act that allowed the stiff fines for employee death and injury to be converted into a payment at the rate of 10 to 1 in recognition of the necessity to reocver items of value from dangerous and abandoned locations.  In addition, in later council sittings after the 15th galactic war, reductions were made to allow private ownership of cruiser sized ships allowing for a growing small fleet of independent salvagers and explorers working off the books raiding private facilities, both in use and mothballed.  This new era of deregualtion led to rampant piracy and has led to a drop in supply of skilled operatives willing to brave the perils of derelict spacefaring vessels and forgotten planetary outposts.  The council followed up by enforcing stiff fines for piracy and reclassified lost vessels and abandoned installations as private to their previous owners creating the second great salvage boom, and with many 'private, independant salvage entreponuers' the opportunities for profit were immense, and salvage contractors became galactic mega corporations paying almost nothing over the indemnity fee to anyone willing to take the risk, and with deep regulation still in place over the arms industry, the salvagers were not legally able to arm themselves heavily, at least not legally.
+

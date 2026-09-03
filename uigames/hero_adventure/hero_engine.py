@@ -17,6 +17,13 @@ from game_data import (
     RELIC_MONSTER_SCALE,
     HERO_HOMETOWNS, HERO_FAMILY_MEMBERS, HERO_FAMILY_TRAITS, HERO_ASPIRATIONS,
     ORIGIN_STORY_CLOSERS,
+    KARMA_STEALTH_KILL_PENALTY, KARMA_STEAL_PENALTY,
+    PRISON_CHANCE_CAP, PRISON_KARMA_SCALE,
+    EQUIPMENT_SLOT_LABELS, HONORIFIC_TITLES, NEGATIVE_KARMA_TITLES,
+    CHARACTER_TITLE_PARTS, LEG_VIBES, EVENT_NARRATION_TEMPLATES,
+    OUTCOME_TEXT, DEATH_REASONS, DUNGEON_EXIT_REASONS, RISK_BANDS,
+    MAGIC_SPELL_NAME_PARTS, MAGIC_SHIELD_NAME_PARTS, COMBAT_LINE_POOLS,
+    INVENTORY_ITEM_CAP, BOSS_BONUS_TIER_BY_LEG,
 )
 
 
@@ -33,6 +40,7 @@ def _build_dungeon_monster_name_set():
 
 
 DUNGEON_MONSTER_NAMES = _build_dungeon_monster_name_set()
+SUPER_MONSTER_NAMES = {leg["super_monster"] for leg in LEGS if leg.get("super_monster")}
 
 
 class HeroAdventureEngine:
@@ -71,6 +79,11 @@ class HeroAdventureEngine:
         self.cash = 0
         self.age = AGE_START
         self.end_age = None  # rolled once (lazily, in get_pension) between 60-90
+        # Reputation tracker: starts neutral, only ever decreases (see
+        # resolve_fight's stealth_kill/steal branches). Negative karma
+        # swaps the hero's title for a villainous one and risks a year in
+        # jail during town recovery (see GameController._prison_chance()).
+        self.karma = 0
         
         # Inventory & Equipment
         self.inventory = []  # items held in backpack
@@ -282,135 +295,7 @@ class HeroAdventureEngine:
         `used_lines`, if given, is a set shared across a single fight; the
         (category, start_idx, end_idx) template combo is tracked so the same
         flavour text is never repeated across rounds of the same encounter."""
-        pools = {
-            "fight_win": (
-                [
-                    "The hero decisively struck for",
-                    "With a brutal swing, the hero hammered out",
-                    "A clean opening appeared and the hero carved out",
-                    "The hero went in like a hurricane and dealt",
-                    "A heroic thump landed for",
-                    "The hero's blow cracked the air for",
-                    "With perfect timing, the hero delivered",
-                    "The hero leaned into the attack and produced",
-                    "A wildly enthusiastic hit sent out",
-                    "The hero smacked the monster with",
-                ],
-                [
-                    "damage and the {monster_name} recoiled in pain.",
-                    "damage while the {monster_name} stumbled backward.",
-                    "damage and the {monster_name} yelped like it regretted everything.",
-                    "damage, making the {monster_name} wobble dramatically.",
-                    "damage and the {monster_name} looked personally offended.",
-                ],
-            ),
-            "fight_loss": (
-                [
-                    "The {monster_name} landed a grim blow and the hero took",
-                    "A nasty hit from the {monster_name} forced the hero to absorb",
-                    "The {monster_name} crashed in like bad news and dealt",
-                    "The hero failed to dodge the {monster_name}, taking",
-                    "A foul strike from the {monster_name} rang out for",
-                    "The {monster_name} clipped the hero squarely, causing",
-                    "The {monster_name} made a rude point with",
-                    "The hero ate a careless hit from the {monster_name} for",
-                    "The {monster_name} answered with",
-                    "The hero got flattened by the {monster_name} for",
-                ],
-                [
-                    "damage and had to regain their footing.",
-                    "damage, sending the hero skidding back.",
-                    "damage while the hero reeled in disbelief.",
-                    "damage and the hero cursed the entire road.",
-                    "damage, enough to make the hero rethink bravado.",
-                ],
-            ),
-            "magic_attack": (
-                [
-                    "The hero unleashed {spell_name} for",
-                    "With a dramatic flourish, the hero cast {spell_name} for",
-                    "The air crackled as {spell_name} blasted out for",
-                    "The hero waved a hand and {spell_name} erupted for",
-                    "A dazzling {spell_name} struck true for",
-                    "The hero muttered {spell_name} and cooked the foe for",
-                    "With a pop of sparks, {spell_name} hit for",
-                    "The hero hurled {spell_name} straight into the monster for",
-                    "A ridiculous but effective {spell_name} fired for",
-                    "The hero shouted {spell_name} and launched",
-                ],
-                [
-                    "damage, leaving the {monster_name} smoking and confused.",
-                    "damage and the {monster_name} staggered under the spell.",
-                    "damage while the {monster_name} flailed at the arcane nonsense.",
-                    "damage and the {monster_name} shrieked at the wizardry.",
-                    "damage, which was apparently rude enough to count as a win.",
-                ],
-            ),
-            "magic_defense": (
-                [
-                    "Using {shield_name}, the hero only took",
-                    "The hero invoked {shield_name} and limited the damage to",
-                    "With {shield_name} humming in protest, the hero suffered only",
-                    "The hero braced behind {shield_name} and absorbed just",
-                    "{shield_name} flared up and reduced the hit to",
-                    "The hero rode the blow through {shield_name}, taking only",
-                    "With a whispered charm from {shield_name}, the hero endured",
-                    "The hero hid behind {shield_name} and got clipped for only",
-                    "A glorious shimmer from {shield_name} softened the strike to",
-                    "The hero used {shield_name} and barely felt",
-                ],
-                [
-                    "damage instead of a full-body disaster.",
-                    "damage, which was somehow still insulting.",
-                    "damage and lived to complain about it.",
-                    "damage before the monster got bored.",
-                    "damage, proving magic could be a decent umbrella.",
-                ],
-            ),
-            "steal": (
-                [
-                    "Sneaking like a silent snake, the hero pickpocketed",
-                    "The hero moved like a street magician and stole",
-                    "With a wink and a pocketful of nonsense, the hero nabbed",
-                    "The hero slipped in like a rumor and swiped",
-                    "A cunning grab let the hero steal",
-                    "The hero's hands became unfairly slippery and lifted",
-                    "With impeccable timing, the hero liberated",
-                    "The hero bumped the monster and somehow stole",
-                    "A sly little trick let the hero pocket",
-                    "The hero vanished into the shadows and came back with",
-                ],
-                [
-                    "before anyone noticed.",
-                    "while the monster blinked in confusion.",
-                    "and left the monster muttering in outrage.",
-                    "with a triumphant little shrug.",
-                    "and not a single apology.",
-                ],
-            ),
-            "stealth_kill": (
-                [
-                    "Like a tiger, the hero snuck up and took out the monster with a silent strike for",
-                    "The hero moved like a ghost and ended the monster with",
-                    "A velvet-shadow ambush let the hero land",
-                    "The hero glided in and delivered a silent strike worth",
-                    "Like a thunderless shadow, the hero deleted the monster with",
-                    "The hero sprang from nowhere and drove home",
-                    "With one whisper-quiet motion, the hero dealt",
-                    "The hero became a rumor with a blade and landed",
-                    "A perfectly rude assassination produced",
-                    "The hero struck from the dark and scored",
-                ],
-                [
-                    "damage before the monster could even gasp.",
-                    "damage, and the monster simply ceased being confident.",
-                    "damage while the monster forgot how to stand.",
-                    "damage, which was the kind of silence that wins arguments.",
-                    "damage and the monster folded like bad origami.",
-                ],
-            ),
-        }
-        start, end = pools[category]
+        start, end = COMBAT_LINE_POOLS[category]
         if used_lines is not None:
             combos = [(s, e) for s in range(len(start)) for e in range(len(end))
                       if (category, s, e) not in used_lines]
@@ -462,25 +347,10 @@ class HeroAdventureEngine:
         }
 
     def _magic_spell_name(self):
-        prefixes = [
-            "Ackerman's Terrible", "Bridger's Snapping", "Merrick's Smoldering",
-            "Harlow's Rude", "Pritchard's Violent", "Brennan's Sparkling",
-            "Gorton's Unhelpful", "Vera's Ferocious", "Milo's Fussy", "Dorian's Spiteful",
-        ]
-        spells = ["Firebolt", "Icicle", "Thunder Mote", "Moon Ray", "Arc Lash"]
-        return f"{random.choice(prefixes)} {random.choice(spells)}"
+        return f"{random.choice(MAGIC_SPELL_NAME_PARTS['prefixes'])} {random.choice(MAGIC_SPELL_NAME_PARTS['spells'])}"
 
     def _magic_shield_name(self):
-        prefixes = [
-            "Bridger's", "Marlow's", "Hendrix's", "Tilda's", "Rogan's",
-            "Ember's", "Nora's", "Basil's", "Ivy's", "Quinn's",
-        ]
-        shields = [
-            "Shield of Tremendous Resistance", "Bulwark of Ridiculous Fortitude",
-            "Wall of Argument-Ending Force", "Aegis of Mildly Heroic Endurance",
-            "Barrier of Unreasonable Stubbornness",
-        ]
-        return f"{random.choice(prefixes)} {random.choice(shields)}"
+        return f"{random.choice(MAGIC_SHIELD_NAME_PARTS['prefixes'])} {random.choice(MAGIC_SHIELD_NAME_PARTS['shields'])}"
 
     def _fight_core_stats(self):
         skills, _, _ = self.get_effective_skills()
@@ -593,20 +463,7 @@ class HeroAdventureEngine:
             if has_mirror:
                 win_prob = win_prob + (1.0 - win_prob) * 0.35
 
-        if win_prob >= 0.85:
-            band = "Most Likely"
-        elif win_prob >= 0.70:
-            band = "Good Chance"
-        elif win_prob >= 0.60:
-            band = "Likely"
-        elif win_prob >= 0.45:
-            band = "50:50"
-        elif win_prob >= 0.30:
-            band = "Not Likely"
-        elif win_prob >= 0.15:
-            band = "Poor Chance"
-        else:
-            band = "No Way"
+        band = self._risk_band_for_probability(win_prob)
 
         return {
             "band": band,
@@ -633,19 +490,10 @@ class HeroAdventureEngine:
         return wins / float(total)
 
     def _risk_band_for_probability(self, prob):
-        if prob >= 0.85:
-            return "Most Likely"
-        if prob >= 0.70:
-            return "Good Chance"
-        if prob >= 0.60:
-            return "Likely"
-        if prob >= 0.45:
-            return "50:50"
-        if prob >= 0.30:
-            return "Not Likely"
-        if prob >= 0.15:
-            return "Poor Chance"
-        return "No Way"
+        for threshold, label in RISK_BANDS:
+            if prob >= threshold:
+                return label
+        return RISK_BANDS[-1][1]
 
     def estimate_combat_action_risks(self, monster_name):
         m_stats = self._get_monster_stats(monster_name)
@@ -742,7 +590,8 @@ class HeroAdventureEngine:
         if choice == "steal":
             success, margin = self._opposed_roll(skills["stealth"] + skills["salvaging"], m_stats["defending"] * 2)
             if success:
-                self.log("STEAL_SUCCESS", {"monster": monster_name, "margin": margin})
+                self.karma += KARMA_STEAL_PENALTY
+                self.log("STEAL_SUCCESS", {"monster": monster_name, "margin": margin, "karma": self.karma})
                 loot = self.grant_monster_loot(monster_name)
                 if encounter_type == "super_monster":
                     self.super_monsters_defeated = min(5, self.super_monsters_defeated + 1)
@@ -779,7 +628,8 @@ class HeroAdventureEngine:
             success, margin = self._opposed_roll(surprise_stealth, surprise_def)
             
             if is_shadow_assassin or success:
-                self.log("STEALTH_KILL_SUCCESS", {"monster": monster_name, "stealth_score": surprise_stealth, "m_def_score": surprise_def, "margin": margin})
+                self.karma += KARMA_STEALTH_KILL_PENALTY
+                self.log("STEALTH_KILL_SUCCESS", {"monster": monster_name, "stealth_score": surprise_stealth, "m_def_score": surprise_def, "margin": margin, "karma": self.karma})
                 cash_mult = 2.0 if is_master_thief else 1.0
                 loot = self.grant_monster_loot(monster_name, cash_multiplier=cash_mult)
                 if encounter_type == "super_monster":
@@ -936,7 +786,7 @@ class HeroAdventureEngine:
                                 shield_name=shield_name,
                             )
                         )
-                        self.take_damage(damage, f"slain by {monster_name}")
+                        self.take_damage(damage, DEATH_REASONS["slain_by"].format(monster_name=monster_name))
                         round_details.append(
                             self._combat_round_detail(
                                 r,
@@ -1009,7 +859,7 @@ class HeroAdventureEngine:
                     has_shield = any(eq and eq.get("name") == "Behemoth Shield" for eq in self.equipment.values())
                     if has_shield:
                         timeout_damage = max(1, timeout_damage // 2)
-                    self.take_damage(timeout_damage, f"slain by {monster_name}")
+                    self.take_damage(timeout_damage, DEATH_REASONS["slain_by"].format(monster_name=monster_name))
                     timeout_text = self._combat_action_line(
                         "fight_loss",
                         used_lines,
@@ -1038,7 +888,8 @@ class HeroAdventureEngine:
                 self.log("FIGHT_LOSS", {"monster": monster_name, "hp_loss": max(0, player_hp_before - self.hp), "critical": crit, "rounds": rounds_fought})
                 return "LOSS_WINDOW"
 
-    def take_damage(self, amount, reason="unknown causes"):
+    def take_damage(self, amount, reason=None):
+        reason = reason or DEATH_REASONS["unknown"]
         self.hp -= amount
         if self.hp <= 0:
             fairy_item = self.equipment.get("camping_medical")
@@ -1050,7 +901,7 @@ class HeroAdventureEngine:
                 self.hp = self.max_hp
                 self.equipment["camping_medical"] = None
                 if self.in_dungeon:
-                    self.leave_dungeon("fairy rescue")
+                    self.leave_dungeon(DUNGEON_EXIT_REASONS["fairy_rescue"])
                 self.log("FAIRY_SAVED_LIFE", {
                     "reason": reason,
                     "events_rewound": rewind_events,
@@ -1082,29 +933,36 @@ class HeroAdventureEngine:
         num_eq = self._roll_loot_item_count(monster_name, m_stats)
         items_found = [self.generate_random_item(leg_num=self.current_leg_idx+1) for _ in range(num_eq)]
         
-        # Check Relic drop
+        # Named Relics only drop on legs 4-5. On legs 1-3, dungeon
+        # bosses/super monsters get a bonus item at an upgraded tier instead.
+        leg_num = self.current_leg_idx + 1
+        is_relic_monster = bool(m_stats.get("relic"))
         relic_dropped = None
-        if m_stats.get("relic") or random.random() < 0.05:
-            avail_relics = [r for r in RELICS.keys() if r not in self.relics_found]
-            if avail_relics:
-                relic_name = random.choice(avail_relics)
-                r_info = RELICS[relic_name]
-                relic_item = {
-                    "name": relic_name,
-                    "category": "relic",
-                    "slot": r_info["type"],
-                    "tier": "Epic",
-                    "code": "e",
-                    "skill": r_info["skill"],
-                    "skill_val": r_info["bonus"],
-                    "weight": 1,
-                    "value": 25000,
-                    "uses": 1
-                }
-                items_found.append(relic_item)
-                self.relics_found.append(relic_name)
-                relic_dropped = relic_name
-                self._log_special_moment("relic_found", relic_name=relic_name, monster_name=monster_name)
+        if leg_num >= 4:
+            if is_relic_monster or random.random() < 0.05:
+                avail_relics = [r for r in RELICS.keys() if r not in self.relics_found]
+                if avail_relics:
+                    relic_name = random.choice(avail_relics)
+                    r_info = RELICS[relic_name]
+                    relic_item = {
+                        "name": relic_name,
+                        "category": "relic",
+                        "slot": r_info["type"],
+                        "tier": "Epic",
+                        "code": "e",
+                        "skill": r_info["skill"],
+                        "skill_val": r_info["bonus"],
+                        "weight": 1,
+                        "value": 25000,
+                        "uses": 1
+                    }
+                    items_found.append(relic_item)
+                    self.relics_found.append(relic_name)
+                    relic_dropped = relic_name
+                    self._log_special_moment("relic_found", relic_name=relic_name, monster_name=monster_name)
+        elif is_relic_monster:
+            bonus_tier = BOSS_BONUS_TIER_BY_LEG.get(leg_num, "Rare")
+            items_found.append(self.generate_random_item(leg_num=leg_num, quality_bias=bonus_tier))
 
         self.inventory.extend(items_found)
         
@@ -1148,11 +1006,14 @@ class HeroAdventureEngine:
     # ------------------------------------------------------------------
     def get_random_monster(self, leg_idx=None):
         """Picks a random regular monster appropriate for a leg (defaults to
-        the hero's current leg)."""
+        the hero's current leg). Excludes dungeon and super monster names so
+        those stay unique to their own dedicated encounters."""
         leg_idx = self.current_leg_idx if leg_idx is None else leg_idx
         leg_monsters = [
             m for m, data in MONSTERS.items()
-            if data.get("leg") == leg_idx + 1 and m not in DUNGEON_MONSTER_NAMES
+            if data.get("leg") == leg_idx + 1
+            and m not in DUNGEON_MONSTER_NAMES
+            and m not in SUPER_MONSTER_NAMES
         ]
         return random.choice(leg_monsters) if leg_monsters else "Goblin"
 
@@ -1274,7 +1135,8 @@ class HeroAdventureEngine:
             self.dungeon_event_count = 0
         self.in_dungeon = True
 
-    def leave_dungeon(self, reason="left"):
+    def leave_dungeon(self, reason=None):
+        reason = reason or DUNGEON_EXIT_REASONS["default"]
         self.in_dungeon = False
         self.log("DUNGEON_LEFT", {"reason": reason})
 
@@ -1432,7 +1294,7 @@ class HeroAdventureEngine:
                 choice = self.get_tactical_choice(monster)
                 res = self.resolve_fight(monster, choice=choice, encounter_type="dungeon_floor")
                 if res == "LOSS_WINDOW":
-                    self.leave_dungeon("defeated on floor")
+                    self.leave_dungeon(DUNGEON_EXIT_REASONS["floor_defeat"])
                 return res
             else:
                 # Dungeon boss fight
@@ -1572,6 +1434,24 @@ class GameController:
         {"text": "Conqueror of Roads and Ruins", "placement": "prefix"},
         {"text": "of Legend's End", "placement": "suffix"},
     ]
+    NEGATIVE_KARMA_TITLES = [
+        {"text": "The Untrustworthy", "placement": "prefix"},
+        {"text": "of Sticky Fingers", "placement": "suffix"},
+        {"text": "The Backstabber", "placement": "prefix"},
+        {"text": "of the Long Knife", "placement": "suffix"},
+        {"text": "The Cutthroat", "placement": "prefix"},
+        {"text": "of the Midnight Blade", "placement": "suffix"},
+        {"text": "The Blackhearted", "placement": "prefix"},
+        {"text": "of a Thousand Graves", "placement": "suffix"},
+        {"text": "The Butcher", "placement": "prefix"},
+        {"text": "of Blood and Shadow", "placement": "suffix"},
+        {"text": "The Infamous", "placement": "prefix"},
+        {"text": "of the Damned", "placement": "suffix"},
+        {"text": "The Soulless", "placement": "prefix"},
+        {"text": "of Endless Sin", "placement": "suffix"},
+        {"text": "The Nightmare", "placement": "prefix"},
+        {"text": "of Legend's Ruin", "placement": "suffix"},
+    ]
     LEG_VIBES = {
         1: "the warm, dusty road out of Startersville",
         2: "the pine-shadowed trails near Forest Edge",
@@ -1602,6 +1482,12 @@ class GameController:
             "While working as a {modifier} {profession}, {hero_name} is offered a permanent, steady post - the kind adventurers usually only dream about.",
             "{hero_name}'s work as a {modifier} {profession} has impressed the locals enough to offer a permanent position.",
             "A {modifier} local guild offers {hero_name} a permanent job as a {profession}, no more monsters required.",
+        ],
+        "town_prison": [
+            "The sheriff finally catches up with {hero_name}, and the year is spent in a jail cell instead of recovering.",
+            "{hero_name}'s reputation for sneaking and thieving earns a year behind bars in the town jail.",
+            "Rumors of {hero_name}'s crimes reach the magistrate, and the year passes locked away in a cell.",
+            "{hero_name} trades the sickbed for a jail cell this year, paying for past misdeeds.",
         ],
         "failed_adventurer": [
             "At {age}, {hero_name}'s joints finally outvote their ambitions. It's time to hang up the sword for good.",
@@ -1639,16 +1525,16 @@ class GameController:
             "While crossing {leg_vibe}, {hero_name} found a fairy and immediately understood this would be weird.",
         ],
         "dungeon_floor": [
-            "Inside {dungeon_name} on {leg_vibe}, {hero_name} pushed deeper toward floor {floor_number}.",
-            "While threading {leg_vibe}, {hero_name} advanced through {dungeon_name} to floor {floor_number}.",
-            "On {leg_vibe}, {hero_name} marched through {dungeon_name} and found floor {floor_number} waiting.",
-            "Near {leg_vibe}, {hero_name} kept climbing inside {dungeon_name} toward floor {floor_number}.",
+            "Inside {dungeon_name} on {leg_vibe}, {hero_name} pushed toward floor {floor_number} and ran straight into a {monster_name}.",
+            "While threading {leg_vibe}, {hero_name} advanced through {dungeon_name} to floor {floor_number}, where a {monster_name} was already waiting, unimpressed.",
+            "On {leg_vibe}, {hero_name} marched through {dungeon_name}, and floor {floor_number} answered with a {monster_name}.",
+            "Near {leg_vibe}, {hero_name} kept climbing inside {dungeon_name} until a {monster_name} blocked floor {floor_number}.",
         ],
         "dungeon_boss": [
-            "Inside {dungeon_name} on {leg_vibe}, {hero_name} approached the boss chamber.",
-            "While threading {leg_vibe}, {hero_name} reached the deepest hall of {dungeon_name}.",
-            "On {leg_vibe}, {hero_name} stepped into the final room of {dungeon_name}.",
-            "Near {leg_vibe}, {hero_name} headed for the boss of {dungeon_name} with zero enthusiasm.",
+            "Inside {dungeon_name} on {leg_vibe}, {hero_name} reached the boss chamber, where {monster_name} was clearly expecting company.",
+            "While threading {leg_vibe}, {hero_name} reached the deepest hall of {dungeon_name} and found {monster_name} guarding it like a grudge.",
+            "On {leg_vibe}, {hero_name} stepped into the final room of {dungeon_name}, and {monster_name} did not look like a warm welcome.",
+            "Near {leg_vibe}, {hero_name} headed for the boss of {dungeon_name} and found {monster_name} already annoyed.",
         ],
     }
     # Repeat-encounter callbacks for regular journey monsters, keyed by how
@@ -1742,6 +1628,7 @@ class GameController:
         self.inventory_return_screen = "journey"
         self.dungeon_pending = None
         self.trader_offer = []
+        self.town_shop_offer = []
         self._save_slot_paths = []
         self.levelup_chosen = []
         self.selected_item_letter = None
@@ -1765,6 +1652,7 @@ class GameController:
                 "pending_class": self.pending_class,
                 "dungeon_pending": self.dungeon_pending,
                 "trader_offer": self.trader_offer,
+                "town_shop_offer": self.town_shop_offer,
                 "levelup_chosen": self.levelup_chosen,
                 "selected_item_letter": self.selected_item_letter,
                 "current_narration": self.current_narration,
@@ -1799,6 +1687,7 @@ class GameController:
         self.pending_class = controller_data.get("pending_class", "")
         self.dungeon_pending = controller_data.get("dungeon_pending")
         self.trader_offer = controller_data.get("trader_offer", []) or []
+        self.town_shop_offer = controller_data.get("town_shop_offer", []) or []
         self.levelup_chosen = controller_data.get("levelup_chosen", []) or []
         self.selected_item_letter = controller_data.get("selected_item_letter")
         self.current_narration = controller_data.get("current_narration", "")
@@ -1989,13 +1878,15 @@ class GameController:
                 "total_weight": total_weight, "max_weight": max_weight,
                 "dungeon_name": e.dungeon_name, "dungeon_boss": e.dungeon_boss,
                 "dungeon_event": e.dungeon_event_count, "dungeon_max": 6,
-                "death_reason": e.death_reason or "unknown causes",
+                "death_reason": e.death_reason or DEATH_REASONS["unknown"],
                 "equipped_summary": equipped_summary,
+                "inventory_count": len(e.inventory),
             })
 
         ctx.update(self.ctx)
         ctx["menu_message"] = ctx.get("menu_message", "")
         ctx["save_message"] = ctx.get("save_message", "")
+        ctx["inventory_full_message"] = ctx.get("inventory_full_message", "")
         ctx["event_narration"] = self.current_narration if self.screen in self.NARRATION_EVENT_SCREENS else ""
         ctx["pending_name"] = self.pending_name
         ctx["pending_class"] = self.pending_class or "(none)"
@@ -2008,6 +1899,7 @@ class GameController:
             ctx["list_inventory"] = self._build_inventory_rows()
             ctx["character_title"] = self._character_title()
             ctx["honor_mark"] = min(15, self.engine.super_monsters_defeated + self.engine.dungeons_cleared)
+            ctx["karma"] = self.engine.karma
             ctx["list_character_stats"] = self._build_character_stats_rows()
             ctx["list_character_equipment"] = self._build_character_equipment_rows()
         elif self.screen == "loot_screen":
@@ -2032,6 +1924,9 @@ class GameController:
         elif self.screen == "wandering_trader":
             ctx["list_trader_buy"] = self._build_trader_buy_rows()
             ctx["list_trader_sell"] = self._build_trader_sell_rows()
+        elif self.screen == "town_recovery":
+            ctx["list_town_buy"] = self._build_town_buy_rows()
+            ctx["list_town_sell"] = self._build_town_sell_rows()
         elif self.screen == "combat_result":
             ctx["list_rounds"] = self.ctx.get("combat_rounds", [])
         elif self.screen == "combat" and e and ctx.get("monster_name"):
@@ -2078,15 +1973,40 @@ class GameController:
             return None
         return "better" if item.get("skill_val", 0) > equipped.get("skill_val", 0) else "worse"
 
+    # Grouping order/labels for the inventory list - items are broken into
+    # slot sections (with a plain header row) so a full backpack is still
+    # easy to scan while scrolling.
+    INVENTORY_SLOT_GROUPS = [
+        ("fighting_weapon", "Weapons"),
+        ("defending_armor", "Armor"),
+        ("salvaging_tool", "Salvaging Tools"),
+        ("spotting_item", "Spotting Items"),
+        ("camping_medical", "Camping / Medical Items"),
+        ("accessory", "Accessories"),
+    ]
+
     def _build_inventory_rows(self):
-        rows = []
+        groups = {slot: [] for slot, _label in self.INVENTORY_SLOT_GROUPS}
+        other = []
         for letter, item, slot in self._letter_items():
             tag = "\u2705 Equipped" if slot else "\U0001f392 Backpack"
             stat = f"+{item.get('skill_val', 0)} {item.get('skill', '')}" if item.get("skill") else "Relic"
             text = (f"{letter} - [{tag}] {item['name']} ({item.get('tier', '')}) "
                     f"{stat} | ${item['value']} | {item['weight']}wt")
             highlight = None if slot else self._item_highlight(item)
-            rows.append({"text": text, "action": f"select_item:{letter}", "enabled": True, "highlight": highlight})
+            row = {"text": text, "action": f"select_item:{letter}", "enabled": True, "highlight": highlight}
+            groups.get(item.get("slot"), other).append(row)
+
+        rows = []
+        for slot, label in self.INVENTORY_SLOT_GROUPS:
+            group_rows = groups[slot]
+            if not group_rows:
+                continue
+            rows.append({"text": f"\u2500\u2500 {label} \u2500\u2500", "action": None, "enabled": False})
+            rows.extend(group_rows)
+        if other:
+            rows.append({"text": "\u2500\u2500 Other \u2500\u2500", "action": None, "enabled": False})
+            rows.extend(other)
         if not rows:
             rows.append({"text": "Your inventory is empty.", "action": None, "enabled": False})
         return rows
@@ -2164,37 +2084,42 @@ class GameController:
         sneak_band = self._band_for_title(skills["stealth"], self._leg_monster_cap("defending"))
 
         if magic_band == "high":
-            attack_title = "Master Sourcer"
+            attack_title = CHARACTER_TITLE_PARTS["magic_high"]
         elif magic_band == "low":
-            attack_title = "Tower Mage"
+            attack_title = CHARACTER_TITLE_PARTS["magic_low"]
         elif sneak_band == "high":
-            attack_title = "Night Assassin"
+            attack_title = CHARACTER_TITLE_PARTS["stealth_high"]
         elif sneak_band == "low":
-            attack_title = "Catburgular"
+            attack_title = CHARACTER_TITLE_PARTS["stealth_low"]
         elif fight_band == "high":
-            attack_title = "Hard Striking"
+            attack_title = CHARACTER_TITLE_PARTS["fight_high"]
         elif fight_band == "low":
-            attack_title = "Light Striking"
+            attack_title = CHARACTER_TITLE_PARTS["fight_low"]
         else:
-            attack_title = "Balanced"
+            attack_title = CHARACTER_TITLE_PARTS["balanced_attack"]
 
         defense_title = ""
         if def_band == "high":
-            defense_title = "Heavily Armoured"
+            defense_title = CHARACTER_TITLE_PARTS["defense_high"]
         elif def_band == "low":
-            defense_title = "Lightly Armoured"
+            defense_title = CHARACTER_TITLE_PARTS["defense_low"]
 
         core_parts = []
-        if attack_title != "Balanced":
+        if attack_title != CHARACTER_TITLE_PARTS["balanced_attack"]:
             core_parts.append(attack_title)
         if defense_title:
             core_parts.append(defense_title)
         if not core_parts:
-            core_parts.append("Balanced Adventurer")
+            core_parts.append(CHARACTER_TITLE_PARTS["balanced_adventurer"])
         core_title = ", ".join(core_parts)
 
         honor_mark = min(15, self.engine.super_monsters_defeated + self.engine.dungeons_cleared)
-        honor = self.HONORIFIC_TITLES[honor_mark]
+        karma = self.engine.karma
+        if karma < 0:
+            karma_mark = min(15, (-karma) // 5)
+            honor = self.NEGATIVE_KARMA_TITLES[karma_mark]
+        else:
+            honor = self.HONORIFIC_TITLES[honor_mark]
         if honor["placement"] == "prefix":
             if honor["text"] == "The unproven":
                 return f"{honor['text']} {core_title}"
@@ -2254,6 +2179,30 @@ class GameController:
                 price = int(item["value"] * mult)
                 rows.append({"text": f"{letter} - {item['name']} - sell for ${price}",
                              "action": f"trader_sell:{letter}", "enabled": True})
+        if not rows:
+            rows.append({"text": "(Nothing in your backpack to sell)", "action": None, "enabled": False})
+        return rows
+
+    def _build_town_buy_rows(self):
+        mult = self.engine.trader_buy_multiplier()
+        rows = []
+        for idx, item in enumerate(self.town_shop_offer):
+            cost = int(item["value"] * mult)
+            affordable = self.engine.cash >= cost
+            text = f"{item['name']} ({item.get('tier', '')}) - ${cost}" + ("" if affordable else " (can't afford)")
+            rows.append({"text": text, "action": f"town_buy:{idx}" if affordable else None, "enabled": affordable})
+        if not rows:
+            rows.append({"text": "(Sold out)", "action": None, "enabled": False})
+        return rows
+
+    def _build_town_sell_rows(self):
+        mult = self.engine.trader_sell_multiplier()
+        rows = []
+        for letter, item, slot in self._letter_items():
+            if slot is None:
+                price = int(item["value"] * mult)
+                rows.append({"text": f"{letter} - {item['name']} - sell for ${price}",
+                             "action": f"town_sell:{letter}", "enabled": True})
         if not rows:
             rows.append({"text": "(Nothing in your backpack to sell)", "action": None, "enabled": False})
         return rows
@@ -2539,6 +2488,12 @@ class GameController:
     # -- Journey ----------------------------------------------------------
     def _action_advance_event(self):
         e = self.engine
+        if len(e.inventory) > INVENTORY_ITEM_CAP:
+            self.ctx["inventory_full_message"] = (
+                f"Your pack is overflowing ({len(e.inventory)}/{INVENTORY_ITEM_CAP}). "
+                "Sell or drop items before continuing."
+            )
+            return
         e.leg_event_count += 1
 
         dungeon = e.try_spot_dungeon()
@@ -2598,13 +2553,11 @@ class GameController:
                 self.ctx = {}
                 self.screen = "capital"
                 return
-            self.ctx = {"event_narration": self.current_narration}
-            self.screen = "journey"
+            self._go_to_journey("The wander group helped you cover extra ground.")
         elif event_type == "FAIRY_FOUND":
             self._set_narration("fairy_found")
             e.capture_fairy()
-            self.ctx = {"event_narration": self.current_narration}
-            self.screen = "journey"
+            self._go_to_journey("You captured a fairy!")
         else:
             monster = e.get_random_monster()
             e.monster_encounter_counts[monster] = e.monster_encounter_counts.get(monster, 0) + 1
@@ -2641,6 +2594,7 @@ class GameController:
         if self.engine.hp >= self.engine.max_hp:
             self._enter_level_up()
             return
+        self.town_shop_offer = self.engine.generate_trader_offer()
         self._prepare_town_year()
 
     def _enter_level_up(self):
@@ -2648,8 +2602,31 @@ class GameController:
         self.ctx = {}
         self.screen = "level_up"
 
+    def _prison_chance(self):
+        """Odds of a town-recovery year being spent in jail instead of
+        working, curved on negative karma: 0 while karma is neutral/positive,
+        then climbing steeply and asymptotically toward (never reaching)
+        PRISON_CHANCE_CAP as karma gets more negative."""
+        karma = self.engine.karma if self.engine else 0
+        if karma >= 0:
+            return 0.0
+        magnitude = -karma
+        return PRISON_CHANCE_CAP * (1 - math.exp(-magnitude / PRISON_KARMA_SCALE))
+
     def _prepare_town_year(self):
         e = self.engine
+        if random.random() < self._prison_chance():
+            blurb = self._set_narration("town_prison")
+            e.age += 1
+            e.log("TOWN_PRISON_YEAR", {"age": e.age, "karma": e.karma})
+            if e.age >= FORCED_RETIREMENT_AGE:
+                self._enter_failed_adventurer(blurb)
+                return
+            self.ctx = {"town_job_offer": False, "town_prison": True,
+                        "town_fully_healed": False, "event_narration": blurb}
+            self.screen = "town_recovery"
+            return
+
         if random.random() < TOWN_JOB_OFFER_CHANCE:
             blurb, profession = self._generate_town_blurb(job_offer=True)
             self.ctx = {"town_job_offer": True, "town_profession": profession,
@@ -2681,7 +2658,20 @@ class GameController:
             return
         self._prepare_town_year()
 
+    def _action_town_buy(self, idx_str):
+        idx = int(idx_str)
+        if 0 <= idx < len(self.town_shop_offer):
+            item = self.town_shop_offer[idx]
+            if self.engine.trader_buy(item):
+                self.town_shop_offer.pop(idx)
+
+    def _action_town_sell(self, letter):
+        item, slot = self._find_letter_item(letter)
+        if item and slot is None:
+            self.engine.trader_sell(item)
+
     def _action_town_leave(self):
+        self.town_shop_offer = []
         self.ctx = {}
         self._enter_level_up()
 
@@ -2692,16 +2682,28 @@ class GameController:
         pension = e.get_pension()
         result = f"Retired early as a {profession}"
         self.scores.append({"name": e.hero_name, "class": e.hero_class, "score": pension, "result": result})
+        self.town_shop_offer = []
         self.ctx = {"final_house": result, "final_score": pension, "final_pension": pension}
         self.screen = "capital_result"
 
-    def _action_continue_journey(self):
-        self.ctx = {}
+    def _go_to_journey(self, outcome_text=""):
+        """Returns to the journey screen carrying a one-shot outcome summary
+        (rendered in green) so completing an event doesn't look identical
+        to a brand-new one. The next _action_advance_event() call replaces
+        self.ctx wholesale, so this text naturally disappears."""
+        self.ctx = {"last_outcome_text": outcome_text}
         self.screen = "journey"
+        # Force-save after every completed event so progress is never lost.
+        self._action_save_game()
+
+    def _action_continue_journey(self):
+        self._go_to_journey()
 
     def _action_magic_shrine_continue(self):
-        self.ctx = {}
-        self.screen = "journey"
+        cash = self.ctx.get("loot_cash", 0)
+        items = self.ctx.get("loot_items") or []
+        item_part = f" and {len(items)} item(s)" if items else ""
+        self._go_to_journey(f"The shrine granted you ${cash}{item_part}.")
 
     # -- Super monster ------------------------------------------------------
     def _action_fight_super_monster(self):
@@ -2711,8 +2713,7 @@ class GameController:
         self._start_combat(sm_name, "super_monster", allow_run=False)
 
     def _action_ignore_super_monster(self):
-        self.ctx = {}
-        self.screen = "journey"
+        self._go_to_journey("You avoid the super monster and continue on your way.")
 
     # -- Dungeons -------------------------------------------------------
     def _action_enter_dungeon(self):
@@ -2722,8 +2723,7 @@ class GameController:
 
     def _action_ignore_dungeon(self):
         self.dungeon_pending = None
-        self.ctx = {}
-        self.screen = "journey"
+        self._go_to_journey("You leave the dungeon entrance undisturbed.")
 
     def _enter_dungeon_floor_preview(self):
         e = self.engine
@@ -2734,6 +2734,7 @@ class GameController:
             "dungeon_boss" if is_boss else "dungeon_floor",
             dungeon_name=e.dungeon_name,
             floor_number=min(e.dungeon_event_count + 1, 5),
+            monster_name=monster_name,
         )
         self.ctx = {
             "floor_monster": monster_name, "floor_number": min(e.dungeon_event_count + 1, 5),
@@ -2749,21 +2750,20 @@ class GameController:
         self._start_combat(monster, "dungeon_boss" if is_boss else "dungeon_floor", allow_run=False)
 
     def _action_exit_dungeon(self):
-        self.engine.leave_dungeon("exited voluntarily")
-        self.ctx = {}
-        self.screen = "journey"
+        self.engine.leave_dungeon(DUNGEON_EXIT_REASONS["voluntary"])
+        self._go_to_journey("You retreat from the dungeon.")
 
     def _dungeon_victory(self):
         e = self.engine
         treasure = random.randint(200, 500)
         e.cash += treasure
-        e.leave_dungeon("boss defeated")
+        e.leave_dungeon(DUNGEON_EXIT_REASONS["boss_defeated"])
         self.ctx = {"treasure": treasure}
         self.screen = "dungeon_victory"
 
     def _action_dungeon_victory_continue(self):
-        self.ctx = {}
-        self.screen = "journey"
+        treasure = self.ctx.get("treasure", 0)
+        self._go_to_journey(f"You cleared the dungeon and found ${treasure} in treasure!")
 
     # -- Wandering trader -----------------------------------------------
     def _action_trader_buy(self, idx_str):
@@ -2780,8 +2780,7 @@ class GameController:
 
     def _action_leave_trader(self):
         self.trader_offer = []
-        self.ctx = {}
-        self.screen = "journey"
+        self._go_to_journey("You part ways with the wandering trader.")
 
     # -- Level up ---------------------------------------------------------
     def _action_pick_levelup_skill(self, skill):
@@ -2795,7 +2794,7 @@ class GameController:
             return
         self.engine.advance_to_next_leg()
         self.levelup_chosen = []
-        self.screen = "journey"
+        self._go_to_journey("You finish training and set out for the next leg.")
 
     # -- Combat -----------------------------------------------------------
     def _start_combat(self, monster_name, kind, allow_run=True):
@@ -2833,8 +2832,8 @@ class GameController:
         self._resolve_combat_choice("throw_item")
 
     def _action_run_away(self):
-        self.ctx = {}
-        self.screen = "journey"
+        monster = self.ctx.get("monster_name", "the monster")
+        self._go_to_journey(f"You run from {monster} and hurry back to the road.")
 
     def _resolve_combat_choice(self, choice):
         e = self.engine
@@ -2868,7 +2867,7 @@ class GameController:
             self.ctx["result_won"] = False
             self.ctx["damage"] = damage
             if kind in ("dungeon_floor", "dungeon_boss"):
-                e.leave_dungeon("defeated in combat")
+                e.leave_dungeon(DUNGEON_EXIT_REASONS["combat_defeat"])
         else:
             cash_gained = e.cash - before_cash
             new_items = e.inventory[before_len:]
@@ -2884,8 +2883,7 @@ class GameController:
 
     def _action_combat_continue(self):
         if not self.ctx.get("result_won"):
-            self.ctx = {}
-            self.screen = "journey"
+            self._go_to_journey(self.ctx.get("result_text", ""))
             return
         if self.ctx.get("loot_items"):
             self.loot_discarded_indices = set()
@@ -2919,8 +2917,7 @@ class GameController:
         elif kind == "dungeon_boss":
             self._dungeon_victory()
         else:
-            self.ctx = {}
-            self.screen = "journey"
+            self._go_to_journey(self.ctx.get("result_text", ""))
 
     # -- Death / Capital ----------------------------------------------------
     def _action_death_continue(self):
