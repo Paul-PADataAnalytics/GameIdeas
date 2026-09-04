@@ -92,16 +92,14 @@
 
 ═══════════════════════════════════════════════════════════════════════════════
 
-📊 8 SKILLS TO MASTER:
+📊 6 SKILLS TO MASTER:
 
   Fighting       → Combat attack power
   Defending      → Defense and armor effectiveness
   Magic          → Magical ability and spellcasting
   Stealth        → Sneaking and evasion
   Salvaging      → Finding and stealing items
-  Spotting       → Detecting dungeons and hazards
-  Camping        → Survival and field healing
-  Medical        → Using healing items effectively
+  Speech         → Trader buy/sell rates (starts at 0)
 
 ═══════════════════════════════════════════════════════════════════════════════
 

@@ -57,17 +57,17 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "Hitter: +20 Fighting, Defending, Camping."
+      "value": "Hitter: +20 Fighting, Defending, Salvaging."
     },
     {
       "type": "text",
       "frame": "scene",
-      "value": "Blaster: +20 Magic, Spotting, Medical."
+      "value": "Blaster: +20 Magic, Defending, Stealth."
     },
     {
       "type": "text",
       "frame": "scene",
-      "value": "Hider: +20 Stealth, Salvaging, Spotting."
+      "value": "Hider: +20 Stealth, Salvaging, Magic."
     },
     {
       "type": "text",

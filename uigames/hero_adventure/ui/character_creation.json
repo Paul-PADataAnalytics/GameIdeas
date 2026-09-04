@@ -70,7 +70,7 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "Hitter: +20 Fighting/Defending/Camping | Blaster: +20 Magic/Spotting/Medical | Hider: +20 Stealth/Salvaging/Spotting"
+      "value": "Hitter: +20 Fighting/Defending/Salvaging | Blaster: +20 Magic/Defending/Stealth | Hider: +20 Stealth/Salvaging/Magic"
     },
     {
       "type": "button",

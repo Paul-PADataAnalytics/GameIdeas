@@ -1,5 +1,11 @@
 # Hero Adventure — Static Balance Analysis Report
 
+> **STALE:** This report predates the removal of the camping/medical/spotting
+> skills and equipment slots and the addition of the speech skill (see
+> CLASSES/ITEM_CATEGORIES in game_data.py). The per-stat numbers below no
+> longer reflect the current 6-skill, 5-slot design and should be
+> regenerated (e.g. via leveling_window.py / combat_odds.py) before reuse.
+
 **Purpose:** Establish expected hero stats at two key checkpoints — **Leg Start** and **Event 10** — for each class and leg. Use as baseline targets before simulation-driven monster balancing.
 
 ---
@@ -7,7 +13,7 @@
 ## Methodology
 
 - **Leg Start** = base class stats + best equipment carried over from the *previous* leg's quality tier
-- **Event 10** = base class stats + current leg's quality tier equipment assumed filling all 7 slots
+- **Event 10** = base class stats + current leg's quality tier equipment assumed filling all 7 slots (historical; now 5 slots)
 - All estimates use the **midpoint** of each quality tier's skill range + slot bonus
 - **No relics included** (each adds +50 to one stat — covered separately)
 - **No weight penalties** assumed (inventory well-managed)

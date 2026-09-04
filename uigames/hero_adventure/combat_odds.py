@@ -12,7 +12,7 @@ of the balance pass is to reduce the count of those certain-win fights.
 import math
 import sys
 
-STATS = ["fighting", "defending", "magic", "stealth", "salvaging", "spotting", "camping", "medical"]
+STATS = ["fighting", "defending", "magic", "stealth", "salvaging", "speech"]
 
 
 def load_module_from_file(path, modname):

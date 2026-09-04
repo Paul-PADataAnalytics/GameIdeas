@@ -6,9 +6,9 @@ A short game with a point score at the end following a hero's adventure to glory
 
 The hero is the player character and we create them by picking a class and setting their attributes.
 
-The classes are Hitter, Blaster, and Hider.  These classes set the skills and capabilities of the player character.  The choice of a class gives and initial boost to three of ten skills.
+The classes are Hitter, Blaster, and Hider.  These classes set the skills and capabilities of the player character.  The choice of a class gives and initial boost to three of six skills.
 
-The hero always has a max HP of 100 and starts with 100 HP.  The hero can lose HP during events and if they reach 0 HP, they die and the game ends.  The hero can regain HP by resting at a tavern or camping spot, or by using medical supplies.
+The hero always has a max HP of 100 and starts with 100 HP.  The hero can lose HP during events and if they reach 0 HP, they die and the game ends.  The hero can regain HP by resting at a tavern.
 
 The skills are:
 
@@ -17,17 +17,15 @@ The skills are:
 - magic
 - stealth
 - salvaging
-- spotting
-- camping
-- medical
+- speech
 
-All players start at 5 in each skill.
+All players start at 5 in each skill, except speech which starts at 0 and can only be raised via level-up or equipment.
 
-The Hitter gets a +20 to fighting, defending, and camping.
+The Hitter gets a +20 to fighting, defending, and salvaging.
 
-The Blaster gets a +20 to magic, spotting, and medical.
+The Blaster gets a +20 to magic, defending, and stealth.
 
-The Hider gets a +20 to stealth, salvaging, and spotting.
+The Hider gets a +20 to stealth, salvaging, and magic.
 
 The players max carry weight = (fighting + defending + (salvaging * 2))*2 skills, and if they are overburdened, they will be penalized in their skills by 10% for every 10 weight units over the limit.  All skills are reduced by 10% for every 20 weight units over the limit, with no effect taking place until the player is overburdened by over 20 weight units.
 
@@ -40,9 +38,9 @@ The skills are used to determine the outcome of the game.  The events will have 
 
 The Hero is on a journey across the country to find fortune and will end in the Capital. If the hero has accumulated enough fortune (gold/cash), they will be able to buy a home and retire. If not, they will work in a tavern and live a life of obscurity. The end of the journey represents the end of the game character and the score is based on the life they ended up with. There are a selection of houses that can be purchased and the resulting cash is given up as a pension - the score is the two multiplied together. If the hero ends up in a tavern, the score is based only on the pension.
 
-The journey is made up of 5 legs of 20 events.  An event occurs every 10 seconds, unless the user has paused the game to adjust something.  The events are randomly selected from a pool of events that are appropriate for the leg of the journey.  The events will have a function that calculates the two outcomes of success or failure, these are described in the event.  There is a chance, twice per leg to find a dungeon, this is based on the spotting skill.  The dungeon is a series of 10 second events that will have a final boss at the end.  If the hero defeats the boss, they will be able to take the treasure and gain fortune.  If they fail, they will be injured and returned to the front door to continue the journey.  The dungeon is a series of 10 events that are randomly selected from a pool of events that are appropriate for the dungeon.  The events will have a function that calculates the two outcomes of success or failure, these are described in the event.
+The journey is made up of 5 legs of 20 events.  An event occurs every 10 seconds, unless the user has paused the game to adjust something.  The events are randomly selected from a pool of events that are appropriate for the leg of the journey.  The events will have a function that calculates the two outcomes of success or failure, these are described in the event.  There is a chance, twice per leg to find a dungeon, this is based on a flat chance roll.  The dungeon is a series of 10 second events that will have a final boss at the end.  If the hero defeats the boss, they will be able to take the treasure and gain fortune.  If they fail, they will be injured and returned to the front door to continue the journey.  The dungeon is a series of 10 events that are randomly selected from a pool of events that are appropriate for the dungeon.  The events will have a function that calculates the two outcomes of success or failure, these are described in the event.
 
-Each event has a chance to spot a dungeon entrance, this is based on a roll of 0 - 100 where the players spotting skill being equal or greater than the roll will result in a dungeon being found. There are exactly two dungeons per leg of the journey; once the player has successfully spotted both dungeons in a leg, no more dungeons can be found for the remainder of that leg. The player can choose to enter the dungeon or ignore it and continue the journey.  If they enter, they will go to the dungeon page, if they ignore it, they will continue the journey.
+Each event has a flat 15% chance to spot a dungeon entrance. There are exactly two dungeons per leg of the journey; once the player has successfully spotted both dungeons in a leg, no more dungeons can be found for the remainder of that leg. The player can choose to enter the dungeon or ignore it and continue the journey.  If they enter, they will go to the dungeon page, if they ignore it, they will continue the journey.
 
 A player levels at the end of a leg of the journey, and can choose to increase three of their skills by 5 points.  The player can only level up at the end of the leg of the journey.
 
@@ -85,10 +83,9 @@ The game is a UI game made out of menus and buttons.  The ui is described as pag
   - Dungeon Found - The player finds a dungeon and can choose to enter or ignore it.  If they enter, they go to the dungeon page, if they ignore it, they continue the journey.
   - Loot found - Shows the loot found window for random loot that is appropriate for the leg of the journey.
   - Friendly Encounter - The player meets a friendly NPC and can choose to talk or ignore them.  If they talk, they may be offered an item in trade, a chance to rest, or a guaranteed dungeon entrance (if they have some tries left), if they ignore them, they continue the journey.
-  - Wandering Trader - The player meets a wandering trader and can choose to trade or ignore them.  If they trade, they can buy or sell items, if they ignore them, they continue the journey.  The player can sell items for 60% of their Value.  The trader will offer 5 items from the general loot table for the leg of the journey and the player can buy them for 140% of their value.  The player can only buy items if they have enough cash.
+  - Wandering Trader - The player meets a wandering trader and can choose to trade or ignore them.  If they trade, they can buy or sell items, if they ignore them, they continue the journey.  Buy/sell prices are curved by the player's speech skill: 0 speech buys at 110%/sells at 90% of value, 100 speech buys and sells at exactly 100% of value.  The trader will offer 5 items from the general loot table for the leg of the journey.  The player can only buy items if they have enough cash.
   - Super monster - The player spots a super monster with a relic and can choose to fight or ignore it.  If they fight, they go to the fight event, if they ignore it, they continue the journey.  If they win, they get a loot relic and 10000 Cash, if they lose, they get a loss window with a punishing loss of health.
   - Tavern - The player finds a tavern and can choose to rest or continue the journey.  If they rest, they gain a lot of their health back at the cost of 100 cash.  If they continue, they get no other benefit.  The amount of health is based on a random roll of 40 + random(0-20).  If the player has a healing item equipped, the healing item may be consumed and the amount of health gained will be doubled, the player will be informed of the amount healed before asking if they want to double it.  No skills are used when staying in a tavern.
-  - Camping spot - The player finds a camping spot and can choose to rest or continue the journey.  If they rest, they gain some of their health back based on their camping score * 1.  This can be * 2 if they have a healing item equipped, the healing item will be consumed if they take this option.  If they continue, they get no other benefit.
 - Fight screen - The fight screen shows the player the monster they are fighting and their skills, and the monsters skills.  It also has a button to fight, a button to sneak past, a button to steal their loot, and a button for a stealth kill. There may be an option to run away if the event grants it, or by a relic.  The outcome of the fight based on the players and monsters skills.  If the player wins, they go to the loot window, if they lose, they go to the loss window.  If they chose steal, it is based on their stealth and salvaging skills added together vs the monsters defending skill * 2.  If they win, they go to the loot window, if they lose, they go to the loss window.  If they chose sneak past, it is based on their stealth skill vs the monsters defending skill * 2.  If they win, they continue the journey, if they lose, they go to the loss window. If they chose stealth kill, it is based on the players stealth skill vs the monsters defending skill. If the players stealth is higher than the monsters defending, the player wins and gets loot, if it is lower, the player is caught and must fight.
 - Inventory - The player can view their inventory and the weight of the items they are carrying.  They can choose to drop items to reduce their weight, or use items that have a use effect.  The inventory shows the items in a list with their name, value, weight, and use effect if any.
 - Loss window - The loss window shows the player that they have lost the event and the reason for the loss, it shows an amount of hit points lost.  It also has an Ok button which takes us back to the journey page, if we were in a dungeon it says that "The hero left the dungeon."
@@ -109,7 +106,7 @@ The player will have a chance to find a dungeon twice in each leg.
 
 The 5 legs are:
 - Startersville to Forest Edge
-    This is a low level leg of the journey, with low level monsters and events.  The loot is also low level and the player will not be able to buy a home at the end of this leg.  The super monster is an angry deer with a relic.  There is 20% chance of camping/taven events, with the remaining 80% being the other events.  The two dungeons are named "The Goblin's Den" and "The Bandit's Hideout" and have a super monster at the end of each dungeon.  The goblin's den has a goblin king with a relic, and the bandit's hideout has a bandit lord with a relic.
+    This is a low level leg of the journey, with low level monsters and events.  The loot is also low level and the player will not be able to buy a home at the end of this leg.  The super monster is an angry deer with a relic.  There is 20% chance of tavern events, with the remaining 80% being the other events.  The two dungeons are named "The Goblin's Den" and "The Bandit's Hideout" and have a super monster at the end of each dungeon.  The goblin's den has a goblin king with a relic, and the bandit's hideout has a bandit lord with a relic.
 - Forest Edge to Mountain Pass
     This is a mid level leg of the journey, with mid level monsters and events.  The loot is also mid level and the player may be able to buy a home at the end of this leg.  The super monster is a giant bear with a relic.  The two dungeons are named "The Spider's Lair" and "The Bandit's Camp" and have a super monster at the end of each dungeon.  The spider's lair has a giant spider with a relic, and the bandit's camp has a bandit chief with a relic.
 - Mountain Pass to Desert Crossing
@@ -121,7 +118,7 @@ The 5 legs are:
 
 ## Monsters
 
-Monsters have no class, but have skills and loot.  The skills are used to determine the outcome of the fight event.  The loot is used to determine what the player can take after a successful fight.  Monsters don't have salvaging, spotting, camping, or medical skills.  Monsters only show up in specific legs of the journey and may show up on specific floors of the dungeons in that leg.
+Monsters have no class, but have skills and loot.  The skills are used to determine the outcome of the fight event.  The loot is used to determine what the player can take after a successful fight.  Monsters don't have salvaging or speech skills.  Monsters only show up in specific legs of the journey and may show up on specific floors of the dungeons in that leg.
 
 Weak monsters always have 1-2 equipment, and strong monsters always have 2-3 equipment.  The super monsters always have a relic and 1-2 equipment.
 
@@ -169,7 +166,7 @@ Relics may cause a re-roll, or materially effect the outcome of any of these act
 
 There is a loot table for each leg of the journey and each dungeon.
 
-Loot takes the form of fighting weapons, defending armor, magic items, stealth items, salvaging tools, spotting items, camping gear, and medical supplies. Each item has a value and weight associated with it and will change the associated skill by a certain amount.
+Loot takes the form of fighting weapons, defending armor, magic items, stealth items, salvaging tools, and accessories. Each item has a value and weight associated with it and will change the associated skill by a certain amount.
 
 Equiped items have no weight.
 
@@ -181,13 +178,6 @@ The loot table is made up of the following items for each leg of the journey and
 - Accessories: ring, amulet, bracelet, lockpicks, survival knife, anything weird and wonderful we can think of - 1 weight
 - Stealth items: cloak, boots, sneak suit - 5 weight
 - Salvaging tools: crowbar, hammer, saw - 5 weight
-- Spotting items: binoculars, telescope, magnifying glass - 5 weight
-- Camping gear: tent, sleeping bag, campfire kit - 5 weight
-- Medical supplies: bandages, potions, herbs - 5 weight
-
-Medical items have a use count based on their quality, with common having 1 use, uncommon having 2 uses, rare having 3 uses, and epic having 5 uses.  The use count is displayed in the inventory and is decremented when used.  When the use count reaches 0, the item is removed from the inventory.  The value is a ratio of the un-used count to the total count, so a common with 1 use left is worth 100% of its value, an uncommon with 1 use left is worth 50% of its value, and an epic with 2 uses left is worth 40% of its value.
-
-Medical items can only be used in resting events.
 
 Each item has a colour and a quality associated with it. The quality of the item will determine how much it will change the associated skill. The colours are:
 - Common - white
@@ -212,22 +202,22 @@ Relics are always epic and have a special effect that is taken into account in c
 - Plate of Invincibility - Armor - adds 50 to defending and gives a chance to re-roll the fight outcome if the player loses, in addition to the sword of power, if both are equipped, the player will always win the fight
 - Staff of Magic - Weapon - adds 50 to magic and gives a chance to re-roll the outcome of a magic event if the player fails
 - Boots of Stealth - Armor - adds 50 to stealth and gives a chance to re-roll the outcome of a stealth event if the player fails
-- Eyeglass of the Master Pirate - Accessory - adds 50 to spotting and always find a dungeon on the 7th and 14th events, if they have the dungeons left to discover, it can't find a dungeon if they have already found the two dungeons for that leg of the journey.
-- Bandage of the tireless healer - Accessory - adds 50 to medical and is never consumed when used.
+- Eyeglass of the Master Pirate - Accessory - adds 50 to stealth.
+- Bandage of the tireless healer - Accessory - adds 50 to defending.
 - Cloak of Invisibility - Armor - adds 50 to stealth and allows the player to avoid any combat encounters, and always succeeds in stealth events.
-- Pharaoh's Ankh of Rebirth - Accessory - adds 50 to medical and restores 50% HP immediately after surviving any boss or super-monster battle.
-- Alchemist's Philosopher Stone - Accessory - adds 50 to salvaging and changes all trades (including wandering traders) to 90% sell value and 110% buy cost.
+- Pharaoh's Ankh of Rebirth - Accessory - adds 50 to defending and restores 50% HP immediately after surviving any boss or super-monster battle.
+- Alchemist's Philosopher Stone - Accessory - adds 50 to speech, improving trader buy/sell rates.
 - Crown of the Archmage - Weapon - adds 50 to magic and allows Magic skill to replace Defending in combat damage reduction.
 - Shadowstep Dagger - Weapon - adds 50 to stealth and guarantees success on Stealth Kill actions.
-- Golden Horn of Plenty - Accessory - adds 50 to camping and makes resting at Camping Spots cost 0 medical supplies while restoring HP to 100%.
-- Mirror of Fate - Accessory - adds 50 to spotting and flips a fight loss outcome to an instant win once per game.
+- Golden Horn of Plenty - Accessory - adds 50 to salvaging.
+- Mirror of Fate - Accessory - adds 50 to magic and flips a fight loss outcome to an instant win once per game.
 
 ### Relic Synergies
 - **Warrior's Supremacy (Hitter 2-Relic Synergy):** Equipping both `Sword of Power` and `Plate of Invincibility` guarantees 100% win rate in physical combat fights.
 - **Arcane Tempest (Blaster 2-Relic Synergy):** Equipping both `Staff of Magic` and `Crown of the Archmage` converts all magic trap events into immediate loot and grants complete immunity to spell damage (reducing monster magic damage to 0).
 - **Grand Archmage Synergy (Blaster 3-Relic Synergy):** Equipping `Staff of Magic`, `Crown of the Archmage`, and `Pharaoh's Ankh of Rebirth` grants complete spell immunity, 100% win rate on Magic Events, and fully restores HP to 100% after every boss battle.
 - **Shadow Assassin (Hider 2-Relic Synergy):** Equipping both `Shadowstep Dagger` and `Cloak of Invisibility` guarantees 100% success on all Stealth Kills and Stealth Evasions, granting full monster loot without taking damage.
-- **Master Thief Synergy (Hider 3-Relic Synergy):** Equipping `Shadowstep Dagger`, `Cloak of Invisibility`, and `Alchemist's Philosopher Stone` guarantees 100% Stealth Kills, grants double cash from all monster loot, and applies 100% sell value / 100% buy cost at traders.
+- **Master Thief Synergy (Hider 3-Relic Synergy):** Equipping `Shadowstep Dagger`, `Cloak of Invisibility`, and `Alchemist's Philosopher Stone` guarantees 100% Stealth Kills, grants double cash from all monster loot, and applies 100% sell value / 100% buy cost at traders regardless of speech skill.
 
 Relics are unique and can only be found once in the game.  There are set relics of bosses of dungeons and Super monsters, and there are random relics that can be found in the loot table.  These can spawn on very strong monsters but only have a 5% chance of spawning.  A relic is unique to its spawn, so once spawned, it will not spawn again in the game, regardless of the outcome of the relic, sold/used/equipped, or dropped/ignored.
 
@@ -235,4 +225,4 @@ Relics found are noted in a gallery of relics that can be viewed from the main p
 
 ## Equipment
 
-Each character can have 1 fighting weapon or magic item, 1 defending armor or 1 stealth item, 1 salvaging tool, 1 spotting item, 1 camping gear or 1 medical item equipped at a time. The player can equip two accessories. The equipped items will add to the associated skill and will be used in the events. The player can change their equipped items at any time during the journey or in the inventory page, but not during events.  The player can also have items in their inventory that are not equipped, but they will not add to the associated skill and will not be used in the events.  The equip sections are drop downs based on the items held in the inventory.  The player can choose to equip an item from the drop down and it will be equipped, or they can choose to unequip an item and it will be unequipped.  The player can also choose to drop an item from the inventory and it will be removed, the plays attributes are calculated every time the inventory is altered.  Items equipped have a * in front of their name to help identify what is equipped.  Inorder to not only rely on colour items have (c), (u), (r), (e) after their name to help identify the quality of the item.
+Each character can have 1 fighting weapon or magic item, 1 defending armor or 1 stealth item, and 1 salvaging tool equipped at a time. The player can equip two accessories. The equipped items will add to the associated skill and will be used in the events. The player can change their equipped items at any time during the journey or in the inventory page, but not during events.  The player can also have items in their inventory that are not equipped, but they will not add to the associated skill and will not be used in the events.  The equip sections are drop downs based on the items held in the inventory.  The player can choose to equip an item from the drop down and it will be equipped, or they can choose to unequip an item and it will be unequipped.  The player can also choose to drop an item from the inventory and it will be removed, the plays attributes are calculated every time the inventory is altered.  Items equipped have a * in front of their name to help identify what is equipped.  Inorder to not only rely on colour items have (c), (u), (r), (e) after their name to help identify the quality of the item.

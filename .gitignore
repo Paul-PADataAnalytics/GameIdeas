@@ -1,0 +1,7 @@
+*.bak
+uigames/hero_adventure/sim_logs_before/
+uigames/hero_adventure/sim_logs_after/
+uigames/hero_adventure/sim_logs_after_curved/
+uigames/hero_adventure/.venv/
+__pycache__/
+*.pyc

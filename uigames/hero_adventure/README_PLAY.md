@@ -36,7 +36,7 @@ Face monsters with multiple action options:
 - **Stealth Kill**: Achieve surprise victory if skilled enough
 
 ### 🏰 Dungeon Exploration
-- Discover up to 2 dungeons per leg based on your spotting skill
+- Discover up to 2 dungeons per leg (flat chance per event)
 - Explore 5 floors with enemies and challenges
 - Face a powerful boss for legendary treasure
 - Choose to enter or ignore dungeons as you wish
@@ -87,7 +87,7 @@ Displays:
 1. **Balance your skills** - Don't rely on one approach
 2. **Manage weight** - Overburdened heroes suffer skill penalties
 3. **Explore dungeons** - Bosses carry legendary treasure
-4. **Rest wisely** - Taverns and camping restore health
+4. **Rest wisely** - Taverns restore health
 5. **Equip strategically** - Good gear makes a big difference
 6. **Save money** - Expensive houses multiply your pension significantly
 
@@ -111,17 +111,17 @@ Displays:
 ## Character Classes
 
 ### 🛡️ Hitter
-- **Bonuses**: +20 Fighting, +20 Defending, +20 Camping
+- **Bonuses**: +20 Fighting, +20 Defending, +20 Salvaging
 - **Playstyle**: Tank and deal physical damage
 - **Best for**: Direct combat approach
 
 ### 🔮 Blaster
-- **Bonuses**: +20 Magic, +20 Spotting, +20 Medical
+- **Bonuses**: +20 Magic, +20 Defending, +20 Stealth
 - **Playstyle**: Ranged magic and support
 - **Best for**: Exploration and tactical play
 
 ### 👟 Hider
-- **Bonuses**: +20 Stealth, +20 Salvaging, +20 Spotting
+- **Bonuses**: +20 Stealth, +20 Salvaging, +20 Magic
 - **Playstyle**: Sneaky and resourceful
 - **Best for**: Avoidance and thievery
 
@@ -132,9 +132,7 @@ Displays:
 - **Magic** - Magical ability and spellcasting
 - **Stealth** - Sneaking and evasion
 - **Salvaging** - Finding and stealing items
-- **Spotting** - Detecting dungeons and hazards
-- **Camping** - Survival skills and field healing
-- **Medical** - Using healing items effectively
+- **Speech** - Bargaining power with traders (starts at 0, raised via level-up/equipment)
 
 ## Files Included
 

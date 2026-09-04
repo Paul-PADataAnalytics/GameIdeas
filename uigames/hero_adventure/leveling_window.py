@@ -14,13 +14,13 @@ leg's choices only), not a cumulative carry-over across legs.
 
 Source of truth: CLASSES, ITEM_CATEGORIES, QUALITY_TIERS in game_data.py.
 Tier-per-leg availability and slot-bonus rules mirror
-HeroEngine.generate_random_item in hero_engine.py.
+HeroAdventureEngine.generate_random_item in game_engine.py.
 """
 
 import statistics
 from game_data import CLASSES, ITEM_CATEGORIES, QUALITY_TIERS
 
-STATS = ["fighting", "defending", "magic", "stealth", "salvaging", "spotting", "camping", "medical"]
+STATS = ["fighting", "defending", "magic", "stealth", "salvaging", "speech"]
 
 # Quality tiers that can actually drop in each leg (probability > 0),
 # per the r-based branches in HeroEngine.generate_random_item. Relics
@@ -34,7 +34,7 @@ LEG_TIERS = {
 }
 
 # A stat's directly-matching loot category (the item always rolls that
-# stat's skill). "medical" has no direct category in ITEM_CATEGORIES -
+# stat's skill). "speech" has no direct category in ITEM_CATEGORIES -
 # it can only be boosted by a lucky "accessories" roll.
 STAT_TO_CATEGORY = {
     "fighting": "fighting",
@@ -42,9 +42,7 @@ STAT_TO_CATEGORY = {
     "magic": "magic",
     "stealth": "stealth",
     "salvaging": "salvaging",
-    "spotting": "spotting",
-    "camping": "camping",
-    "medical": None,
+    "speech": None,
 }
 
 
@@ -80,7 +78,7 @@ def equipment_options(stat, leg):
             options.add(q["skill_min"] + bonus)
             options.add(q["skill_max"] + bonus)
 
-    # "accessories" can randomly roll ANY stat (medical's only source), bonus is always 0
+    # "accessories" can randomly roll ANY stat (speech's only source), bonus is always 0
     acc_bonus = item_bonus("accessories")
     for tier in tiers:
         q = QUALITY_TIERS[tier]
@@ -116,7 +114,7 @@ def render_markdown():
     lines.append("loot are excluded. Each leg is an independent snapshot, not a carry-over")
     lines.append("from previous legs.")
     lines.append("")
-    lines.append("Note: `medical` has no dedicated loot category - its only equipment source")
+    lines.append("Note: `speech` has no dedicated loot category - its only equipment source")
     lines.append("is a lucky \"accessories\" roll (bonus +0).")
     lines.append("")
 

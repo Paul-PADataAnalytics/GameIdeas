@@ -102,6 +102,11 @@
       "value": "Score: {final_score}"
     },
     {
+      "type": "text",
+      "frame": "context",
+      "value": "{life_story}"
+    },
+    {
       "type": "button",
       "frame": "actions",
       "label": "Continue",

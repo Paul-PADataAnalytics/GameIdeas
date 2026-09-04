@@ -12,7 +12,7 @@ from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual import events
 from textual.widgets import Button, Footer, Header, Input, Label, Static
 
-from hero_engine import GameController
+from game_controller import GameController
 
 
 class SafeDict(dict):

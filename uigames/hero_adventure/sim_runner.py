@@ -9,7 +9,7 @@ import os
 import json
 import argparse
 import random
-from hero_engine import HeroAdventureEngine
+from game_engine import HeroAdventureEngine
 from game_data import CLASSES, LEGS, DAMAGE_PER_TOWN_YEAR, TOWN_JOB_OFFER_CHANCE, FORCED_RETIREMENT_AGE
 
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sim_logs")
@@ -37,11 +37,11 @@ class MonteCarloAgent:
         """Pick 3 skill level-up choices (+5 each) tailored to class."""
         all_skills = list(self.engine.base_skills.keys())
         if self.hero_class == "Hitter":
-            weights = [3, 3, 1, 1, 1, 1, 2, 1]
+            weights = [3, 3, 1, 1, 2, 1]
         elif self.hero_class == "Blaster":
-            weights = [1, 1, 3, 1, 1, 3, 1, 2]
+            weights = [1, 3, 3, 3, 1, 1]
         else:
-            weights = [1, 1, 1, 3, 3, 3, 1, 1]
+            weights = [1, 1, 3, 3, 3, 1]
             
         chosen = random.choices(all_skills, weights=weights, k=3)
         for sk in chosen:
@@ -54,10 +54,9 @@ class MonteCarloAgent:
         return self.engine.get_tactical_choice(monster_name)
 
     def equip_fairy_if_available(self):
-        """Prioritize equipping a captured fairy into camping/medical slot."""
-        has_fairy_equipped = (
-            self.engine.equipment.get("camping_medical")
-            and self.engine.equipment["camping_medical"].get("name") == "Captured Fairy"
+        """Prioritize equipping a captured fairy into an accessory slot."""
+        has_fairy_equipped = any(
+            eq and eq.get("name") == "Captured Fairy" for eq in self.engine.equipment.values()
         )
         if has_fairy_equipped:
             return
@@ -68,10 +67,11 @@ class MonteCarloAgent:
         if fairy_idx is None:
             return
         fairy = self.engine.inventory.pop(fairy_idx)
-        old = self.engine.equipment.get("camping_medical")
+        target_slot = "accessory_1" if not self.engine.equipment.get("accessory_1") else "accessory_2"
+        old = self.engine.equipment.get(target_slot)
         if old:
             self.engine.inventory.append(old)
-        self.engine.equipment["camping_medical"] = fairy
+        self.engine.equipment[target_slot] = fairy
 
     def town_recovery(self):
         """Headless equivalent of the interactive town-recovery loop: heals

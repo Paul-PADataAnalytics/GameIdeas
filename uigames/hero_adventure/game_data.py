@@ -1,17 +1,129 @@
 """
 Game data tables and definitions for Hero Adventure.
 Fully compliant with heroadventure.md design specification.
+
+This module holds ONLY static data (dicts/lists of plain values) - no game
+logic and no UI code. See game_engine.py (simulation rules) and
+game_controller.py (screen flow) for the code that reads this data.
 """
 
-CLASSES = {
-    "Hitter": {"fighting": 20, "defending": 20, "camping": 20},
-    "Blaster": {"magic": 20, "spotting": 20, "medical": 20},
+from typing import TypedDict
+
+
+class Dungeon(TypedDict):
+    """One optional side-dungeon within a leg (see Leg.dungeons)."""
+    name: str
+    boss: str
+    floors: list[str]
+
+
+class Leg(TypedDict):
+    """One of the 5 journey legs (see LEGS)."""
+    id: int
+    name: str
+    super_monster: str
+    dungeons: list[Dungeon]
+
+
+class Monster(TypedDict, total=False):
+    """Combat stats for one monster entry (see MONSTERS). `relic` marks
+    dungeon bosses/super monsters, which can drop a named Relic on legs 4-5
+    (see HeroAdventureEngine.grant_monster_loot)."""
+    fighting: int
+    defending: int
+    magic: int
+    cash_min: int
+    cash_max: int
+    eq_min: int
+    eq_max: int
+    leg: int
+    relic: bool
+
+
+class ItemCategoryEntry(TypedDict):
+    """One generic loot category (see ITEM_CATEGORIES), used by
+    HeroAdventureEngine.generate_random_item to build a concrete Item."""
+    slot: str
+    names: list[str]
+    weight: int
+
+
+class QualityTier(TypedDict):
+    """Stat/value ranges for one loot quality tier (see QUALITY_TIERS)."""
+    code: str
+    color: str
+    skill_min: int
+    skill_max: int
+    cash_min: int
+    cash_max: int
+
+
+class RelicDef(TypedDict):
+    """Static definition of a named Relic (see RELICS). `effect` is an
+    identifier checked by name/effect-specific logic in
+    HeroAdventureEngine.resolve_fight/estimate_fight_risk; many relics have
+    `effect: None` and only grant a flat skill bonus."""
+    type: str
+    effect: str | None
+    skill: str | None
+    bonus: int
+
+
+class House(TypedDict):
+    """One purchasable retirement home (see HOUSES)."""
+    name: str
+    cost: int
+    multiplier: int
+
+
+class Pension(TypedDict):
+    """One row of the flat cash -> pension lookup table (see PENSIONS)."""
+    min: int
+    max: int
+    pension: int
+
+
+class Item(TypedDict, total=False):
+    """A concrete inventory/equipment item, built at runtime by
+    HeroAdventureEngine.generate_random_item/capture_fairy/grant_monster_loot
+    (never constructed directly from game_data). All fields are optional
+    here only because a handful of one-off items (e.g. the captured fairy)
+    omit `skill`/`uses`."""
+    name: str
+    category: str
+    slot: str
+    tier: str
+    code: str
+    skill: str | None
+    skill_val: int
+    weight: int
+    value: int
+    uses: int
+    max_uses: int
+
+
+class HonorificTitle(TypedDict):
+    """One earned title fragment (see HONORIFIC_TITLES/NEGATIVE_KARMA_TITLES),
+    combined with a class/stat-based title in
+    GameController._character_title()."""
+    text: str
+    placement: str  # "prefix" or "suffix"
+
+
+CLASSES: dict[str, dict[str, int]] = {
+    "Hitter": {"fighting": 20, "defending": 20, "salvaging": 20},
+    "Blaster": {"magic": 20, "defending": 20, "stealth": 20},
     # Small fighting/defending floor bump (5 -> 12) so a failed sneak/steal
     # doesn't dump a stealth build into a fight it has almost no stats for.
-    "Hider": {"stealth": 20, "salvaging": 20, "spotting": 20, "fighting": 7, "defending": 7}
+    "Hider": {"stealth": 20, "salvaging": 20, "magic": 20, "fighting": 7, "defending": 7}
 }
 
-LEGS = [
+# Flat per-event chance of stumbling on a dungeon entrance while journeying
+# (replaces the old spotting-skill roll). Capped at 2 finds per leg (see
+# HeroAdventureEngine.try_spot_dungeon).
+DUNGEON_FIND_CHANCE: float = 0.15
+
+LEGS: list[Leg] = [
     {
         "id": 1,
         "name": "Startersville to Forest Edge",
@@ -99,7 +211,7 @@ LEGS = [
     }
 ]
 
-MONSTERS = {
+MONSTERS: dict[str, Monster] = {
     # Leg 1 (+10%): Startersville to Forest Edge
     "Giant Rat": {"fighting": 6, "defending": 6, "magic": 0, "cash_min": 5, "cash_max": 15, "eq_min": 1, "eq_max": 2, "leg": 1},
     "Rabid Bat": {"fighting": 8, "defending": 6, "magic": 0, "cash_min": 5, "cash_max": 15, "eq_min": 1, "eq_max": 2, "leg": 1},
@@ -239,40 +351,39 @@ MONSTERS = {
     "Death Knight": {"fighting": 85, "defending": 94, "magic": 36, "cash_min": 150, "cash_max": 190, "eq_min": 4, "eq_max": 5, "leg": 5}
 }
 
-ITEM_CATEGORIES = {
+ITEM_CATEGORIES: dict[str, ItemCategoryEntry] = {
     "fighting": {"slot": "fighting_weapon", "names": ["Sword", "Axe", "Mace", "Spear"], "weight": 10},
     "defending": {"slot": "defending_armor", "names": ["Leather Armor", "Chainmail", "Shield"], "weight": 10},
     "magic": {"slot": "fighting_weapon", "names": ["Wand", "Staff", "Spellbook"], "weight": 3},
     "accessories": {"slot": "accessory", "names": ["Ring", "Amulet", "Bracelet", "Lockpicks", "Survival Knife"], "weight": 1},
     "stealth": {"slot": "defending_armor", "names": ["Cloak", "Boots", "Sneak Suit"], "weight": 5},
-    "salvaging": {"slot": "salvaging_tool", "names": ["Crowbar", "Hammer", "Saw"], "weight": 5},
-    "spotting": {"slot": "spotting_item", "names": ["Binoculars", "Telescope", "Magnifying Glass"], "weight": 5},
-    "camping": {"slot": "camping_medical", "names": ["Tent", "Sleeping Bag", "Campfire Kit"], "weight": 5}
+    "salvaging": {"slot": "salvaging_tool", "names": ["Crowbar", "Hammer", "Saw"], "weight": 5}
 }
 
-QUALITY_TIERS = {
+QUALITY_TIERS: dict[str, QualityTier] = {
     "Common": {"code": "c", "color": "white", "skill_min": 5, "skill_max": 10, "cash_min": 10, "cash_max": 50},
     "Uncommon": {"code": "u", "color": "green", "skill_min": 15, "skill_max": 25, "cash_min": 100, "cash_max": 500},
     "Rare": {"code": "r", "color": "blue", "skill_min": 30, "skill_max": 40, "cash_min": 1000, "cash_max": 5000},
     "Epic": {"code": "e", "color": "purple", "skill_min": 50, "skill_max": 60, "cash_min": 10000, "cash_max": 50000}
 }
 
-RELICS = {
+RELICS: dict[str, RelicDef] = {
     "Pendant of Life": {"type": "accessory", "effect": "prevents_death_once", "skill": None, "bonus": 0},
     "Ring of Fortune": {"type": "accessory", "effect": "reroll_loot", "skill": None, "bonus": 0},
     "Sword of Power": {"type": "fighting_weapon", "effect": "reroll_fight_loss", "skill": "fighting", "bonus": 50},
     "Plate of Invincibility": {"type": "defending_armor", "effect": "invincible_combo", "skill": "defending", "bonus": 50},
     "Staff of Magic": {"type": "fighting_weapon", "effect": "reroll_magic_loss", "skill": "magic", "bonus": 50},
     "Boots of Stealth": {"type": "defending_armor", "effect": "reroll_stealth_loss", "skill": "stealth", "bonus": 50},
-    "Eyeglass of the Master Pirate": {"type": "spotting_item", "effect": "guarantee_dungeon_7_14", "skill": "spotting", "bonus": 50},
-    "Bandage of the tireless healer": {"type": "camping_medical", "effect": "infinite_medical_use", "skill": "medical", "bonus": 50},
+    "Eyeglass of the Master Pirate": {"type": "accessory", "effect": None, "skill": "stealth", "bonus": 50},
+    "Bandage of the tireless healer": {"type": "accessory", "effect": None, "skill": "defending", "bonus": 50},
     "Cloak of Invisibility": {"type": "defending_armor", "effect": "always_stealth_auto_win", "skill": "stealth", "bonus": 50},
-    "Pharaoh's Ankh of Rebirth": {"type": "accessory", "effect": "heal_after_boss", "skill": "medical", "bonus": 50},
-    "Alchemist's Philosopher Stone": {"type": "salvaging_tool", "effect": "better_trade_rates", "skill": "salvaging", "bonus": 50},
+    "Pharaoh's Ankh of Rebirth": {"type": "accessory", "effect": "heal_after_boss", "skill": "defending", "bonus": 50},
+    "Alchemist's Philosopher Stone": {"type": "salvaging_tool", "effect": None, "skill": "speech", "bonus": 50},
     "Crown of the Archmage": {"type": "accessory", "effect": "magic_replaces_defending", "skill": "magic", "bonus": 50},
     "Shadowstep Dagger": {"type": "fighting_weapon", "effect": "always_stealth_kill", "skill": "stealth", "bonus": 50},
-    "Golden Horn of Plenty": {"type": "camping_medical", "effect": "full_camping_heal", "skill": "camping", "bonus": 50},
-    "Mirror of Fate": {"type": "spotting_item", "effect": "flip_loss_once", "skill": "spotting", "bonus": 50},
+    "Golden Horn of Plenty": {"type": "accessory", "effect": None, "skill": "salvaging", "bonus": 50},
+    "Mirror of Fate": {"type": "accessory", "effect": "flip_loss_once", "skill": "magic", "bonus": 50},
+    "Silver Tongue Amulet": {"type": "accessory", "effect": None, "skill": "speech", "bonus": 50},
 
     # New Slot-Diverse & Stat-Boosting Relics
     "Aegis Arm Guards": {"type": "accessory", "effect": None, "skill": "defending", "bonus": 50},
@@ -280,20 +391,20 @@ RELICS = {
     "Ring of Arcane Power": {"type": "accessory", "effect": None, "skill": "magic", "bonus": 50},
     "Slippers of the Wind": {"type": "accessory", "effect": None, "skill": "stealth", "bonus": 50},
     "Scavenger's Iron Claw": {"type": "salvaging_tool", "effect": "extra_loot_cash", "skill": "salvaging", "bonus": 50},
-    "Eagle Eye Monocle": {"type": "spotting_item", "effect": "true_trade_value", "skill": "spotting", "bonus": 50},
+    "Eagle Eye Monocle": {"type": "accessory", "effect": None, "skill": "speech", "bonus": 50},
     "Wand of the Void": {"type": "fighting_weapon", "effect": "always_win_magic_trap", "skill": "magic", "bonus": 50},
     "Behemoth Shield": {"type": "defending_armor", "effect": "half_damage_loss", "skill": "defending", "bonus": 50},
-    "Elixir of Immortality": {"type": "camping_medical", "effect": "auto_cure_dungeon_injury", "skill": "medical", "bonus": 50},
+    "Elixir of Immortality": {"type": "accessory", "effect": None, "skill": "defending", "bonus": 50},
 
     # Magic Slot-Diversity & Shielding Relics
     "Robe of the Archmage": {"type": "defending_armor", "effect": None, "skill": "magic", "bonus": 50},
     "Orb of Sorcery": {"type": "salvaging_tool", "effect": None, "skill": "magic", "bonus": 50},
-    "Crystal Ball of Prescience": {"type": "spotting_item", "effect": None, "skill": "magic", "bonus": 50},
-    "Tome of Ancient Runes": {"type": "camping_medical", "effect": None, "skill": "magic", "bonus": 50},
+    "Crystal Ball of Prescience": {"type": "accessory", "effect": None, "skill": "magic", "bonus": 50},
+    "Tome of Ancient Runes": {"type": "accessory", "effect": None, "skill": "magic", "bonus": 50},
     "Amulet of Arcane Shielding": {"type": "accessory", "effect": "double_magical_ward", "skill": "magic", "bonus": 50}
 }
 
-HOUSES = [
+HOUSES: list[House] = [
     {"name": "Palace", "cost": 50000, "multiplier": 50},
     {"name": "Mansion", "cost": 20000, "multiplier": 20},
     {"name": "Castle", "cost": 10000, "multiplier": 10},
@@ -301,7 +412,7 @@ HOUSES = [
     {"name": "Cottage", "cost": 1000, "multiplier": 1}
 ]
 
-PENSIONS = [
+PENSIONS: list[Pension] = [
     {"min": 20000, "max": 49999, "pension": 5000},
     {"min": 10000, "max": 19999, "pension": 2000},
     {"min": 5000, "max": 9999, "pension": 1000},
@@ -313,7 +424,7 @@ PENSIONS = [
 # The hero starts at age 17. Every 10 HP of damage taken translates into one
 # year spent recovering in town at the start of the next leg (journey-time
 # healing has been removed entirely - see get_pension()/GameController's
-# town recovery flow in hero_engine.py).
+# town recovery flow in game_controller.py).
 AGE_START = 17
 DAMAGE_PER_TOWN_YEAR = 10
 TOWN_JOB_OFFER_CHANCE = 0.05
@@ -350,7 +461,7 @@ KARMA_STEAL_PENALTY = -1
 # hero in jail instead of healing. PRISON_CHANCE_CAP is the asymptotic upper
 # bound (never reached) and PRISON_KARMA_SCALE controls how quickly the
 # curve climbs toward it as karma gets more negative - see
-# GameController._prison_chance() in hero_engine.py for the exact curve.
+# GameController._prison_chance() in game_controller.py for the exact curve.
 PRISON_CHANCE_CAP = 0.75
 PRISON_KARMA_SCALE = 60
 
@@ -443,22 +554,20 @@ ORIGIN_STORY_CLOSERS = [
 
 # =============================================================================
 # Narrative / UI strings. Everything here is display text only - moving it
-# out of hero_engine.py keeps all player-facing wording in one editable file.
+# out of the engine/controller code keeps all player-facing wording in one editable file.
 # =============================================================================
 
-EQUIPMENT_SLOT_LABELS = {
+EQUIPMENT_SLOT_LABELS: dict[str, str] = {
     "fighting_weapon": "Fighting Weapon",
     "defending_armor": "Defending Armor",
     "salvaging_tool": "Salvaging Tool",
-    "spotting_item": "Spotting Item",
-    "camping_medical": "Camping / Medical",
     "accessory_1": "Accessory 1",
     "accessory_2": "Accessory 2",
 }
 
 # Earned via good deeds (super monsters defeated + dungeons cleared), index
-# 0-15. See GameController._character_title() in hero_engine.py.
-HONORIFIC_TITLES = [
+# 0-15. See GameController._character_title() in game_controller.py.
+HONORIFIC_TITLES: list[HonorificTitle] = [
     {"text": "The unproven", "placement": "prefix"},
     {"text": "of the Open Road", "placement": "suffix"},
     {"text": "Road-Trodden", "placement": "prefix"},
@@ -479,7 +588,7 @@ HONORIFIC_TITLES = [
 
 # Earned via bad deeds (negative karma magnitude / 5, capped at 15) and used
 # instead of HONORIFIC_TITLES whenever karma is negative.
-NEGATIVE_KARMA_TITLES = [
+NEGATIVE_KARMA_TITLES: list[HonorificTitle] = [
     {"text": "The Untrustworthy", "placement": "prefix"},
     {"text": "of Sticky Fingers", "placement": "suffix"},
     {"text": "The Backstabber", "placement": "prefix"},
@@ -500,7 +609,7 @@ NEGATIVE_KARMA_TITLES = [
 
 # Combat-style descriptor parts used to build the non-honorific half of
 # GameController._character_title().
-CHARACTER_TITLE_PARTS = {
+CHARACTER_TITLE_PARTS: dict[str, str] = {
     "magic_high": "Master Sourcer",
     "magic_low": "Tower Mage",
     "stealth_high": "Night Assassin",
@@ -513,7 +622,7 @@ CHARACTER_TITLE_PARTS = {
     "balanced_adventurer": "Balanced Adventurer",
 }
 
-LEG_VIBES = {
+LEG_VIBES: dict[int, str] = {
     1: "the warm, dusty road out of Startersville",
     2: "the pine-shadowed trails near Forest Edge",
     3: "the steep wind-cut passes of the mountain road",
@@ -521,7 +630,7 @@ LEG_VIBES = {
     5: "the wet, humming roads of the Riverlands",
 }
 
-EVENT_NARRATION_TEMPLATES = {
+EVENT_NARRATION_TEMPLATES: dict[str, list[str]] = {
     "fight": [
         "While walking through {leg_vibe}, {hero_name} nearly stepped on a {monster_name}.",
         "On {leg_vibe}, {hero_name} heard a snort, turned around, and found a {monster_name}.",
@@ -600,9 +709,113 @@ EVENT_NARRATION_TEMPLATES = {
     ],
 }
 
+# Repeat-encounter callbacks for regular journey monsters, keyed by how many
+# times this monster has been faced this run (2nd, 3rd, 4th+). See
+# GameController._set_narration().
+REPEAT_ENCOUNTER_TEMPLATES: dict[int | str, list[str]] = {
+    2: [
+        "While walking through {leg_vibe}, {hero_name} ran into another {monster_name} - maybe it's the first one's brother.",
+        "On {leg_vibe}, {hero_name} spotted a second {monster_name}, oddly familiar around the eyes.",
+        "Near {leg_vibe}, {hero_name} crossed paths with another {monster_name}, which felt like too much of a coincidence.",
+        "While crossing {leg_vibe}, {hero_name} found a second {monster_name} - small world, apparently.",
+    ],
+    3: [
+        "While crossing {leg_vibe}, {hero_name} encountered yet another {monster_name} - this one seemed particularly vengeful.",
+        "On {leg_vibe}, {hero_name} found a third {monster_name} and started to suspect a conspiracy.",
+        "Near {leg_vibe}, {hero_name} met another {monster_name}, who looked personally aggrieved on behalf of the others.",
+        "While walking through {leg_vibe}, {hero_name} sighed at yet another {monster_name} blocking the way.",
+    ],
+    "many": [
+        "While walking through {leg_vibe}, {hero_name} braced for the {ordinal} {monster_name} of the trip.",
+        "On {leg_vibe}, {hero_name} has now met so many {monster_name_plural} that this one got a nickname.",
+        "Near {leg_vibe}, {hero_name} rolled their eyes at the {ordinal} {monster_name} - at this point it's basically a rivalry.",
+        "While crossing {leg_vibe}, {hero_name} wondered if the {monster_name_plural} were breeding on purpose just to annoy them.",
+    ],
+}
+
+# Opening backstory paragraph, shown once after character creation. See
+# GameController._build_origin_story().
+ORIGIN_STORY_TEMPLATES: list[str] = [
+    "{hero_name} grew up in {hometown}, raised in no small part by {family_article} {family_member} who {family_trait}. When the day finally came to leave, the only thing louder than the goodbyes was the hope of getting to {aspiration}.",
+    "Home was {hometown}, and for {hero_name} it meant {family_article} {family_member} who {family_trait}. Leaving wasn't easy, but the pull to {aspiration} won out in the end.",
+    "Before any of this, {hero_name} was just someone from {hometown} - the kind of place where {family_article} {family_member} {family_trait}. All {hero_name} ever wanted was to {aspiration}.",
+    "{hero_name}'s story starts in {hometown}, where {family_article} {family_member} {family_trait} and never let anyone forget it. The road out began with one simple hope: to {aspiration}.",
+]
+
+# Occasional extra sentence appended to journey narration, pulling from
+# backstory / town job history / special moments / monster tallies - see
+# GameController._maybe_add_reminiscence(). Keyed by source, not by
+# screen/event.
+REMINISCENCE_TEMPLATES: dict[str, list[str]] = {
+    "town_job": [
+        "For a moment, {hero_name} thought back to the year spent as a {modifier} {profession}, and how a {injury} to the {body_part} never quite faded.",
+        "{hero_name} remembered the year as a {modifier} {profession} - that old {injury} to the {body_part} still aches sometimes.",
+        "A stray thought drifted back to the year working as a {modifier} {profession}, {body_part} still recalling that old {injury}.",
+    ],
+    "monster_tally": [
+        "{hero_name} thought about all the {monster_name_plural} faced so far, and wondered, not for the first time, whether they have families.",
+        "Somewhere around the {ordinal} {monster_name}, {hero_name} started keeping an unofficial tally, whether they meant to or not.",
+        "{hero_name} couldn't help but notice how many {monster_name_plural} this road had produced by now.",
+    ],
+    "relic_found": [
+        "{hero_name} thought back to finding the {relic_name} - still one of the stranger days of this whole trip.",
+        "For a moment {hero_name} remembered the day the {relic_name} turned up, and how little sense it made at the time.",
+    ],
+    "dungeon_boss_beaten": [
+        "{hero_name} remembered clearing {dungeon_name} and the fight with {boss_name} - a good day, all things considered.",
+        "A memory surfaced of {dungeon_name} and the fight against {boss_name}, still vivid after all this time.",
+    ],
+    "repeat_monster": [
+        "{hero_name} remembered the run of {monster_name_plural} that kept turning up around the {ordinal} encounter - hard to forget that stretch.",
+    ],
+    "backstory_family": [
+        "For a moment, {hero_name} thought of home in {hometown}, and {family_article} {family_member} who {family_trait}.",
+        "{hero_name} pictured {hometown} for a moment, and the {family_member} who {family_trait}.",
+        "A flicker of home crossed {hero_name}'s mind - {hometown}, and {family_article} {family_member} who {family_trait}.",
+    ],
+    "backstory_aspiration": [
+        "{hero_name} remembered, as always, the whole reason for this journey: to {aspiration}.",
+        "It came back around again, as it always did - {hero_name} was out here to {aspiration}.",
+        "For a moment, {hero_name} remembered exactly why this road was worth it: to {aspiration}.",
+    ],
+}
+
+# Chance per eligible event that a reminiscence sentence is appended - see
+# GameController._maybe_add_reminiscence().
+REMINISCENCE_CHANCE: float = 0.18
+
+# Journey/dungeon event types that can trigger a reminiscence sentence.
+REMINISCENCE_ELIGIBLE_EVENTS: set[str] = {
+    "fight", "dungeon_found", "wandering_trader", "magic_shrine",
+    "super_monster", "wander_group", "fairy_found", "dungeon_floor", "dungeon_boss",
+}
+
+# Screens that display the one-shot `event_narration` line built by
+# GameController._set_narration() (see GameController.get_context()).
+NARRATION_EVENT_SCREENS: set[str] = {
+    "journey", "dungeon_found", "town_recovery", "wandering_trader",
+    "magic_shrine_event", "super_monster_preview", "combat", "dungeon_floor_preview",
+    "dungeon_boss_preview", "origin_story",
+}
+
+# Flavor closer appended after a kill in combat narration - see
+# HeroAdventureEngine._kill_phrase().
+KILL_PHRASES: list[str] = [
+    "and then they goofed the whole pooch.",
+    "and that was the last mistake it ever made.",
+    "and promptly forgot how to be a threat.",
+    "and folded like a lawn chair in a hurricane.",
+    "and simply gave up on the concept of continuing to exist.",
+    "and went down clutching its own bad decisions.",
+    "and that, as they say, was that.",
+    "and the universe quietly filed it under 'no longer a problem'.",
+    "and became a cautionary tale for future monsters.",
+    "and exited the story rather abruptly.",
+]
+
 # One-shot outcome/result lines built by GameController when an event
 # resolves. Rendered in green on the journey screen (see journey.json).
-OUTCOME_TEXT = {
+OUTCOME_TEXT: dict[str, str] = {
     "sneak_success": "You slip past {monster} without a fight!",
     "throw_item_fallback": "You escape, but lose an item and any loot.",
     "throw_item_escape": "You hurl your {item_name} at {monster_name} and slip away in the confusion - the item and any loot are lost.",
@@ -625,12 +838,30 @@ OUTCOME_TEXT = {
     "tavern": "Tavern",
 }
 
-DEATH_REASONS = {
+DEATH_REASONS: dict[str, str] = {
     "slain_by": "slain by {monster_name}",
     "unknown": "unknown causes",
 }
 
-DUNGEON_EXIT_REASONS = {
+# Flavor causes of death for the retirement epilogue on the capital_result
+# screen - a flash-forward past the game's end, unrelated to DEATH_REASONS
+# (which covers in-journey combat deaths). See _build_life_story().
+RETIREMENT_DEATH_REASONS: list[str] = [
+    "a peaceful nap that simply never ended",
+    "an argument with a stubborn goat that escalated poorly",
+    "one final, ill-advised bar bet",
+    "a spectacular fall from a ladder while hanging a portrait of their glory days",
+    "old age, mid-sentence, telling the same story for the hundredth time",
+    "a rocking chair incident nobody wants to talk about",
+    "spoiled leftovers they insisted were still good",
+    "a duel over a card game gone wrong",
+    "choking on a suspiciously large piece of retirement cake",
+    "a runaway cart while crossing the street to complain about the noise",
+    "an overenthusiastic dance at a grandchild's wedding",
+    "slipping on a rug they'd been meaning to replace for a decade",
+]
+
+DUNGEON_EXIT_REASONS: dict[str, str] = {
     "default": "left",
     "voluntary": "exited voluntarily",
     "boss_defeated": "boss defeated",
@@ -642,7 +873,7 @@ DUNGEON_EXIT_REASONS = {
 # Win-probability -> risk-band label lookup, checked in descending order of
 # threshold. Shared by HeroAdventureEngine.estimate_fight_risk() and
 # ._risk_band_for_probability().
-RISK_BANDS = [
+RISK_BANDS: list[tuple[float, str]] = [
     (0.85, "Most Likely"),
     (0.70, "Good Chance"),
     (0.60, "Likely"),
@@ -652,7 +883,7 @@ RISK_BANDS = [
     (0.00, "No Way"),
 ]
 
-MAGIC_SPELL_NAME_PARTS = {
+MAGIC_SPELL_NAME_PARTS: dict[str, list[str]] = {
     "prefixes": [
         "Ackerman's Terrible", "Bridger's Snapping", "Merrick's Smoldering",
         "Harlow's Rude", "Pritchard's Violent", "Brennan's Sparkling",
@@ -661,7 +892,7 @@ MAGIC_SPELL_NAME_PARTS = {
     "spells": ["Firebolt", "Icicle", "Thunder Mote", "Moon Ray", "Arc Lash"],
 }
 
-MAGIC_SHIELD_NAME_PARTS = {
+MAGIC_SHIELD_NAME_PARTS: dict[str, list[str]] = {
     "prefixes": [
         "Bridger's", "Marlow's", "Hendrix's", "Tilda's", "Rogan's",
         "Ember's", "Nora's", "Basil's", "Ivy's", "Quinn's",
@@ -676,7 +907,7 @@ MAGIC_SHIELD_NAME_PARTS = {
 # Randomized combat narration lines: each category is (start_phrases,
 # end_phrases); _combat_line() picks one of each and joins them around the
 # numeric value (damage, loot, etc).
-COMBAT_LINE_POOLS = {
+COMBAT_LINE_POOLS: dict[str, tuple[list[str], list[str]]] = {
     "fight_win": (
         [
             "The hero decisively struck for",

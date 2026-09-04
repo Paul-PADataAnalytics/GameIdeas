@@ -8,7 +8,7 @@ from pathlib import Path
 
 import customtkinter as ctk
 
-from hero_engine import GameController
+from game_controller import GameController
 
 
 class SafeDict(dict):

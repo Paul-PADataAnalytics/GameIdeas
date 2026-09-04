@@ -13,20 +13,20 @@ import random
 from collections import Counter
 
 from game_data import CLASSES, HOUSES
-from hero_engine import GameController
+from game_controller import GameController
 
 MAX_STEPS = 600
 REUSE_TARGET = 3
 
 
 def _pick_levelup_weights(hero_class):
-    all_skills = ["fighting", "defending", "magic", "stealth", "salvaging", "spotting", "camping", "medical"]
+    all_skills = ["fighting", "defending", "magic", "stealth", "salvaging", "speech"]
     if hero_class == "Hitter":
-        weights = [3, 3, 1, 1, 1, 1, 2, 1]
+        weights = [3, 3, 1, 1, 2, 1]
     elif hero_class == "Blaster":
-        weights = [1, 1, 3, 1, 1, 3, 1, 2]
+        weights = [1, 3, 3, 3, 1, 1]
     else:
-        weights = [1, 1, 1, 3, 3, 3, 1, 1]
+        weights = [1, 1, 3, 3, 3, 1]
     return all_skills, weights
 
 

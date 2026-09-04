@@ -6,7 +6,7 @@ A short game with a point score at the end following a hero's adventure to glory
 
 The hero is the player character and we create them by picking a class and setting their attributes.
 
-The classes are Hitter, Blaster, and Hider.  These classes set the skills and capabilities of the player character.  The choice of a class gives and initial boost to three of ten skills.
+The classes are Hitter, Blaster, and Hider.  These classes set the skills and capabilities of the player character.  The choice of a class gives and initial boost to three of six skills.
 
 The hero always has a max HP of 100 and starts with 100 HP.  The hero can lose HP during events and if they reach 0 HP, they die and the game ends.  There is no way to heal during the journey itself - HP lost during a leg can only be recovered afterward, during the mandatory town recovery stay described in Aging & Town Recovery below.
 
@@ -17,17 +17,15 @@ The skills are:
 - magic
 - stealth
 - salvaging
-- spotting
-- camping
-- medical
+- speech
 
-All players start at 5 in each skill.
+All players start at 5 in each skill, except speech which starts at 0 and can only be raised via level-up or equipment.
 
-The Hitter gets a +20 to fighting, defending, and camping.
+The Hitter gets a +20 to fighting, defending, and salvaging.
 
-The Blaster gets a +20 to magic, spotting, and medical.
+The Blaster gets a +20 to magic, defending, and stealth.
 
-The Hider gets a +20 to stealth, salvaging, and spotting.
+The Hider gets a +20 to stealth, salvaging, and magic.
 
 The players max carry weight = (fighting + defending + (salvaging * 2))*2 skills, and if they are overburdened, they will be penalized in their skills by 10% for every 10 weight units over the limit.  All skills are reduced by 10% for every 20 weight units over the limit, with no effect taking place until the player is overburdened by over 20 weight units.
 
@@ -64,7 +62,7 @@ The pension awarded at retirement (whether from reaching the Capital, an early j
 
 Dungeons are optional side areas that the hero can discover and explore during the journey. There are exactly two dungeons per leg of the journey. Once the player has successfully spotted both dungeons in a leg, no more dungeons can be found for the remainder of that leg.
 
-Each journey event has a chance to spot a dungeon entrance. This is based on a roll of 0 - 100; if the player's spotting skill is equal to or greater than the roll, a dungeon is found. When a dungeon is found the player can choose to enter it or ignore it and continue the journey. If they enter, they go to the Dungeon page; if they ignore it, they continue the journey.
+Each journey event has a flat 15% chance to spot a dungeon entrance. When a dungeon is found the player can choose to enter it or ignore it and continue the journey. If they enter, they go to the Dungeon page; if they ignore it, they continue the journey.
 
 A dungeon is a series of 5 floor fights of increasing difficulty followed by a final Dungeon Boss fight. On every dungeon floor — including right before facing the Dungeon Boss — the player can inspect the monster they are about to fight and has an explicit "Exit Dungeon" button to leave the dungeon safely at any time before initiating combat, returning to the journey where they left off.
 
@@ -202,10 +200,6 @@ Dungeon Monsters only occur in dungeons, never in the wild on a leg.
 
 During the journey the hero will find loot, and will be able to take loot after an event.  The loot will be based on the event and will be a random selection from a pool of loot that is appropriate for the event.  The loot will either be cash, equipment, or a special relic, or a mix of the three.  The loot will add to the users skill in an appropriate way, have a value, and weight.  The value is used in buying and selling at the legs of the game.  Buying is 120% of the value and selling is 80% of the value.  The weight is used to determine how much the hero can carry, and if they are overburdened, they will be penalized in their skills.  The hero's max carry weight is based on their fighting + defending + salvaging skills, and if they are overburdened, they will be penalized in their skills by 10% for every 10 weight units over the limit.
 
-Medical items can be used directly from inventory.  On use, they heal for:
-- `camping skill + random(0..camping skill)`
-and consume one use.
-
 At the end of the journey, the items are sold for 100% of their value and the cash is added to be used to buy a home in the Capital or added to their pension.
 
 Some special loot has an effect on the outcome of events, such as a pendant that prevents death once, or a ring that allows to re-roll the received loot when an event awards loot.  The special loot will be described in the event and will have a limited number of uses.  Getting the loot will be a noted event and the player will be told that the loot is the result of success before they are given the option to take it.
@@ -254,14 +248,13 @@ The game is a UI game made out of menus and buttons.  The ui is described as pag
   - Dungeon Found - The player finds a dungeon and can choose to enter or ignore it.  If they enter, they go to the dungeon page, if they ignore it, they continue the journey.
   - Loot found - Shows the loot found window for random loot that is appropriate for the leg of the journey.
   - Friendly Encounter - The player meets a friendly NPC and can choose to talk or ignore them.  If they talk, they may be offered an item in trade, a chance to rest, or a guaranteed dungeon entrance (if they have some tries left), if they ignore them, they continue the journey.
-  - Wandering Trader - The player meets a wandering trader and can choose to trade or ignore them.  If they trade, they can buy or sell items, if they ignore them, they continue the journey.  The player can sell items for 60% of their Value.  The trader will offer 5 items from the general loot table for the leg of the journey and the player can buy them for 140% of their value.  The player can only buy items if they have enough cash.
+  - Wandering Trader - The player meets a wandering trader and can choose to trade or ignore them.  If they trade, they can buy or sell items, if they ignore them, they continue the journey.  Buy/sell prices are curved by the player's speech skill: at 0 speech, buying costs 110% of value and selling returns 90% of value; at 100 speech, buying and selling are both at exactly 100% of value.  The trader will offer 5 items from the general loot table for the leg of the journey.  The player can only buy items if they have enough cash.
   - Wander Group - The player encounters a traveling group that helps move them forward safely. This event advances journey progress by 5 additional events on the current leg. It does not grant direct loot or combat, and it follows a 3-event self-cooldown.
-  - Fairy Found - The player may find and capture a fairy. The fairy can be equipped in the camping/medical slot. If the equipped fairy would otherwise die in combat, it is consumed: the player is restored to full HP, moved back 5 journey events on the current leg, and loses up to 1000 cash (or all cash if below 1000).
+  - Fairy Found - The player may find and capture a fairy. The fairy can be equipped in an accessory slot. If the equipped fairy would otherwise die in combat, it is consumed: the player is restored to full HP, moved back 5 journey events on the current leg, and loses up to 1000 cash (or all cash if below 1000).
   - Super monster - The player spots a super monster with a relic and can choose to fight or ignore it.  If they fight, they go to the fight event, if they ignore it, they continue the journey without taking damage or fighting.  If they win, they get a loot relic and 10000 Cash, if they lose, they get a loss window with a punishing loss of health.
   - Tavern - The player finds a tavern and can choose to rest or continue the journey.  If they rest, they gain a lot of their health back at the cost of 100 cash.  If they continue, they get no other benefit.  The amount of health is based on a random roll of 40 + random(0-20).  If the player has a healing item equipped, the healing item may be consumed and the amount of health gained will be doubled, the player will be informed of the amount healed before asking if they want to double it.  No skills are used when staying in a tavern.
-  - Camping spot - The player finds a camping spot and can choose to rest or continue the journey.  If they rest, they gain some of their health back based on their camping score * 1.  This can be * 2 if they have a healing item equipped, the healing item will be consumed if they take this option.  If they continue, they get no other benefit.
 - Fight screen - The fight screen shows enemy stats, player HP, a fight profile (attack, effective defense, per-round damage in/out), estimated rounds to win, estimated rounds before death, and risk bands for each action. The action buttons include success percentages in the label for Fight, Sneak, Steal, and Stealth Kill.
-- Inventory - The player can view inventory and carry weight, inspect items, equip/unequip items, drop items, use medical items, and save the game.
+- Inventory - The player can view inventory and carry weight, inspect items, equip/unequip items, drop items, and save the game.
 - Character Sheet - The player can view all skills as Base vs Effective values and see equipped items by slot with each item's bonus/effect.
 - Loss window - The loss window shows the player that they have lost the event and the reason for the loss, it shows an amount of hit points lost.  It also has an Ok button which takes us back to the journey page, if we were in a dungeon it says that "The hero left the dungeon."
 - Loot Found - A loot window that shows the items found and the cash amount.  The player can choose to take the loot or leave it.  If they take it, it is added to their inventory and the weight is calculated.  If they leave it, they continue the journey/dungeon.
@@ -281,7 +274,7 @@ The player will have a chance to find a dungeon twice in each leg (see Dungeons)
 
 The 5 legs are:
 - Startersville to Forest Edge
-    This is a low level leg of the journey, with low level monsters and events.  The loot is also low level and the player will not be able to buy a home at the end of this leg.  The super monster is an angry deer with a relic.  Fights are the dominant event; camping and tavern events are blocked in the first half of the leg and, when available later, still follow the 3-event rest cooldown.
+    This is a low level leg of the journey, with low level monsters and events.  The loot is also low level and the player will not be able to buy a home at the end of this leg.  The super monster is an angry deer with a relic.  Fights are the dominant event; tavern events are blocked in the first half of the leg and, when available later, still follow the 3-event rest cooldown.
 - Forest Edge to Mountain Pass
     This is a mid level leg of the journey, with mid level monsters and events.  The loot is also mid level and the player may be able to buy a home at the end of this leg.  The super monster is a giant bear with a relic.
 - Mountain Pass to Desert Crossing
@@ -293,7 +286,7 @@ The 5 legs are:
 
 ## Monsters
 
-Monsters have no class, but have skills and loot. The skills are used to determine the outcome of the fight event. The loot is used to determine what the player can take after a successful fight. Monsters don't have salvaging, spotting, camping, or medical skills. Monsters only show up in specific legs of the journey matching their theme and level.
+Monsters have no class, but have skills and loot. The skills are used to determine the outcome of the fight event. The loot is used to determine what the player can take after a successful fight. Monsters don't have salvaging or speech skills. Monsters only show up in specific legs of the journey matching their theme and level.
 
 Monster stat tuning is now baseline-driven at three checkpoints per leg:
 - **Leg Start baseline** (event 0)
@@ -391,14 +384,14 @@ Relics can materially change outcomes (guaranteed win combos, rerolls, one-time 
 
 There is a loot table for each leg of the journey and each dungeon.
 
-Loot takes the form of fighting weapons, defending armor, magic items, stealth items, salvaging tools, spotting items, camping gear, and medical supplies. Each item has a value and weight associated with it and will change the associated skill by a certain amount.
+Loot takes the form of fighting weapons, defending armor, magic items, stealth items, salvaging tools, and accessories. Each item has a value and weight associated with it and will change the associated skill by a certain amount.
 
 Combat-skill gear is class-specific:
 - **Hitter** is the only class that gains combat attack scaling from **fighting** gear
 - **Blaster** is the only class that gains combat attack scaling from **magic** gear
 - **Hider** is the only class that gains combat attack scaling from **stealth** gear
 
-Utility gear (salvaging, spotting, camping, medical, accessories) remains available to all classes.
+Utility gear (salvaging, accessories) remains available to all classes.
 
 Equiped items have no weight.
 
@@ -410,13 +403,6 @@ The loot table is made up of the following items for each leg of the journey and
 - Accessories: ring, amulet, bracelet, lockpicks, survival knife, anything weird and wonderful we can think of - 1 weight
 - Stealth items: cloak, boots, sneak suit - 5 weight
 - Salvaging tools: crowbar, hammer, saw - 5 weight
-- Spotting items: binoculars, telescope, magnifying glass - 5 weight
-- Camping gear: tent, sleeping bag, campfire kit - 5 weight
-- Medical supplies: bandages, potions, herbs - 5 weight
-
-Medical items have a use count based on their quality, with common having 1 use, uncommon having 2 uses, rare having 3 uses, and epic having 5 uses.  The use count is displayed in the inventory and is decremented when used.  When the use count reaches 0, the item is removed from the inventory.  The value is a ratio of the un-used count to the total count, so a common with 1 use left is worth 100% of its value, an uncommon with 1 use left is worth 50% of its value, and an epic with 2 uses left is worth 40% of its value.
-
-Medical items can be used directly from inventory. Healing scales with camping skill plus a random component, and item uses are consumed.
 
 Each item has a colour and a quality associated with it. The quality of the item will determine how much it will change the associated skill. The colours are:
 - Common - white
@@ -459,28 +445,29 @@ The relics are:
 - Plate of Invincibility - Defending Armor - adds 50 to defending and gives a chance to re-roll the fight outcome if the player loses, in addition to the sword of power, if both are equipped, the player will always win the fight
 - Staff of Magic - Fighting Weapon - adds 50 to magic and gives a chance to re-roll the outcome of a magic event if the player fails
 - Boots of Stealth - Defending Armor - adds 50 to stealth and gives a chance to re-roll the outcome of a stealth event if the player fails
-- Eyeglass of the Master Pirate - Spotting Item - adds 50 to spotting and always find a dungeon on the 7th and 14th events, if they have the dungeons left to discover, it can't find a dungeon if they have already found the two dungeons for that leg of the journey.
-- Bandage of the tireless healer - Camping / Medical Item - adds 50 to medical and is never consumed when used.
+- Eyeglass of the Master Pirate - Accessory - adds 50 to stealth.
+- Bandage of the tireless healer - Accessory - adds 50 to defending.
 - Cloak of Invisibility - Defending Armor - adds 50 to stealth and allows the player to avoid any combat encounters, and always succeeds in stealth events.
-- Pharaoh's Ankh of Rebirth - Accessory - adds 50 to medical and restores 50% HP immediately after surviving any boss or super-monster battle.
-- Alchemist's Philosopher Stone - Salvaging Tool - adds 50 to salvaging and changes all trades (including wandering traders) to 90% sell value and 110% buy cost.
+- Pharaoh's Ankh of Rebirth - Accessory - adds 50 to defending and restores 50% HP immediately after surviving any boss or super-monster battle.
+- Alchemist's Philosopher Stone - Salvaging Tool - adds 50 to speech, improving trader buy/sell rates.
 - Crown of the Archmage - Fighting Weapon - adds 50 to magic and allows Magic skill to replace Defending in combat damage reduction.
 - Shadowstep Dagger - Fighting Weapon - adds 50 to stealth and guarantees success on Stealth Kill actions.
-- Golden Horn of Plenty - Camping / Medical Item - adds 50 to camping and makes resting at Camping Spots cost 0 medical supplies while restoring HP to 100%.
-- Mirror of Fate - Spotting Item - adds 50 to spotting and flips a fight loss outcome to an instant win once per game.
+- Golden Horn of Plenty - Accessory - adds 50 to salvaging.
+- Mirror of Fate - Accessory - adds 50 to magic and flips a fight loss outcome to an instant win once per game.
+- Silver Tongue Amulet - Accessory - adds 50 to speech, improving trader buy/sell rates.
 - Aegis Arm Guards - Accessory - adds 50 to defending, allowing non-Hitter classes to boost physical defense via accessory slot.
 - Dragon Scale Gauntlets - Accessory - adds 50 to fighting, boosting attack power in the accessory slot.
 - Ring of Arcane Power - Accessory - adds 50 to magic, boosting spellcasting power in the accessory slot.
 - Slippers of the Wind - Accessory - adds 50 to stealth, boosting evasion in the accessory slot.
 - Scavenger's Iron Claw - Salvaging Tool - adds 50 to salvaging and grants 25% extra cash on every event loot roll.
-- Eagle Eye Monocle - Spotting Item - adds 50 to spotting and reveals wandering trader inventory prices at 100% true value.
+- Eagle Eye Monocle - Accessory - adds 50 to speech, improving trader buy/sell rates.
 - Wand of the Void - Fighting Weapon - adds 50 to magic and grants 100% win rate on all Magic Trap events.
 - Behemoth Shield - Defending Armor - adds 50 to defending and reduces monster hit damage by 50% in failed fight turns.
-- Elixir of Immortality - Camping / Medical Item - adds 50 to medical and automatically cures all injury penalties after dungeon failures.
+- Elixir of Immortality - Accessory - adds 50 to defending.
 - Robe of the Archmage - Defending Armor - adds 50 to magic, boosting Blaster spellcasting and Magical Ward defense in the armor slot.
 - Orb of Sorcery - Salvaging Tool - adds 50 to magic, granting Magic skill scaling in the salvaging tool slot.
-- Crystal Ball of Prescience - Spotting Item - adds 50 to magic, granting Magic skill scaling in the spotting item slot.
-- Tome of Ancient Runes - Camping / Medical Item - adds 50 to magic, granting Magic skill scaling in the camping/medical slot.
+- Crystal Ball of Prescience - Accessory - adds 50 to magic.
+- Tome of Ancient Runes - Accessory - adds 50 to magic.
 - Amulet of Arcane Shielding - Accessory - adds 50 to magic and increases Magical Ward defense bonus from 50% to 100% of Magic skill.
 
 ### Relic Synergies
@@ -496,7 +483,7 @@ Relics found are noted in a gallery of relics that can be viewed from the main p
 
 ## Equipment
 
-Each character can have 1 fighting weapon or magic item, 1 defending armor or 1 stealth item, 1 salvaging tool, 1 spotting item, 1 camping gear or 1 medical item equipped at a time. The player can equip two accessories.
+Each character can have 1 fighting weapon or magic item, 1 defending armor or 1 stealth item, and 1 salvaging tool equipped at a time. The player can equip two accessories.
 
 Class-specific combat scaling rules apply to equipment:
 - **Hitter:** only fighting gear contributes to primary attack scaling

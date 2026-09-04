@@ -94,7 +94,7 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "Buy or sell items. Trader prices depend on relic effects."
+      "value": "Buy or sell items. Trader prices depend on your Speech skill."
     },
     {
       "type": "list",
