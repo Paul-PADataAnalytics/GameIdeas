@@ -1,8 +1,9 @@
 // Hero Adventure - browser front-end.
-// Runs the real hero_engine.py / game_data.py (fetched straight from the
-// repo) inside Pyodide (CPython-in-WASM) and renders the same JSON screen
-// contract (frames + controls) that play.py and play_gui.py use. See
-// ../UI_FRAME_PORTING_GUIDE.md for the schema this renderer implements.
+// Runs the real game_engine.py / game_controller.py / game_data.py (fetched
+// straight from the repo) inside Pyodide (CPython-in-WASM) and renders the
+// same JSON screen contract (frames + controls) that play.py and
+// play_gui.py use. See ../UI_FRAME_PORTING_GUIDE.md for the schema this
+// renderer implements.
 
 const FRAME_IDS = ["status", "scene", "context", "actions"];
 
@@ -70,16 +71,18 @@ async function loadScreen(screenId) {
 async function boot() {
   pyodide = await loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/" });
 
-  const [heroEngineSrc, gameDataSrc] = await Promise.all([
-    fetchText("../hero_engine.py"),
+  const [gameEngineSrc, gameControllerSrc, gameDataSrc] = await Promise.all([
+    fetchText("../game_engine.py"),
+    fetchText("../game_controller.py"),
     fetchText("../game_data.py"),
   ]);
 
-  pyodide.FS.writeFile("/home/pyodide/hero_engine.py", heroEngineSrc);
+  pyodide.FS.writeFile("/home/pyodide/game_engine.py", gameEngineSrc);
+  pyodide.FS.writeFile("/home/pyodide/game_controller.py", gameControllerSrc);
   pyodide.FS.writeFile("/home/pyodide/game_data.py", gameDataSrc);
 
   // Saves persist per-browser via an IndexedDB-backed virtual filesystem -
-  // hero_engine.py's SAVE_DIR ("./saves") works completely unmodified.
+  // game_engine.py's SAVE_DIR ("./saves") works completely unmodified.
   pyodide.FS.mkdirTree("/home/pyodide/saves");
   pyodide.FS.mount(pyodide.FS.filesystems.IDBFS, {}, "/home/pyodide/saves");
   await new Promise((resolve, reject) => {
@@ -89,7 +92,7 @@ async function boot() {
   pyodide.runPython(`
 import sys
 sys.path.insert(0, "/home/pyodide")
-from hero_engine import GameController
+from game_controller import GameController
 controller = GameController()
 `);
   controller = pyodide.globals.get("controller");

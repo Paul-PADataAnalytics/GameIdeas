@@ -48,9 +48,9 @@ Or use the original launcher:
 #### 2. **Character Creation**
 - Enter your character name
 - Select your class:
-  - **Hitter**: High fighting skill (melee combat)
-  - **Blaster**: High salvaging skill (ranged/magic)
-  - **Hider**: High stealth skill (sneaking/evasion)
+  - **Hitter**: +20 Fighting, +20 Defending, +20 Salvaging (melee combat)
+  - **Blaster**: +20 Magic, +20 Defending, +20 Stealth (ranged/magic)
+  - **Hider**: +20 Stealth, +20 Salvaging, +20 Magic (sneaking/evasion)
 
 #### 3. **Journey (5 Legs)**
 - Each leg presents multiple events:
@@ -61,9 +61,12 @@ Or use the original launcher:
 
 #### 4. **Battle System**
 When encountering a monster, choose your approach:
-- **🗡️ Fight**: Use fighting skill for direct combat
-- **👻 Sneak**: Use stealth to avoid combat
-- **🏃 Run Away**: Escape the encounter
+- **🗡️ Fight**: Use fighting/magic skill for direct combat
+- **👻 Sneak**: Use stealth to avoid combat entirely
+- **💰 Steal**: Risk a stealth check to grab loot without fighting
+- **🔪 Stealth Kill**: High-risk stealth check for a clean kill (karma penalty)
+- **🎯 Throw Item**: Sacrifice a consumable item for a combat edge
+- **🏃 Run Away**: Always-successful, no-reward escape
 
 #### 5. **Capital Endgame**
 - View your final stats
@@ -72,13 +75,14 @@ When encountering a monster, choose your approach:
 
 ### 📊 Scoring
 ```
-Final Score = (Cash - House Cost) × House Multiplier
+Final Score = Pension × House Multiplier
 ```
 
-Each house has different cost/multiplier ratios:
-- Budget house: Low cost, lower multiplier
-- Standard house: Medium cost, standard multiplier
-- Luxury house: High cost, high multiplier
+Pension is looked up from your cash on a flat table, then scaled by your
+hero's age at retirement (younger heroes need more cash for the same
+pension). House multipliers range from 1× (Cottage, 1,000 gold) up to
+50× (Palace, 50,000 gold) - see [README_PLAY.md](README_PLAY.md) for the
+full table.
 
 ---
 
@@ -87,18 +91,21 @@ Each house has different cost/multiplier ratios:
 ### File Structure
 ```
 hero_adventure/
-├── play_gui.py          ← NEW: GUI version (Tkinter)
-├── play.py              ← UNCHANGED: Terminal version
-├── play_launcher        ← NEW: Interactive launcher menu
-├── hero_engine.py       ← Core game engine (unchanged)
-├── game_data.py         ← Game data tables (unchanged)
-├── heroadventure.md     ← Design specification (unchanged)
+├── play_gui.py          ← GUI version (CustomTkinter)
+├── play.py              ← Terminal version (Textual)
+├── play_launcher        ← Interactive launcher menu
+├── game_engine.py       ← Core simulation/rules engine
+├── game_controller.py   ← Screen-flow controller
+├── game_data.py         ← Game data tables
+├── heroadventure.md / ARCHITECTURE.md ← Design spec / code architecture guide
 ├── UI files                   ← Four-frame declarative screen definitions
 └── UI_FRAME_PORTING_GUIDE.md  ← Shared schema and porting guide
 ```
 
 ### Requirements
-- Python 3.x (with Tkinter - usually included)
+- Python 3.x
+- `customtkinter` (see `requirements.txt`) - built on Tkinter, so a system
+  Tk install is still required (see below)
 - Same game engine and data files as terminal version
 
 ### Tkinter on Different Systems
@@ -147,7 +154,7 @@ See `UI_FRAME_PORTING_GUIDE.md` for the schema and guidance for other renderers.
 | Accessibility | Point-and-click | Keyboard only |
 | Window Size | 980x760 pixels | Full terminal |
 | Speed | Fast UI rendering | Instant text |
-| Portability | Requires Tkinter | Works everywhere |
+| Portability | Requires CustomTkinter | Works everywhere |
 
 Both renderers consume the four-frame schema. The terminal renderer uses a compact
 four-column action layout at normal widths, two-column dense context rows, and keeps
@@ -159,7 +166,7 @@ scene/context content bounded. The GUI mirrors those same geometry decisions.
 
 1. **Character Choice Matters**
    - Hitter: Best for direct combat
-   - Blaster: Good for stealing treasures
+   - Blaster: Good for magic combat and stealthy avoidance
    - Hider: Best for avoiding damage through stealth
 
 2. **Combat Strategy**
@@ -173,16 +180,20 @@ scene/context content bounded. The GUI mirrors those same geometry decisions.
    - Save enough for the house you want
 
 4. **House Selection**
-   - Multipliers range from 1.5x to 3.0x
+   - Multipliers range from 1× (Cottage) to 50× (Palace)
    - Higher multipliers require more cash upfront
-   - Strategic choice can double or triple your final score
+   - Strategic choice can massively change your final score
 
 ---
 
 ## Troubleshooting
 
-### "No module named 'tkinter'"
-Install Tkinter:
+### "No module named 'customtkinter'"
+Install it (also pulls in Tkinter as a dependency on most systems):
+```bash
+pip3 install -r requirements.txt
+```
+If Tkinter itself is missing at the OS level:
 - Ubuntu/Debian: `sudo apt-get install python3-tk`
 - Fedora: `sudo dnf install python3-tkinter`
 - macOS: Download Python from python.org (includes Tkinter)

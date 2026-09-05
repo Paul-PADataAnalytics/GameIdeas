@@ -93,7 +93,13 @@ Displays:
 
 ## Scoring System
 
-**Final Score = Remaining Gold × House Multiplier**
+**Final Score = Pension × House Multiplier**
+
+Your pension isn't just your gold - it's looked up from your cash on a flat
+table, then scaled by your hero's age at retirement (a random end-of-life
+age between 60-90 is rolled once per hero; the fewer years remaining, the
+bigger the multiplier). A Tavern retirement keeps the pension with no
+house multiplier.
 
 ### House Values
 - **Palace**: 50,000 gold cost, 50× multiplier
@@ -104,9 +110,9 @@ Displays:
 - **Tavern**: No cost, modest pension (fallback)
 
 ### Example Scoring
-- Arrive with 10,000 gold
-- Buy a Villa for 5,000 gold → 5,000 remaining
-- Score = 5,000 × 5 = **25,000 points**
+- Arrive with 12,000 gold → base pension looked up as 2,000
+- Buy a Villa for 5,000 gold (pension is calculated before the cost is paid)
+- Score = 2,000 × 5 = **10,000 points** (before any age scaling)
 
 ## Character Classes
 
@@ -136,12 +142,13 @@ Displays:
 
 ## Files Included
 
-- `play.py` - Main game launcher (this is what you run!)
-- `hero_engine.py` - Core game engine (don't modify)
+- `play.py` / `play_gui.py` - Terminal and GUI launchers (run one of these)
+- `game_engine.py` - Core simulation/rules engine (don't modify)
+- `game_controller.py` - Screen-flow controller (don't modify)
 - `game_data.py` - Game data tables (don't modify)
-- `heroadventure.md` - Design specification
+- `heroadventure.md` / `ARCHITECTURE.md` - Design specification / code architecture guide
 - `ui/` - UI layouts (reference)
-- `sim_runner.py` - Simulation mode (original)
+- `sim_runner.py` - Headless Monte Carlo simulation mode
 
 ## Game Flow
 

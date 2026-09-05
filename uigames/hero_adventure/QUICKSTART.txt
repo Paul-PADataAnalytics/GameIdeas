@@ -26,7 +26,7 @@
   4. THE CAPITAL → Retire with your gold
      • Buy a house (Cottage → Palace)
      • Or work in a tavern
-  5. FINAL SCORE → Your score = remaining gold × house multiplier
+  5. FINAL SCORE → Your score = pension (from your cash, age-scaled) × house multiplier
 
 ═══════════════════════════════════════════════════════════════════════════════
 
