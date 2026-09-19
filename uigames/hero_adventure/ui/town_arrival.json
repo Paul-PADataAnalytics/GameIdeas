@@ -1,0 +1,20 @@
+{
+  "id": "town_arrival",
+  "title": "Town Arrival",
+  "frames": [
+    {"id": "status", "role": "status", "ratio": 0.15, "priority": "P0", "overflow": "collapse"},
+    {"id": "scene", "role": "scene", "ratio": 0.5, "priority": "P0", "overflow": "truncate"},
+    {"id": "context", "role": "context", "ratio": 0.2, "priority": "P1", "overflow": "page"},
+    {"id": "actions", "role": "actions", "ratio": 0.15, "priority": "P0", "overflow": "collapse"}
+  ],
+  "controls": [
+    {"type": "text", "frame": "scene", "value": "Town Arrival", "id": "screen_title", "variant": "title"},
+    {"type": "text", "id": "hero_identity", "frame": "status", "value": "{hero_name} \u00b7 {hero_class} \u00b7 Age {age} \u00b7 Gold: ${cash}"},
+    {"type": "progressbar", "id": "hp_bar", "frame": "status", "label": "HP", "value": "{hp}", "max": "{max_hp}", "kind": "health", "thresholds": {"warning": 0.35, "critical": 0.15}, "show_text": true, "compact": true},
+    {"type": "progressbar", "id": "journey_bar", "frame": "status", "label": "Leg {leg}/5 \u00b7 Event", "value": "{event}", "max": 20, "kind": "journey", "show_text": true, "compact": true},
+    {"type": "text", "frame": "scene", "value": "You've reached the town at the edge of {leg_name}, banged up ({hp}/{max_hp} HP) from the road behind you."},
+    {"type": "text", "frame": "scene", "value": "Resting here costs time - each year you stay heals you up but ages you and carries a small risk of a job offer, a run-in with the law, or worse. You can also push on unhealed if you'd rather not linger."},
+    {"type": "button", "frame": "actions", "label": "Rest and recover here", "action": "town_rest"},
+    {"type": "button", "frame": "actions", "label": "Skip resting, continue journey", "action": "town_skip_rest"}
+  ]
+}

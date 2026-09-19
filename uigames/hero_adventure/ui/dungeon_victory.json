@@ -89,12 +89,20 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "Treasure recovered: {treasure} cash."
+      "value": "You have felled every monster guarding {dungeon_name} and forced open the boss's hoard!"
     },
     {
       "type": "text",
       "frame": "scene",
-      "value": "You return to the journey."
+      "value": "Treasure recovered: ${treasure} cash."
+    },
+    {
+      "type": "list",
+      "id": "list_dungeon_chest",
+      "frame": "context",
+      "label": "Chest Contents",
+      "overflow": "page",
+      "max_rows": 6
     },
     {
       "type": "button",

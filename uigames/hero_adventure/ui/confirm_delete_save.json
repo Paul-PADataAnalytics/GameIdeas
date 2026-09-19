@@ -1,6 +1,6 @@
 {
-  "id": "load_game",
-  "title": "Load Game",
+  "id": "confirm_delete_save",
+  "title": "Confirm Delete",
   "frames": [
     {
       "id": "status",
@@ -35,39 +35,26 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "Load Game",
+      "value": "Confirm Delete",
       "id": "screen_title",
       "variant": "title"
     },
     {
       "type": "text",
       "frame": "scene",
-      "value": "Pick a save to continue from."
-    },
-    {
-      "type": "text",
-      "frame": "scene",
-      "value": "{menu_message}"
-    },
-    {
-      "type": "list",
-      "id": "list_save_slots",
-      "frame": "scene",
-      "label": "Saved Journeys",
-      "overflow": "page",
-      "max_rows": 10
+      "value": "Delete the save for {confirm_delete_hero_name}? This cannot be undone."
     },
     {
       "type": "button",
       "frame": "actions",
-      "label": "Back",
-      "action": "goto:front_page"
+      "label": "\ud83d\uddd1 Yes, Delete It",
+      "action": "delete_slot_confirmed"
     },
     {
       "type": "button",
       "frame": "actions",
-      "label": "\ud83d\uddd1 Delete a Save",
-      "action": "view_delete_save"
+      "label": "Cancel",
+      "action": "cancel_delete_slot"
     }
   ]
 }

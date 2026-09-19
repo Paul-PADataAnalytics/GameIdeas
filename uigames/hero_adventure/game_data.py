@@ -355,7 +355,7 @@ ITEM_CATEGORIES: dict[str, ItemCategoryEntry] = {
     "fighting": {"slot": "fighting_weapon", "names": ["Sword", "Axe", "Mace", "Spear"], "weight": 10},
     "defending": {"slot": "defending_armor", "names": ["Leather Armor", "Chainmail", "Shield"], "weight": 10},
     "magic": {"slot": "fighting_weapon", "names": ["Wand", "Staff", "Spellbook"], "weight": 3},
-    "accessories": {"slot": "accessory", "names": ["Ring", "Amulet", "Bracelet", "Lockpicks", "Survival Knife"], "weight": 1},
+    "accessories": {"slot": "accessory", "names": ["Ring", "Amulet", "Bracelet", "Lockpicks"], "weight": 1},
     "stealth": {"slot": "defending_armor", "names": ["Cloak", "Boots", "Sneak Suit"], "weight": 5},
     "salvaging": {"slot": "salvaging_tool", "names": ["Crowbar", "Hammer", "Saw"], "weight": 5}
 }
@@ -684,10 +684,10 @@ EVENT_NARRATION_TEMPLATES: dict[str, list[str]] = {
         "While traveling {leg_vibe}, {hero_name} came face to face with a super monster that looked deeply offended.",
     ],
     "wander_group": [
-        "While traveling through {leg_vibe}, {hero_name} fell in with a wander group that knew a shortcut.",
+        "While traveling through {leg_vibe}, {hero_name} fell in with a band of wanderers who knew a shortcut.",
         "On {leg_vibe}, {hero_name} joined a strange little band of travelers and let them take the lead.",
         "Near {leg_vibe}, {hero_name} was swept along by a helpful group with suspiciously good directions.",
-        "While crossing {leg_vibe}, {hero_name} let a wander group hustle the journey forward.",
+        "While crossing {leg_vibe}, {hero_name} let a band of wanderers hustle the journey forward.",
     ],
     "fairy_found": [
         "While moving through {leg_vibe}, {hero_name} noticed a tiny fairy fluttering around with trouble in its eyes.",
@@ -829,7 +829,7 @@ OUTCOME_TEXT: dict[str, str] = {
     "levelup_continue": "You finish training and set out for the next leg.",
     "run_away": "You run from {monster} and hurry back to the road.",
     "fairy_found": "You captured a fairy!",
-    "wander_group": "The wander group helped you cover extra ground.",
+    "wander_group": "The band of wanderers helped you cover extra ground.",
     "magic_shrine": "The shrine granted you ${cash}{item_part}.",
     "magic_shrine_item_part": " and {count} item(s)",
     "retired_early": "Retired early as a {profession}",

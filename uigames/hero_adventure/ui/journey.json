@@ -113,6 +113,11 @@
     {
       "type": "text",
       "frame": "scene",
+      "value": "{last_outcome_text}"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
       "value": "{inventory_full_message}"
     },
     {

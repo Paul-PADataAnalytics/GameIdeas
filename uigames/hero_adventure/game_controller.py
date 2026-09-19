@@ -25,6 +25,7 @@ from game_data import (
     REPEAT_ENCOUNTER_TEMPLATES, ORIGIN_STORY_TEMPLATES, REMINISCENCE_TEMPLATES,
     REMINISCENCE_CHANCE, REMINISCENCE_ELIGIBLE_EVENTS, NARRATION_EVENT_SCREENS,
     LEGS, MONSTERS, CLASSES, DEATH_REASONS, DUNGEON_EXIT_REASONS,
+    BOSS_BONUS_TIER_BY_LEG,
     Dungeon, HonorificTitle, House, Item, Pension,
 )
 from game_engine import HeroAdventureEngine
@@ -60,10 +61,13 @@ class GameController:
         self.trader_offer: list[Item] = []
         self.town_shop_offer: list[Item] = []
         self._save_slot_paths: list[Path] = []
+        self._delete_slot_paths: list[Path] = []
+        self._pending_delete_path: Path | None = None
         self.levelup_chosen: list[str] = []
         self.selected_item_letter: str | None = None
         self.current_narration: str = ""
         self.loot_discarded_indices: set[int] = set()
+        self.dungeon_chest_discarded_indices: set[int] = set()
         self.failed_adventurer: bool = False
         # Instrumentation only (not persisted in saves): counts how many
         # times each narration template (category:index) has been chosen
@@ -318,6 +322,8 @@ class GameController:
         ctx["menu_message"] = ctx.get("menu_message", "")
         ctx["save_message"] = ctx.get("save_message", "")
         ctx["inventory_full_message"] = ctx.get("inventory_full_message", "")
+        ctx["last_outcome_text"] = ctx.get("last_outcome_text", "")
+        ctx["delete_message"] = ctx.get("delete_message", "")
         ctx["event_narration"] = self.current_narration if self.screen in NARRATION_EVENT_SCREENS else ""
         ctx["pending_name"] = self.pending_name
         ctx["pending_class"] = self.pending_class or "(none)"
@@ -341,7 +347,7 @@ class GameController:
             if item:
                 stat: str = f"+{item.get('skill_val', 0)} {item.get('skill', '')}" if item.get("skill") else "Relic"
                 ctx.update({
-                    "item_name": item["name"], "item_tier": item.get("tier", ""),
+                    "item_name": item["name"], "item_tier": self._item_tier_suffix(item),
                     "item_stat": stat, "item_value": item["value"], "item_weight": item["weight"],
                     "item_uses": item.get("uses"), "item_slot": item.get("slot", ""),
                     "can_equip": slot is None, "can_unequip": slot is not None,
@@ -422,7 +428,7 @@ class GameController:
         for letter, item, slot in self._letter_items():
             tag: str = "\u2705 Equipped" if slot else "\U0001f392 Backpack"
             stat: str = f"+{item.get('skill_val', 0)} {item.get('skill', '')}" if item.get("skill") else "Relic"
-            text: str = (f"{letter} - [{tag}] {item['name']} ({item.get('tier', '')}) "
+            text: str = (f"{letter} - [{tag}] {item['name']}{self._item_tier_suffix(item)} "
                     f"{stat} | ${item['value']} | {item['weight']}wt")
             highlight: None | str = None if slot else self._item_highlight(item)
             row = {"text": text, "action": f"select_item:{letter}", "enabled": True, "highlight": highlight}
@@ -452,9 +458,25 @@ class GameController:
         for idx, item in enumerate(items):
             stat: str = f"+{item.get('skill_val', 0)} {item.get('skill', '')}" if item.get("skill") else "Relic"
             tag: str = "\u274c DISCARD" if idx in self.loot_discarded_indices else "\u2705 KEEP"
-            text: str = (f"[{tag}] {item['name']} ({item.get('tier', '')}) {stat} | "
+            text: str = (f"[{tag}] {item['name']}{self._item_tier_suffix(item)} {stat} | "
                     f"${item['value']} | {item['weight']}wt")
             rows.append({"text": text, "action": f"toggle_loot_item:{idx}", "enabled": True})
+        return rows
+
+    def _build_dungeon_chest_rows(self):
+        """Rows for the dungeon-victory chest, mirroring the combat loot
+        screen so the player can toggle each bonus item between kept and
+        discarded before it lands in the backpack."""
+        items = self.ctx.get("chest_items") or []
+        if not items:
+            return [{"text": "The chest was empty.", "action": None, "enabled": False}]
+        rows = []
+        for idx, item in enumerate(items):
+            stat: str = f"+{item.get('skill_val', 0)} {item.get('skill', '')}" if item.get("skill") else "Relic"
+            tag: str = "\u274c DISCARD" if idx in self.dungeon_chest_discarded_indices else "\u2705 KEEP"
+            text: str = (f"[{tag}] {item['name']}{self._item_tier_suffix(item)} {stat} | "
+                    f"${item['value']} | {item['weight']}wt")
+            rows.append({"text": text, "action": f"toggle_dungeon_chest_item:{idx}", "enabled": True})
         return rows
 
     def _build_character_stats_rows(self):
@@ -486,7 +508,7 @@ class GameController:
             else:
                 bonus = "Relic effect"
             rows.append({
-                "text": f"{label}: {item['name']} ({item.get('tier', '')}) {bonus} | {item['weight']}wt",
+                "text": f"{label}: {item['name']}{self._item_tier_suffix(item)} {bonus} | {item['weight']}wt",
                 "action": None,
                 "enabled": False,
             })
@@ -632,7 +654,7 @@ class GameController:
         for idx, item in enumerate(self.trader_offer):
             cost = int(item["value"] * mult)
             affordable: bool = self.engine.cash >= cost
-            text: str = f"{item['name']} ({item.get('tier', '')}) - ${cost}" + ("" if affordable else " (can't afford)")
+            text: str = f"{item['name']}{self._item_tier_suffix(item)} - ${cost}" + ("" if affordable else " (can't afford)")
             rows.append({"text": text, "action": f"trader_buy:{idx}" if affordable else None, "enabled": affordable})
         if not rows:
             rows.append({"text": "(Sold out)", "action": None, "enabled": False})
@@ -658,7 +680,7 @@ class GameController:
         for idx, item in enumerate(self.town_shop_offer):
             cost = int(item["value"] * mult)
             affordable: bool = self.engine.cash >= cost
-            text: str = f"{item['name']} ({item.get('tier', '')}) - ${cost}" + ("" if affordable else " (can't afford)")
+            text: str = f"{item['name']}{self._item_tier_suffix(item)} - ${cost}" + ("" if affordable else " (can't afford)")
             rows.append({"text": text, "action": f"town_buy:{idx}" if affordable else None, "enabled": affordable})
         if not rows:
             rows.append({"text": "(Sold out)", "action": None, "enabled": False})
@@ -683,7 +705,7 @@ class GameController:
         lines = []
         for item in items:
             stat: str = f"+{item.get('skill_val', 0)} {item.get('skill', '')}" if item.get("skill") else "Relic"
-            text: str = f"{item['name']} ({item.get('tier', '')}) {stat} | ${item['value']} | {item['weight']}wt"
+            text: str = f"{item['name']}{self._item_tier_suffix(item)} {stat} | ${item['value']} | {item['weight']}wt"
             lines.append({"text": text, "action": None, "enabled": False})
         if not lines:
             lines.append({"text": "No items dropped.", "action": None, "enabled": False})
@@ -874,6 +896,57 @@ class GameController:
             self.screen = "front_page"
             self.ctx = {"menu_message": "Save file is invalid or incompatible."}
 
+    def _action_view_delete_save(self) -> None:
+        slots = self._list_save_slots()
+        if not slots:
+            self.ctx = {"menu_message": "No valid save file was found."}
+            self.screen = "load_game"
+            return
+        self._delete_slot_paths = [path for path, _ in slots]
+        rows = [
+            {
+                "text": f"Leg {summary['leg']} - Event {summary['event']} - Hero: {summary['hero_name']}",
+                "action": f"confirm_delete_slot:{idx}",
+                "enabled": True,
+            }
+            for idx, (_, summary) in enumerate(slots)
+        ]
+        self.ctx = {"list_delete_slots": rows}
+        self.screen = "delete_save"
+
+    def _action_confirm_delete_slot(self, idx_str) -> None:
+        try:
+            idx = int(idx_str)
+        except (TypeError, ValueError):
+            return
+        if not (0 <= idx < len(self._delete_slot_paths)):
+            return
+        path: Path = self._delete_slot_paths[idx]
+        try:
+            summary = self._save_summary(json.loads(path.read_text()))
+        except (OSError, json.JSONDecodeError):
+            summary = None
+        self._pending_delete_path = path
+        self.ctx = {"confirm_delete_hero_name": (summary or {}).get("hero_name", path.stem)}
+        self.screen = "confirm_delete_save"
+
+    def _action_delete_slot_confirmed(self) -> None:
+        path: Path | None = self._pending_delete_path
+        self._pending_delete_path = None
+        hero_name: str = self.ctx.get("confirm_delete_hero_name", "that hero")
+        if path is not None:
+            path.unlink(missing_ok=True)
+        self._action_view_delete_save()
+        if not self.ctx.get("list_delete_slots"):
+            self.ctx["menu_message"] = f"Deleted save for {hero_name}. No saves remain."
+            self.screen = "load_game"
+        else:
+            self.ctx["delete_message"] = f"Deleted save for {hero_name}."
+
+    def _action_cancel_delete_slot(self) -> None:
+        self._pending_delete_path = None
+        self._action_view_delete_save()
+
     def _action_save_game(self) -> None:
         if not self.engine:
             self._set_menu_message("Start or load a game before saving.")
@@ -1029,11 +1102,11 @@ class GameController:
                 self.ctx = {}
                 self.screen = "capital"
                 return
-            self._go_to_journey("The wander group helped you cover extra ground.")
+            self._go_to_journey(f"{self.current_narration} The band of wanderers helped you cover extra ground.".strip())
         elif event_type == "FAIRY_FOUND":
             self._set_narration("fairy_found")
             e.capture_fairy()
-            self._go_to_journey("You captured a fairy!")
+            self._go_to_journey(f"{self.current_narration} You captured a fairy!".strip())
         else:
             monster: str = e.get_random_monster()
             e.monster_encounter_counts[monster] = e.monster_encounter_counts.get(monster, 0) + 1
@@ -1044,6 +1117,17 @@ class GameController:
             self._start_combat(monster, "regular", allow_run=True)
 
     # -- Town Recovery (aging) ------------------------------------------
+    def _item_tier_suffix(self, item) -> str:
+        """Returns a ' (Tier)' suffix for item display strings, but omits it
+        when the item's own name already starts with its tier (e.g. generated
+        gear named "Common Amulet" for tier "Common"), to avoid redundant
+        text like "Common Amulet (Common)". Named relics (whose unique name
+        doesn't bake in a tier) still get the tier suffix shown."""
+        tier: str = item.get("tier", "")
+        if not tier or item.get("name", "").startswith(f"{tier} "):
+            return ""
+        return f" ({tier})"
+
     def _generate_town_blurb(self, job_offer=False) -> tuple[str, str]:
         assert self.engine is not None
         profession: str = random.choice(TOWN_PROFESSIONS)
@@ -1063,9 +1147,10 @@ class GameController:
         return blurb, profession
 
     def _enter_town_recovery(self) -> None:
-        """Mandatory town stop at the start of a new leg. Skipped entirely
-        if the hero is already at full HP; otherwise plays out one year at
-        a time (10 HP healed per year, hero ages by 1), with a per-year
+        """Mandatory town stop at the start of a new leg, but only if the
+        hero chooses to rest (town_arrival screen). Skipped entirely if the
+        hero is already at full HP. Once resting begins, plays out one year
+        at a time (10 HP healed per year, hero ages by 1), with a per-year
         5% chance of a permanent job offer and a forced failed-adventurer
         ending if age 50 is reached."""
         assert self.engine is not None
@@ -1073,7 +1158,16 @@ class GameController:
             self._enter_level_up()
             return
         self.town_shop_offer = self.engine.generate_trader_offer()
+        self.ctx = {}
+        self.screen = "town_arrival"
+
+    def _action_town_rest(self) -> None:
         self._prepare_town_year()
+
+    def _action_town_skip_rest(self) -> None:
+        self.town_shop_offer = []
+        self.ctx = {}
+        self._enter_level_up()
 
     def _enter_level_up(self) -> None:
         self.levelup_chosen = []
@@ -1172,9 +1266,14 @@ class GameController:
 
     def _go_to_journey(self, outcome_text="") -> None:
         """Returns to the journey screen carrying a one-shot outcome summary
-        (rendered in green) so completing an event doesn't look identical
-        to a brand-new one. The next _action_advance_event() call replaces
+        (rendered in journey.json's last_outcome_text control) so completing
+        an event doesn't look identical to a brand-new one. Also clears
+        current_narration, which otherwise still holds the *previous*
+        screen's event text - left alone, journey.json's event_narration
+        control would keep showing that stale text and make it look like
+        nothing happened. The next _action_advance_event() call replaces
         self.ctx wholesale, so this text naturally disappears."""
+        self.current_narration = ""
         self.ctx = {"last_outcome_text": outcome_text}
         self.screen = "journey"
         # Force-save after every completed event so progress is never lost.
@@ -1245,13 +1344,51 @@ class GameController:
         assert e is not None
         treasure: int = random.randint(200, 500)
         e.cash += treasure
+        leg_num: int = e.current_leg_idx + 1
+        bonus_tier: str = BOSS_BONUS_TIER_BY_LEG.get(leg_num, "Epic")
+        chest_items: list[Item] = [
+            e.generate_random_item(leg_num=leg_num, quality_bias=bonus_tier)
+            for _ in range(random.randint(2, 3))
+        ]
+        e.inventory.extend(chest_items)
         e.leave_dungeon(DUNGEON_EXIT_REASONS["boss_defeated"])
-        self.ctx = {"treasure": treasure}
+        self.dungeon_chest_discarded_indices = set()
+        self.ctx = {
+            "dungeon_name": e.dungeon_name or "the dungeon",
+            "treasure": treasure,
+            "chest_items": chest_items,
+        }
+        self.ctx["list_dungeon_chest"] = self._build_dungeon_chest_rows()
         self.screen = "dungeon_victory"
 
+    def _action_toggle_dungeon_chest_item(self, idx_str) -> None:
+        try:
+            idx = int(idx_str)
+        except (TypeError, ValueError):
+            return
+        if idx in self.dungeon_chest_discarded_indices:
+            self.dungeon_chest_discarded_indices.discard(idx)
+        else:
+            self.dungeon_chest_discarded_indices.add(idx)
+        self.ctx["list_dungeon_chest"] = self._build_dungeon_chest_rows()
+
     def _action_dungeon_victory_continue(self) -> None:
+        assert self.engine is not None
+        chest_items: list[Item] = self.ctx.get("chest_items") or []
+        discarded = [item for idx, item in enumerate(chest_items) if idx in self.dungeon_chest_discarded_indices]
+        if discarded:
+            self.engine.inventory = [it for it in self.engine.inventory if not any(it is d for d in discarded)]
+        kept_count: int = len(chest_items) - len(discarded)
+        self.dungeon_chest_discarded_indices = set()
         treasure = self.ctx.get("treasure", 0)
-        self._go_to_journey(f"You cleared the dungeon and found ${treasure} in treasure!")
+        dungeon_name = self.ctx.get("dungeon_name", "the dungeon")
+        outcome = (
+            f"You have felled every monster guarding {dungeon_name} and broken open the boss's "
+            f"hoard - ${treasure} in treasure"
+            + (f" and {kept_count} item{'s' if kept_count != 1 else ''} claimed!" if kept_count else "!")
+        )
+        self._go_to_journey(outcome)
+
 
     # -- Wandering trader -----------------------------------------------
     def _action_trader_buy(self, idx_str) -> None:

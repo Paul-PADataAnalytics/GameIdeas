@@ -27,8 +27,25 @@ function $(id) {
 
 function showError(message) {
   const banner = $("error-banner");
-  banner.textContent = message;
+  banner.innerHTML = "";
+  const text = document.createElement("span");
+  text.className = "error-banner-text";
+  text.textContent = message;
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.className = "error-banner-close";
+  closeBtn.setAttribute("aria-label", "Dismiss error");
+  closeBtn.textContent = "\u2715";
+  closeBtn.addEventListener("click", hideError);
+  banner.appendChild(text);
+  banner.appendChild(closeBtn);
   banner.hidden = false;
+}
+
+function hideError() {
+  const banner = $("error-banner");
+  banner.hidden = true;
+  banner.innerHTML = "";
 }
 
 // -- Template formatting: mirrors play.py's SafeDict + str.format_map -----
@@ -347,9 +364,15 @@ function appendGenericControl(parent, control, ctx, onAction) {
 async function handleAction(action) {
   try {
     controller.dispatch(action);
-    if (action.startsWith("save_game") || action.startsWith("load_slot") || action.startsWith("save_and_quit")) {
+    if (
+      action.startsWith("save_game") ||
+      action.startsWith("load_slot") ||
+      action.startsWith("save_and_quit") ||
+      action.startsWith("delete_slot")
+    ) {
       await persistSaves();
     }
+    hideError();
     await refreshScreen();
   } catch (err) {
     console.error(err);

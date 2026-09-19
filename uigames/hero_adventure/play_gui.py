@@ -46,6 +46,7 @@ class DeclarativeGUI:
         self.root = root
         self.root.title("Hero Adventure")
         self.root.geometry("980x760")
+        self.root.minsize(760, 560)
         self.controller = GameController()
         self.screens = self._load_screens()
         self.name_var = ctk.StringVar(value="")
@@ -55,9 +56,27 @@ class DeclarativeGUI:
         self._status_bars = None
         self._scene_frame = None
         self._context_frame = None
+        self._wraplengths = {"status": 4000, "scene": 900, "context": 260, "actions": 4000}
+        self._resize_after_id = None
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
+        self.root.bind("<Configure>", self._on_root_configure)
+        self.render()
+
+    def _on_root_configure(self, event):
+        # Debounce: window resizing fires many <Configure> events per drag;
+        # only re-render (recomputing wraplengths for the new size) once
+        # the size has settled for a moment, and only for the root window
+        # itself (child widget Configure events also bubble up here).
+        if event.widget is not self.root:
+            return
+        if self._resize_after_id is not None:
+            self.root.after_cancel(self._resize_after_id)
+        self._resize_after_id = self.root.after(150, self._on_resize_settled)
+
+    def _on_resize_settled(self):
+        self._resize_after_id = None
         self.render()
 
     def _load_screens(self):

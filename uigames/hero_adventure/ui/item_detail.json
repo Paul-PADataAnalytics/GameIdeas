@@ -89,7 +89,7 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "{item_name} ({item_tier})"
+      "value": "{item_name}{item_tier}"
     },
     {
       "type": "text",

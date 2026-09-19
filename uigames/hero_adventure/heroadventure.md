@@ -400,7 +400,7 @@ The loot table is made up of the following items for each leg of the journey and
 - Fighting weapons: sword, axe, mace, spear - 10 weight
 - Defending armor: leather armor, chainmail, shield - 10 weight
 - Magic items: wand, staff, spellbook - 3 weight
-- Accessories: ring, amulet, bracelet, lockpicks, survival knife, anything weird and wonderful we can think of - 1 weight
+- Accessories: ring, amulet, bracelet, lockpicks, anything weird and wonderful we can think of - 1 weight
 - Stealth items: cloak, boots, sneak suit - 5 weight
 - Salvaging tools: crowbar, hammer, saw - 5 weight
 

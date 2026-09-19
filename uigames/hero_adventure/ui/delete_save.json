@@ -1,6 +1,6 @@
 {
-  "id": "load_game",
-  "title": "Load Game",
+  "id": "delete_save",
+  "title": "Delete a Save",
   "frames": [
     {
       "id": "status",
@@ -35,14 +35,19 @@
     {
       "type": "text",
       "frame": "scene",
-      "value": "Load Game",
+      "value": "Delete a Save",
       "id": "screen_title",
       "variant": "title"
     },
     {
       "type": "text",
       "frame": "scene",
-      "value": "Pick a save to continue from."
+      "value": "Pick a save to permanently delete. This cannot be undone."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{delete_message}"
     },
     {
       "type": "text",
@@ -51,7 +56,7 @@
     },
     {
       "type": "list",
-      "id": "list_save_slots",
+      "id": "list_delete_slots",
       "frame": "scene",
       "label": "Saved Journeys",
       "overflow": "page",
@@ -60,14 +65,8 @@
     {
       "type": "button",
       "frame": "actions",
-      "label": "Back",
-      "action": "goto:front_page"
-    },
-    {
-      "type": "button",
-      "frame": "actions",
-      "label": "\ud83d\uddd1 Delete a Save",
-      "action": "view_delete_save"
+      "label": "Back to Load Game",
+      "action": "goto:load_game"
     }
   ]
 }

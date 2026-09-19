@@ -40,16 +40,42 @@ html, body {
 }
 
 #error-banner {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
   background: #4a1414;
   color: #ffd7d7;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 0.75rem;
   font-size: 0.9rem;
-  z-index: 50;
   border-top: 2px solid var(--bad);
+  max-height: 30vh;
+  overflow-y: auto;
+}
+
+#error-banner[hidden] { display: none; }
+
+.error-banner-text {
+  flex: 1 1 auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.error-banner-close {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 1px solid #ffd7d7;
+  color: #ffd7d7;
+  border-radius: 4px;
+  width: 1.75rem;
+  height: 1.75rem;
+  line-height: 1;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.error-banner-close:hover {
+  background: rgba(255, 215, 215, 0.15);
 }
 
 #app {
