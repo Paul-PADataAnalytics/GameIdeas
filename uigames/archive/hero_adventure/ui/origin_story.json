@@ -1,0 +1,65 @@
+{
+  "id": "origin_story",
+  "title": "The Road Begins",
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
+  ],
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "The Road Begins",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "id": "hero_identity",
+      "frame": "status",
+      "value": "{hero_name} \u00b7 {hero_class}"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "{event_narration}"
+    },
+    {
+      "type": "text",
+      "frame": "context",
+      "value": "Leg 1 of 5: {leg_name}"
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "\u25b6 Begin the Journey",
+      "action": "origin_continue"
+    }
+  ]
+}

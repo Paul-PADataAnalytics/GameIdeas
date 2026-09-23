@@ -1,0 +1,69 @@
+{
+  "id": "credits",
+  "title": "Credits",
+  "frames": [
+    {
+      "id": "status",
+      "role": "status",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    },
+    {
+      "id": "scene",
+      "role": "scene",
+      "ratio": 0.5,
+      "priority": "P0",
+      "overflow": "truncate"
+    },
+    {
+      "id": "context",
+      "role": "context",
+      "ratio": 0.2,
+      "priority": "P1",
+      "overflow": "page"
+    },
+    {
+      "id": "actions",
+      "role": "actions",
+      "ratio": 0.15,
+      "priority": "P0",
+      "overflow": "collapse"
+    }
+  ],
+  "controls": [
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Credits",
+      "id": "screen_title",
+      "variant": "title"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Hero Adventure"
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "A declarative UI RPG backed by a Python engine."
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": ""
+    },
+    {
+      "type": "text",
+      "frame": "scene",
+      "value": "Design, systems, and future ports are intended to share the same rule source."
+    },
+    {
+      "type": "button",
+      "frame": "actions",
+      "label": "Back",
+      "action": "goto:front_page"
+    }
+  ]
+}
